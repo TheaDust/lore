@@ -35,21 +35,15 @@ lore mirror
 # Rewrites CLAUDE.md and other platform files from current state
 ```
 
-A sixth read-only command surfaces the git history behind a memory entry:
-
-```bash
-lore history                    # List commits for an entry / file / scope
-lore history DEC-2026-02-03-7c19
-lore history frontend/src/store/index.ts
-lore history --scope=frontend   # all .md files in that scope
-lore history --json             # machine-readable
-```
-
 Three read-only commands round out the toolkit:
 
 ```bash
-lore query    # Answer a question from memory, cite entry IDs
-lore audit    # Check memory vs. reality, write report to .lore/audit/
+lore query                          # Answer a question from memory, cite entry IDs
+lore audit                          # Check memory vs. reality, write report to .lore/audit/
+lore history DEC-2026-02-03-7c19    # Show git commits that touched an entry's code
+lore history frontend/src/store.ts  # ...or a file
+lore history --scope=frontend       # ...or every lore file in a scope
+lore history --json                 # machine-readable
 ```
 
 ## What lives in `.lore/`
@@ -79,7 +73,7 @@ Each entry is a single Markdown bullet (≤ 2 lines) with a deterministic ID and
 - [CONV-2026-01-20-b1e8] Never commit secrets; use `dotenv` + `.env.local`. #added:2026-01-20
 ```
 
-## Six workflows
+## Seven workflows
 
 | Command | What it does | Writes |
 |---|---|---|
@@ -147,6 +141,7 @@ python scripts/list_entries.py                            # List all entries (te
 python scripts/list_entries.py --scope=frontend --json    # Filtered JSON
 python scripts/find_duplicates.py                          # Find potential duplicates
 python scripts/find_stale.py --days=90                    # Find stale entries
+python scripts/history.py DEC-2026-02-03-7c19             # Show git history for an entry
 ```
 
 All scripts are cross-platform Python 3.6+ with no third-party dependencies. See `scripts/README.md` (English) or `scripts/README.zh-CN.md` (中文) for details.
