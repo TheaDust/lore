@@ -57,7 +57,7 @@ def check_schema_version(lore_root: Path) -> None:
         print(
             "[WARN] .lore/.config.json has no schema_version field. "
             "Add \"schema_version\": 1 so future lore upgrades can detect "
-            "this config and run scripts/migrate.py automatically.",
+            "this config and prompt for migrations when they exist.",
             file=sys.stderr,
         )
     elif isinstance(version, int) and version > KNOWN_SCHEMA_VERSION:
