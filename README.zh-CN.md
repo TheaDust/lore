@@ -12,6 +12,8 @@
 
 一个由 AI 智能体维护的软件项目长期知识库。它捕获那些通常只存在于原始开发者脑中的上下文——架构、决策、约定——并以纯 Markdown 文件形式持久化，任何智能体都能消费。
 
+> **lore 是一个 SKILL，不是 CLI 工具。** 它是一份 Markdown 规范（[`SKILL.md`](SKILL.md)），AI 编程 agent（Claude Code、Cursor、OpenCode、Cline、Aider、GitHub Copilot）读取后获得长期项目记忆。你不需要 `npm install` 或 `pip install` `lore`；把仓库 URL 给 agent，让它装上即可。之后 `lore init`、`lore sync` 这些**短语是你对 agent 说的话**，不是终端命令——你的 `PATH` 上没有 `lore` 这个二进制。
+
 ## 安装
 
 ```bash
@@ -38,6 +40,8 @@ git clone git@github.com:TheaDust/lore.git <你的-agent-skills-目录>
 lore 维护一个单一事实源（`.lore/`），并把它投影到你的 agent 已经读取的配置文件里。它追踪**为什么**做某个决策，而不只是代码**做了什么**，并把这个历史跨 session、跨工具保留下来。
 
 ## 快速上手
+
+下面的命令是**你对 agent 说的短语**——没有 `lore` 这个二进制。Agent 加载本 skill 后，会按 [`SKILL.md`](SKILL.md) 里定义的工作流执行每个短语。原来要在终端敲的活，交给 agent 就行。
 
 ```bash
 # 1. 初始化（每个项目运行一次）

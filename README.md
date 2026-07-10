@@ -12,6 +12,8 @@
 
 A long-term knowledge base for software projects, maintained by AI agents. Captures the kind of context that normally lives only in the original developer's head — architecture, decisions, conventions — and persists it as plain Markdown files that any agent can consume.
 
+> **lore is a SKILL, not a CLI tool.** It is a Markdown spec ([`SKILL.md`](SKILL.md)) that AI coding agents — Claude Code, Cursor, OpenCode, Cline, Aider, GitHub Copilot — read to gain long-term project memory. You do not `npm install` or `pip install` lore; you give your agent the URL and ask it to install the skill. From then on, phrases like `lore init` and `lore sync` are commands you say to your agent, **not** commands you type in a terminal. There is no `lore` binary on your `PATH`.
+
 ## Installation
 
 ```bash
@@ -38,6 +40,8 @@ When you work on a project across multiple AI tools (Claude Code, Cursor, Cline,
 lore maintains a single source of truth (`.lore/`) and projects it into whatever config files your agents already read. It tracks *why* decisions were made, not just *what* the code does, and keeps that history across sessions and tools.
 
 ## Quick start
+
+The commands below are **phrases you say to your agent** — there is no `lore` binary. With this skill loaded, your agent runs each phrase through the workflow defined in [`SKILL.md`](SKILL.md). Anything you'd normally type into a terminal goes to the agent instead.
 
 ```bash
 # 1. Initialize (run once per project)
