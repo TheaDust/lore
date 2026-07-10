@@ -57,9 +57,13 @@ Controls how much confirmation `sync` requires for individual change types.
 
 ### `mirror_targets`
 
-Default: `["CLAUDE.md"]`.
+Optional. Array of file paths (relative to project root) that should be kept in sync with `.lore/*`. Path must match one of the platform entries in `references/platform-mirrors.md`. Unsupported paths trigger a warning at config-load time.
 
-Array of file paths (relative to project root) that should be kept in sync with `.lore/*`. Path must match one of the platform entries in `references/platform-mirrors.md`. Unsupported paths trigger a warning at config-load time.
+If absent: mirror targets are auto-detected at runtime by scanning the project root for existing platform files. If no platform files exist, the user is asked via a multi-select question (during `init` or the first `mirror` call). See `references/platform-mirrors.md` for the resolution algorithm.
+
+If present: used verbatim. Empty array `[]` is valid and disables mirror generation.
+
+When auto-detection is in effect, `lore init` populates this field with the user's selections so subsequent runs are silent.
 
 ### `mirror_mode`
 
