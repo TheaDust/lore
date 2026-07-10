@@ -1,8 +1,30 @@
 # lore
 
+<p align="center">
+  <img src="docs/lore-poster.svg" alt="lore — a long memory for short-lived agents" width="100%">
+</p>
+
+<p align="center"><em>Every project has a memory. Most of it lives only in the original developer's head — the half-finished sentences in old PRs, the war stories behind a folder name, the conventions that exist because somebody got tired of arguing. <strong>lore</strong> gives that memory a home in plain Markdown, where any agent can read it and any human can edit it. The agents come and go; the memory stays.</em></p>
+
+<p align="right"><a href="README.zh-CN.md">简体中文</a> · <a href="https://github.com/TheaDust/lore/blob/main/README.md">English</a> (this page)</p>
+
 > Framework-agnostic project memory for AI coding agents.
 
 A long-term knowledge base for software projects, maintained by AI agents. Captures the kind of context that normally lives only in the original developer's head — architecture, decisions, conventions — and persists it as plain Markdown files that any agent can consume.
+
+## Installation
+
+```bash
+git clone https://github.com/TheaDust/lore.git <your-agent-skills-dir>
+```
+
+Or, simpler — tell your agent:
+
+> Install https://github.com/TheaDust/lore as a skill.
+
+Each agent host loads skills from its own directory (`~/.claude/skills/` for Claude Code, `<project>/.claude/skills/` for project-scoped, etc.). Your agent knows its own skills directory and can clone the repo into the right place.
+
+> Looking for a specific doc? Jump to: [Quick start](#quick-start) · [What it looks like](#what-this-looks-like) · [What lives in `.lore/`](#what-lives-in-lore) · [Seven workflows](#seven-workflows) · [Platform mirrors](#platform-mirrors) · [Configuration](#configuration) · [Upgrading](#upgrading) · [FAQ](#faq). Full reference docs live in [`references/`](references/).
 
 ## What it solves
 
@@ -46,6 +68,86 @@ lore history --scope=frontend       # ...or every lore file in a scope
 lore history --json                 # machine-readable
 ```
 
+## What this looks like
+
+### Querying memory
+
+> You: "How does this project authenticate API requests?"
+> Agent (uses `lore query auth`):
+
+```
+Found 6 entries matching 'auth':
+
+  [_global/DECISIONS.md#DEC-2026-07-10-6d9c]
+    Opaque base64 tokens over JWT; reason: simpler revocation, no library dep.
+
+  [scopes/backend/ARCHITECTURE.md#ARCH-2026-07-10-59ac]
+    Auth helpers in backend/app/auth.py:
+    hash_password, issue_token, login_required decorator.
+
+  [scopes/backend/CONVENTIONS.md#CONV-2026-07-10-84e3]
+    Missing/invalid token returns 401; resource not found returns 404.
+
+  [scopes/frontend/ARCHITECTURE.md#ARCH-2026-07-10-6de2]
+    Auth token stored in localStorage under todo.auth.token key.
+
+  [scopes/frontend/DECISIONS.md#DEC-2026-07-10-c1ea]
+    Axios over raw fetch; reason: interceptors for auth header injection.
+```
+
+Every answer cites the exact `[file#ID]` so you can `cat` the entry or run `lore history <ID>` to see why the decision exists.
+
+### What `CLAUDE.md` looks like
+
+`lore` keeps per-session cost flat by emitting a small index, not the full memory:
+
+```markdown
+## Lore (auto-managed)
+
+Project memory. Read deeper on demand.
+
+**Structure**:
+- Digest: `.lore/SUMMARY.md` (top-level overview)
+- Global: `.lore/_global/` (architecture, decisions, conventions)
+- Scopes:
+  - `backend` (Flask 3 + SQLAlchemy 2 + pytest; Python 3.11+)
+  - `frontend` (React 18 + TypeScript + Vite + Zustand + Axios)
+  - `shared` (TypeScript types mirrored as Python dataclasses)
+
+**Query**: `lore query <term>` or `lore query <scope>:<term>`
+**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror)
+
+---
+## My notes (free edit)
+
+- Anything you write here is preserved verbatim across every sync.
+```
+
+### Git traceability with `lore history`
+
+> `lore history DEC-2026-07-10-e45d` (asking "why did we choose bcrypt?")
+
+```
+# history: [DEC-2026-07-10-e45d]
+
+> Entry: scopes\backend\DECISIONS.md
+> Since: 2026-07-10 (entry #added date)
+> File: backend
+> Commits: 2 (showing all)
+
+## 9f264f4 (2026-07-10, Lore Tester)
+feat(backend): add alembic migrations and switch password hashing to bcrypt
+
+## ed2b288 (2026-07-10, Lore Tester)
+feat(backend): password hashing and JWT-style auth tokens
+
+## Suggested next step
+Run `lore sync` to check whether any of these commits
+introduce a [REFINED] candidate for this entry.
+```
+
+The agent reads the commit messages and tells you *why* — without you having to manually dig through `git log`.
+
 ## What lives in `.lore/`
 
 ```
@@ -70,20 +172,22 @@ Each entry is a single Markdown bullet (≤ 2 lines) with a deterministic ID and
 ```markdown
 - [ARCH-2026-07-09-a3f2] Use Next.js App Router; reason: streaming + RSC. #added:2026-07-09
 - [DEC-2026-02-03-7c19] Chose Zustand over Redux; reason: 60% less boilerplate. #added:2026-02-03 #verified:2026-06-15
-- [CONV-2026-01-20-b1e8] Never commit secrets; use `dotenv` + `.env.local`. #added:2026-01-20
+- [CONV-2026-01-20-b1e8] Never commit secrets; use `dotenv` + `.env.local` (gitignored). #added:2026-01-20
 ```
+
+For the full format spec (ID generation, tags, splitting rules), see [`references/entry-format.md`](references/entry-format.md).
 
 ## Seven workflows
 
-| Command | What it does | Writes |
-|---|---|---|
-| `init` | First-time project scan; drafts entries; user confirms | `.lore/*` + platform mirrors |
-| `sync` | Detects code changes; proposes updates; user approves | `.lore/*` only (not mirrors) |
-| `query` | Read-only; answers from memory with entry IDs | nothing |
-| `audit` | Read-only; checks memory vs. current code; writes report | `.lore/audit/*` only |
-| `compress` | Generates `SUMMARY.md` from current entries | `SUMMARY.md` + platform mirrors |
-| `mirror` | Force-regenerate platform mirrors (with content dedup) | `CLAUDE.md`, `.cursorrules`, etc. |
-| `history` | Read-only; lists git commits related to an entry / file / scope | nothing |
+| Command | What it does | Writes | Reference |
+|---|---|---|---|
+| `init` | First-time project scan; drafts entries; user confirms | `.lore/*` + platform mirrors | [SKILL.md](SKILL.md#init--initialize-the-memory-bank) |
+| `sync` | Detects code changes; proposes updates; user approves | `.lore/*` only (not mirrors) | [SKILL.md](SKILL.md#sync--update-after-a-change) |
+| `query` | Read-only; answers from memory with entry IDs | nothing | [SKILL.md](SKILL.md#query--answer-from-memory) |
+| `audit` | Read-only; checks memory vs. current code; writes report | `.lore/audit/*` only | [`references/audit-template.md`](references/audit-template.md) |
+| `compress` | Generates `SUMMARY.md` from current entries | `SUMMARY.md` + platform mirrors | [`references/summary-template.md`](references/summary-template.md) |
+| `mirror` | Force-regenerate platform mirrors (with content dedup) | `CLAUDE.md`, `.cursorrules`, etc. | [`references/platform-mirrors.md`](references/platform-mirrors.md) |
+| `history` | Read-only; lists git commits related to an entry / file / scope | nothing | [`references/history-command.md`](references/history-command.md) |
 
 `sync` deliberately does **not** update platform mirrors. Mirror files are agent-facing entry points, not per-change logs. Regenerating them on every `sync` would clutter `git log` and dilute the "human-merged" signal they're supposed to provide. Run `lore mirror` (or `compress`) when you want the agent-facing view to catch up.
 
@@ -147,7 +251,7 @@ Typical mirror sizes:
 
 Index size does not grow with project size. The agent fetches detail on demand via standard file reads or `lore query <term>`.
 
-If you need ambient knowledge (the agent has full context immediately, no fetch step), be aware that ambient knowledge is no longer the default. See `references/platform-mirrors.md` for the index template details.
+If you need ambient knowledge (the agent has full context immediately, no fetch step), be aware that ambient knowledge is no longer the default. See [`references/platform-mirrors.md`](references/platform-mirrors.md) for the index template details.
 
 ## Scripts
 
@@ -162,7 +266,7 @@ python scripts/find_stale.py --days=90                    # Find stale entries
 python scripts/history.py DEC-2026-02-03-7c19             # Show git history for an entry
 ```
 
-All scripts are cross-platform Python 3.6+ with no third-party dependencies. See `scripts/README.md` (English) or `scripts/README.zh-CN.md` (Chinese) for details.
+All scripts are cross-platform Python 3.6+ with no third-party dependencies. See [`scripts/README.md`](scripts/README.md) (English) or [`scripts/README.zh-CN.md`](scripts/README.zh-CN.md) (Chinese) for details.
 
 ## Configuration
 
@@ -181,7 +285,11 @@ All scripts are cross-platform Python 3.6+ with no third-party dependencies. See
 }
 ```
 
-Field semantics: see `references/config.md`. The `schema_version` field is required and bumped automatically by `scripts/migrate.py` when lore is upgraded — see `references/compatibility.md`.
+Field semantics: see [`references/config.md`](references/config.md). New configs include `schema_version: 1`; old configs without it still work but trigger a warning. See [`references/compatibility.md`](references/compatibility.md) for the compatibility policy.
+
+## Upgrading
+
+`git pull` (or re-clone) is the normal upgrade path; your `.lore/` is preserved verbatim across upgrades. If a future release ships a breaking config change, that release will include `scripts/migrate.py`; run it once after pulling. The current schema is `schema_version: 1`; no migration has shipped yet, so you don't need to run anything today. See [`references/compatibility.md`](references/compatibility.md) for the versioning policy and deprecation workflow.
 
 ## When NOT to use lore
 
@@ -216,3 +324,19 @@ A: They serve different purposes. `/init` is a one-shot project scan → `CLAUDE
 ## License
 
 This skill is provided as-is. Use it, fork it, modify it for your project's needs.
+
+---
+
+<p align="center">
+  <a href="SKILL.md">SKILL.md</a> ·
+  <a href="references/entry-format.md">entry-format</a> ·
+  <a href="references/summary-template.md">summary-template</a> ·
+  <a href="references/audit-template.md">audit-template</a> ·
+  <a href="references/monorepo-detection.md">monorepo-detection</a> ·
+  <a href="references/stale-new-markers.md">stale-new-markers</a> ·
+  <a href="references/platform-mirrors.md">platform-mirrors</a> ·
+  <a href="references/config.md">config</a> ·
+  <a href="references/history-command.md">history-command</a> ·
+  <a href="references/compatibility.md">compatibility</a> ·
+  <a href="scripts/README.md">scripts</a>
+</p>
