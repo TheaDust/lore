@@ -105,16 +105,17 @@ The default `medium` is a balance: low-risk changes apply silently, real additio
 
 ## Platform mirrors
 
-lore's canonical store is `.lore/*`, but it projects into the config files agents already read:
+lore's canonical store is `.lore/*`, but it projects into the config files agents already read. Targets are resolved by scanning the repo root for existing platform files (auto-detect). When none are present, `lore init` asks via multi-select which agents to write for. Setting `mirror_targets` in `.lore/.config.json` overrides this with an explicit list (Replace semantics).
 
-| Platform | File | Default? |
+| Platform | File | Auto-detected? |
 |---|---|---|
-| Claude Code | `CLAUDE.md` | ✅ yes |
-| Cursor | `.cursorrules` | ❌ opt-in via `mirror_targets` |
-| Cline | `.clinerules` | ❌ opt-in |
-| Aider / Codex | `AGENTS.md` | ❌ opt-in |
-| Windsurf | `.windsurfrules` | ❌ opt-in |
-| GitHub Copilot | `.github/copilot-instructions.md` | ❌ opt-in |
+| Claude Code | `CLAUDE.md` | ✅ |
+| Cursor | `.cursorrules` (or `.cursor/rules/*.mdc`) | ✅ |
+| Cline | `.clinerules` | ✅ |
+| Aider / Codex | `AGENTS.md` (or `CONVENTIONS.md`) | ✅ |
+| Windsurf | `.windsurfrules` | ✅ |
+| GitHub Copilot | `.github/copilot-instructions.md` | ✅ |
+| Continue.dev | `.continue/rules/lore.md` | ✅ |
 | LangGraph / DeepAgents | (no file — read `.lore/*.md` directly) | n/a |
 
 Each mirror file is split into two sections by a `---` separator:
