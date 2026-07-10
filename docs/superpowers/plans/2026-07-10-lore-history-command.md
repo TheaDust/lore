@@ -372,9 +372,13 @@ Add to `scripts/history.py`:
 # Match a backtick-quoted path inside an entry's text. The path must
 # contain at least one slash OR start with a dot OR end with a common
 # code extension, to avoid false positives like `Zustand`.
+# NOTE: outer backticks appear only at the boundaries of the group.
+# (Plan v1 had a typo where ALT1/ALT2 each contained a trailing `\``,
+# which made them consume the closing backtick; the implementer caught
+# this and corrected the regex during Task 4.)
 BACKTICK_PATH_RE = re.compile(
-    r"`([^\s`]+\.[a-zA-Z0-9]{1,8}(?:\.[a-zA-Z0-9]{1,8})*`"
-    r"|[^\s`]+/[^\s`]+`"
+    r"`([^\s`]+\.[a-zA-Z0-9]{1,8}(?:\.[a-zA-Z0-9]{1,8})*"
+    r"|[^\s`]+/[^\s`]+"
     r"|\.[a-zA-Z][^\s`]*)`"
 )
 
@@ -638,6 +642,10 @@ Add to `scripts/history.py`:
 # "Closes" doesn't get eaten by "#NNN" alone. We require word boundary
 # (or start of string) before the keyword to avoid matching substrings
 # like "address#N" mid-word.
+# NOTE: Plan v1's `if keyword:` was buggy — for paren-form input `(#123)`
+# the matched prefix is `"("` (truthy), so the function emitted `"( #123"`
+# instead of `"#123"`. The implementer caught this and replaced the
+# check with `if prefix.startswith("(")` to distinguish the two forms.
 REFS_RE = re.compile(
     r"(?:\(|\b(?:Closes|Refs|Fixes|Resolves)\s+)"
     r"(#\d+)",
@@ -655,15 +663,15 @@ def extract_refs(message):
     matches = []
     seen = set()
     for m in REFS_RE.finditer(message):
-        keyword = m.group(0).split("#")[0].strip()
+        prefix = m.group(0).split("#")[0]
         ref = "#" + m.group(1)[1:]  # normalize to "#NNN"
         if ref in seen:
             continue
         seen.add(ref)
-        if keyword:
-            matches.append(f"{keyword} {ref}")
-        else:
+        if prefix.startswith("("):
             matches.append(ref)
+        else:
+            matches.append(f"{prefix.strip()} {ref}")
     return matches
 ```
 

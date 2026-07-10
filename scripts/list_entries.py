@@ -31,12 +31,12 @@ import sys
 from pathlib import Path
 
 
-def find_mem_man_root(start: Path) -> Path:
-    """Walk up from start to find the project root containing .mem-man/."""
+def find_lore_root(start: Path) -> Path:
+    """Walk up from start to find the project root containing .lore/."""
     p = start.resolve()
     while p != p.parent:
-        if (p / ".mem-man").is_dir():
-            return p / ".mem-man"
+        if (p / ".lore").is_dir():
+            return p / ".lore"
         p = p.parent
     return None
 
@@ -111,9 +111,9 @@ def main():
         elif arg.startswith("--layer="):
             layer_filter = arg.split("=", 1)[1]
 
-    root = find_mem_man_root(Path("."))
+    root = find_lore_root(Path("."))
     if root is None:
-        print("error: .mem-man/ not found (run from project root or below)",
+        print("error: .lore/ not found (run from project root or below)",
               file=sys.stderr)
         sys.exit(1)
 

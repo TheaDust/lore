@@ -35,6 +35,16 @@ mem-man mirror
 # 用当前状态重写 CLAUDE.md 等平台文件
 ```
 
+第六个只读命令展示记忆库条目背后的 git 历史：
+
+```bash
+lore history                    # 列出某条目/文件/scope 的相关 commits
+lore history DEC-2026-02-03-7c19
+lore history frontend/src/store/index.ts
+lore history --scope=frontend
+lore history --json
+```
+
 另外三个只读命令：
 
 ```bash
@@ -79,6 +89,7 @@ mem-man audit    # 检查记忆与现实的偏差，报告写入 .mem-man/audit/
 | `audit` | 只读；检查记忆与现实；写报告 | 只写 `.mem-man/audit/*` |
 | `compress` | 从当前 entry 生成 `SUMMARY.md` | `SUMMARY.md` + 平台 mirror |
 | `mirror` | 强制重新生成平台 mirror（带内容去重）| `CLAUDE.md`、`.cursorrules` 等 |
+| `history` | 只读；列出某条目/文件/scope 相关的 git commits | 无 |
 
 `sync` **不会**更新平台 mirror。这是刻意的：mirror 文件是 agent 入口，不是变更日志。每次 sync 都重写会让 `git log` 变得很乱，稀释"人工合并"这个 mirror 应该提供的信号。当你需要 agent 视图跟上时，跑 `mem-man mirror`（或 `compress`）。
 
