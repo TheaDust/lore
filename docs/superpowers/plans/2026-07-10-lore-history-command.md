@@ -372,9 +372,13 @@ Add to `scripts/history.py`:
 # Match a backtick-quoted path inside an entry's text. The path must
 # contain at least one slash OR start with a dot OR end with a common
 # code extension, to avoid false positives like `Zustand`.
+# NOTE: outer backticks appear only at the boundaries of the group.
+# (Plan v1 had a typo where ALT1/ALT2 each contained a trailing `\``,
+# which made them consume the closing backtick; the implementer caught
+# this and corrected the regex during Task 4.)
 BACKTICK_PATH_RE = re.compile(
-    r"`([^\s`]+\.[a-zA-Z0-9]{1,8}(?:\.[a-zA-Z0-9]{1,8})*`"
-    r"|[^\s`]+/[^\s`]+`"
+    r"`([^\s`]+\.[a-zA-Z0-9]{1,8}(?:\.[a-zA-Z0-9]{1,8})*"
+    r"|[^\s`]+/[^\s`]+"
     r"|\.[a-zA-Z][^\s`]*)`"
 )
 
