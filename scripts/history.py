@@ -46,6 +46,17 @@ def find_entry(entries, entry_id):
     return None
 
 
+def extract_added_date(tags):
+    """Return the value of the 'added' tag, or None if absent.
+
+    The entry dict's `tags` field is {name: value, ...} as produced
+    by list_entries.py.
+    """
+    if not tags:
+        return None
+    return tags.get("added")
+
+
 if __name__ == "__main__":
     # Placeholder; real CLI wiring comes in later tasks.
     if len(sys.argv) < 2:

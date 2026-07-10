@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for scripts/history.py."""
 import unittest
-from history import parse_arg, find_entry
+from history import extract_added_date, find_entry, parse_arg
 
 
 class TestParseArg(unittest.TestCase):
@@ -54,6 +54,18 @@ class TestFindEntry(unittest.TestCase):
              "text": "t", "tags": {}},
         ]
         self.assertIsNone(find_entry(entries, "ARCH-2099-01-01-ffff"))
+
+
+class TestExtractAddedDate(unittest.TestCase):
+    def test_present(self):
+        tags = {"added": "2026-02-03", "verified": "2026-06-15"}
+        self.assertEqual(extract_added_date(tags), "2026-02-03")
+
+    def test_missing(self):
+        self.assertIsNone(extract_added_date({}))
+
+    def test_empty(self):
+        self.assertIsNone(extract_added_date({"verified": "2026-06-15"}))
 
 
 if __name__ == "__main__":
