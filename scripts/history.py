@@ -277,7 +277,8 @@ def render_markdown(meta, commits):
     lines.append(f"# history: [{meta['entry_id']}]")
     lines.append("")
     lines.append(f"> Entry: {meta['lore_file']}")
-    lines.append(f"> Since: {meta['since']} (entry #added date)")
+    since_suffix = " (entry #added date)" if meta.get("since_source") == "entry_added" else ""
+    lines.append(f"> Since: {meta['since']}{since_suffix}")
     lines.append(f"> File: {meta['code_file']}")
     lines.append(f"> Commits: {len(commits)} (showing all)")
     lines.append("")

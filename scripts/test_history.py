@@ -270,6 +270,14 @@ class TestRenderMarkdown(unittest.TestCase):
         self.assertNotIn("Body:", out)
         self.assertNotIn("Refs:", out)
 
+    def test_since_wording_omitted_for_non_entry_forms(self):
+        meta = {"entry_id": "X", "lore_file": "x.md", "code_file": "x.ts",
+                "since": "2026-01-01", "since_source": "user_arg"}
+        commits = []
+        out = render_markdown(meta, commits)
+        self.assertIn("> Since: 2026-01-01", out)
+        self.assertNotIn("(entry #added date)", out)
+
 
 class TestExitCodes(unittest.TestCase):
     def test_constants(self):
