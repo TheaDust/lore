@@ -11,7 +11,9 @@ Usage:
 See references/history-command.md for the full specification.
 """
 import re
+import subprocess
 import sys
+from pathlib import Path
 
 
 # Entry ID pattern: LAYER-YYYY-MM-DD-xxxx (4 hex chars)
@@ -86,6 +88,93 @@ def resolve_code_file(entry):
     if scope == "_global":
         return "."
     return scope
+
+
+# Single-line per commit. The trailing %s for body is multi-line content
+# that we capture separately (not in the delimited format string) by
+# running a second pass with a different format. For v1 we use a simple
+# format and parse body via a follow-up `git show` only if needed.
+#
+# To keep parsing simple, we use a delimiter unlikely to appear in real
+# commit metadata: ASCII Unit Separator (\x1f).
+COMMIT_DELIM = "\x1f"
+
+# git log format: hash\x1fauthor\x1fdate(iso)\x1fsubject
+# We use %x1f (the same delimiter) inline so the format string is portable.
+# The body is fetched separately via the second invocation below.
+FORMAT_STRING = "%H%x1f%an%x1f%ai%x1f%s"
+
+
+def run_git_log(project_root, since, code_file, n=None):
+    """Run `git log` and return a list of commit dicts.
+
+    Args:
+        project_root: Path to the git repo root.
+        since: ISO date string, or None for full history.
+        code_file: Path relative to project_root to filter by.
+        n: Optional int cap on number of commits.
+
+    Returns:
+        List of dicts as produced by parse_commit_line + body-fetch.
+
+    Raises:
+        RuntimeError: if git exits non-zero or is missing.
+    """
+    cmd = [
+        "git",
+        "-C", str(project_root),
+        "log",
+        f"--pretty=format:{FORMAT_STRING}",
+    ]
+    if since:
+        cmd.append(f"--since={since}")
+    if n is not None:
+        cmd.append(f"-n{n}")
+    cmd.extend(["--", code_file])
+
+    try:
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(f"git executable not found on PATH: {exc}")
+
+    if proc.returncode != 0:
+        raise RuntimeError(f"git log failed: {proc.stderr.strip()}")
+
+    commits = []
+    for line in proc.stdout.splitlines():
+        if not line:
+            continue
+        parsed = parse_commit_line(line)
+        if parsed is None:
+            continue
+        parsed["body"] = ""  # filled in by fetch_body if requested later
+        commits.append(parsed)
+    return commits
+
+
+def parse_commit_line(line):
+    """Parse one delimited git log line. Returns dict or None on malformed input."""
+    parts = line.split(COMMIT_DELIM)
+    if len(parts) != 4:
+        return None
+    full_hash, author, date, subject = parts
+    if len(full_hash) < 7:
+        return None
+    return {
+        "hash": full_hash,
+        "short": full_hash[:7],
+        "author": author,
+        "date": date[:10],  # take YYYY-MM-DD from full ISO timestamp
+        "subject": subject,
+        "body": "",  # populated by fetch_commit_body
+    }
 
 
 if __name__ == "__main__":

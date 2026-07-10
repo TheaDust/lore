@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """Unit tests for scripts/history.py."""
 import unittest
-from history import extract_added_date, find_entry, parse_arg, resolve_code_file
+from history import (
+    COMMIT_DELIM,
+    extract_added_date,
+    find_entry,
+    parse_arg,
+    parse_commit_line,
+    resolve_code_file,
+)
 
 
 class TestParseArg(unittest.TestCase):
@@ -97,6 +104,31 @@ class TestResolveCodeFile(unittest.TestCase):
             "scope": "frontend",
         }
         self.assertEqual(resolve_code_file(entry), "a/foo.ts")
+
+
+class TestParseCommitLine(unittest.TestCase):
+    def test_full_record(self):
+        line = (
+            "abc1234567890abcdef1234567890abcdef12345" + COMMIT_DELIM
+            + "Alice" + COMMIT_DELIM
+            + "2026-04-12" + COMMIT_DELIM
+            + "Use Zustand v4"
+        )
+        result = parse_commit_line(line)
+        self.assertEqual(result["hash"], "abc1234567890abcdef1234567890abcdef12345")
+        self.assertEqual(result["short"], "abc1234")
+        self.assertEqual(result["author"], "Alice")
+        self.assertEqual(result["date"], "2026-04-12")
+        self.assertEqual(result["subject"], "Use Zustand v4")
+        self.assertEqual(result["body"], "")
+
+    def test_empty_body_filled(self):
+        line = "h" * 40 + COMMIT_DELIM + "Bob" + COMMIT_DELIM + "2026-01-01" + COMMIT_DELIM + "subject"
+        result = parse_commit_line(line)
+        self.assertEqual(result["body"], "")
+
+    def test_too_few_fields_returns_none(self):
+        self.assertIsNone(parse_commit_line("abc" + COMMIT_DELIM + "def"))
 
 
 if __name__ == "__main__":
