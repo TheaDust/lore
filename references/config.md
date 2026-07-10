@@ -10,7 +10,7 @@
   "auto_mirror": true | false,
   "sync_updates_mirror": true | false,
   "sync_trust": "high" | "medium" | "low",
-  "mirror_targets": ["CLAUDE.md"],
+  "mirror_targets": ["CLAUDE.md"], // optional — auto-detected if absent
   "mirror_mode": "summary" | "full",
   "compress_thresholds": {
     "max_entries": 500,
@@ -57,9 +57,11 @@ Controls how much confirmation `sync` requires for individual change types.
 
 ### `mirror_targets`
 
-Optional. Array of file paths (relative to project root) that should be kept in sync with `.lore/*`. Path must match one of the platform entries in `references/platform-mirrors.md`. Unsupported paths trigger a warning at config-load time.
+Default: auto-detected at runtime (see "If absent" below).
 
-If absent: mirror targets are auto-detected at runtime by scanning the project root for existing platform files. If no platform files exist, the user is asked via a multi-select question (during `init` or the first `mirror` call). See `references/platform-mirrors.md` for the resolution algorithm.
+Array of file paths (relative to project root) that should be kept in sync with `.lore/*`. Path must match one of the platform entries in `references/platform-mirrors.md`. Unsupported paths trigger a warning at config-load time.
+
+If absent: mirror targets are auto-detected at runtime by scanning the project root for existing platform files. If no platform files exist, the user is asked via a multi-select question during `init`, the first `mirror` call, or `compress` (when `auto_mirror: true`). See `references/platform-mirrors.md` for the resolution algorithm.
 
 If present: used verbatim. Empty array `[]` is valid and disables mirror generation.
 

@@ -155,7 +155,7 @@ python scripts/history.py DEC-2026-02-03-7c19             # 展示某 entry 的 
   "auto_mirror": false,
   "sync_updates_mirror": false,
   "sync_trust": "medium",
-  "mirror_targets": ["CLAUDE.md"],
+  "mirror_targets": ["CLAUDE.md"], // optional — auto-detected if absent
   "mirror_mode": "summary",
   "compress_thresholds": { "max_entries": 500, "max_days_since_compress": 30 },
   "sync_thresholds": { "min_lines_changed": 50, "min_directories_changed": 2 }
