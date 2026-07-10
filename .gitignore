@@ -33,3 +33,6 @@ Thumbs.db
 build/
 dist/
 *.egg
+
+# Internal workflow artifacts (superpowers specs/plans)
+.superpowers/
