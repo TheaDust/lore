@@ -113,7 +113,7 @@ The canonical store is `.lore/*`. Agents that expect a single config file at the
 - **Init**: targets are auto-detected (existing platform files in repo root) — see `references/platform-mirrors.md`. If none detected, ask the user via multi-select which agents they use. For each detected file lacking a `## Lore` section, ask take over / preserve / abort per file. Auto-create missing files with the full two-section template; refresh existing lore mirrors; preserve My notes verbatim.
 - **Sync / Compress**: controlled by `.lore/.config.json#auto_mirror`. Default is `false` (ask per target). When `true`, mirrors update automatically. My notes section is **always** preserved.
 
-By default the Lore section contains `SUMMARY.md` plus a scope-tagged index — not the full content. Full-content mirroring is opt-in via `mirror_mode: full`.
+By default the Lore section is an **index** into `.lore/` — paths plus a per-scope one-line description, ~500 bytes total. The agent reads `.lore/SUMMARY.md` (or calls `lore query <term>`) on demand. See `references/platform-mirrors.md` for the template and adaptive rendering rules.
 
 See `references/platform-mirrors.md` for the per-platform file mapping and the full two-section structure rules, and `references/config.md` for `.config.json` schema.
 
