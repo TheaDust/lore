@@ -11,7 +11,7 @@
   "sync_updates_mirror": true | false,
   "sync_trust": "high" | "medium" | "low",
   "mirror_targets": ["CLAUDE.md"], // optional — auto-detected if absent
-  "mirror_mode": "summary" | "full",
+  "mirror_mode": "index",
   "compress_thresholds": {
     "max_entries": 500,
     "max_days_since_compress": 30
@@ -69,10 +69,11 @@ When auto-detection is in effect, `lore init` populates this field with the user
 
 ### `mirror_mode`
 
-Default: `"summary"`.
+Default: `"index"`.
 
-- `"summary"` — Mirror only `SUMMARY.md` content (plus a scope-tagged index). Recommended for most projects.
-- `"full"` — Mirror full per-file content. Useful for agents that don't reliably read `.lore/*` directly.
+Only `"index"` is accepted. The mirror renders a small index structure pointing into `.lore/` (see `references/platform-mirrors.md` for the template and adaptive rendering rules). Per-session token cost stays flat (~500 B) regardless of project size.
+
+Any other value (e.g., the historical `"summary"` or `"full"`) is rejected at config-load time with an error. Remove the field, or set it to `"index"`.
 
 ### `compress_thresholds`
 

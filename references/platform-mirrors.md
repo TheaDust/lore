@@ -198,13 +198,133 @@ For each generated mirror file, the section template is:
 
 ## What gets mirrored
 
-By default, the mirror's Lore section contains:
-- `SUMMARY.md` content (top-level digest)
-- A scope-tagged index pointing into `.lore/*`
+The mirror's Lore section is an **index** into `.lore/` — not a copy of its content. This keeps per-session token cost flat (~500 B regardless of project size) and aligns with how platform instruction files (`CLAUDE.md`, `.cursorrules`, etc.) are designed to be used: as small pointers that tell the agent where to find detail on demand.
 
-The full per-file content (every entry in every layer) is **not** mirrored by default. Mirrors are entry points, not full copies. Agents that need details should read `.lore/*` directly.
+The agent generating the mirror walks `.lore/` and emits the structure below. Sections appear only when their content exists (adaptive rendering).
 
-To mirror full content instead, set `mirror_mode: full` in `.lore/.config.json` (see `references/config.md`).
+### Index template
+
+```
+## Lore (auto-managed)
+
+Project memory. Read deeper on demand.
+
+**Structure**:
+- Digest: `.lore/SUMMARY.md` (top-level overview)
+- Global: `.lore/_global/` (architecture, decisions, conventions)
+- Scopes:
+  - `<scope_name>` (<description>)
+  - `<scope_name>`
+  ...
+
+**Query**: `lore query <term>` or `lore query <scope>:<term>`
+**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror)
+
+---
+## My notes (free edit)
+```
+
+The `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edit)` closer are **always present** — only the `**Structure**:` body varies with adaptive rendering. Agent preserves the My notes section verbatim across regenerations.
+
+### Field sources
+
+- `<scope_name>` — directory name under `.lore/`. Each scope's full path is `.lore/<scope_name>/`.
+- `<description>` — extracted from `.lore/<scope_name>/ARCHITECTURE.md` via the HTML comment `<!-- description: ... -->`. See "Scope description extraction" below. If absent, the description is omitted (scope row still appears, just without parenthetical).
+
+The index does **not** track the project's source-directory mapping for each scope (e.g. `packages/frontend/` for the `frontend` scope). Source paths are detected by `references/monorepo-detection.md` at init time but not persisted in `.lore/`. If a user needs source paths surfaced in the mirror, that mapping belongs in the project's own docs.
+
+### Section visibility rules
+
+| Section | Visible when |
+|---|---|
+| `Digest:` line | always |
+| `Global:` line | `.lore/_global/` exists and has any entry |
+| `Scopes:` block | at least one scope directory exists under `.lore/` |
+| `Query:` line | always |
+| `Update:` line | always |
+
+### Adaptive renderings
+
+Only the `**Structure**:` body varies. The `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edit)` closer are always present and unchanged.
+
+**Empty project** (just initialized, no entries yet):
+
+```
+## Lore (auto-managed)
+
+Project memory. Read deeper on demand.
+
+**Structure**:
+- Digest: `.lore/SUMMARY.md` (top-level overview)
+
+**Query**: `lore query <term>`
+**Update**: see the `lore` skill
+
+---
+## My notes (free edit)
+```
+
+`Global:` and `Scopes:` blocks omitted.
+
+**Single-scope project**:
+
+```
+**Structure**:
+- Digest: `.lore/SUMMARY.md`
+- Global: `.lore/_global/`
+- Scopes:
+  - `frontend` (React 18 + TypeScript)
+```
+
+`Scopes:` block has one entry.
+
+**Monorepo with multiple scopes**:
+
+```
+**Structure**:
+- Digest: `.lore/SUMMARY.md`
+- Global: `.lore/_global/`
+- Scopes:
+  - `frontend` (React 18 + TypeScript)
+  - `backend` (PostgreSQL + Prisma)
+  - `shared`
+```
+
+### Scope description extraction
+
+The agent scans `.lore/<scope_name>/ARCHITECTURE.md` for the **first line matching** `<!-- description: <text> -->` (anchored to start of line; `description:` literal). Rules:
+
+- **First match wins.** If multiple `<!-- description: ... -->` lines exist, only the first is used.
+- **`<text>` is single-line.** A comment must not contain a newline before `-->`. Multi-line comments are ignored.
+- **Whitespace trimmed.** Leading and trailing whitespace inside `<text>` is stripped.
+- **No match → no description.** The scope row appears without parenthetical; the row is not removed.
+
+Example `ARCHITECTURE.md` with description:
+
+```
+<!-- description: React 18 + TypeScript frontend -->
+# Frontend Architecture
+
+All UI code lives here. ...
+```
+
+### Scope ordering
+
+Scope rows in the `Scopes:` block are emitted in **alphabetical order** by `<scope_name>`. Pinning order is important: the content-based dedup step compares byte-for-byte, so any order change between runs causes spurious "Mirror updated" reports.
+
+### What does NOT trigger mirror regeneration
+
+Index content does not change when:
+- Individual entries are edited
+- `SUMMARY.md` content is updated (the index only points to its path)
+- Entry counts change
+- A scope's `ARCHITECTURE.md` content changes (only the `<!-- description: -->` comment affects the index)
+
+Index content changes require regeneration when:
+- A new scope directory is added under `.lore/`
+- A scope is removed
+- A scope's `ARCHITECTURE.md` `<!-- description: -->` line changes
+- `.lore/_global/` gains or loses its first entry (Global section visibility flips)
 
 ## Manual operations
 
