@@ -11,6 +11,7 @@ How `.lore/*` content gets mirrored to platform-specific config files. The main 
 | Cline | `.clinerules` (root) | — |
 | Aider | `AGENTS.md` (root) | `CONVENTIONS.md` |
 | OpenAI Codex | `AGENTS.md` (root) | — |
+| OpenCode | `AGENTS.md` (root) | — |
 | Windsurf | `.windsurfrules` (root) | — |
 | GitHub Copilot | `.github/copilot-instructions.md` | — |
 | Continue.dev | `.continue/rules/lore.md` | — |
@@ -72,11 +73,12 @@ When Step 3 fires, present this question to the user:
 | Cline | `.clinerules` |
 | Aider | `AGENTS.md` |
 | Codex | `AGENTS.md` |
+| OpenCode | `AGENTS.md` |
 | Windsurf | `.windsurfrules` |
 | GitHub Copilot | `.github/copilot-instructions.md` |
 | Continue.dev | `.continue/rules/lore.md` |
 
-Aider and Codex both map to `AGENTS.md`. Selecting both produces one entry. Selecting nothing is valid — writes `mirror_targets: []` (no mirrors generated).
+Aider, Codex, and OpenCode all map to `AGENTS.md`. Selecting any combination produces one entry. Selecting nothing is valid — writes `mirror_targets: []` (no mirrors generated).
 
 ### When this runs
 
