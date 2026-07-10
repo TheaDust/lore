@@ -35,6 +35,16 @@ mem-man mirror
 # Rewrites CLAUDE.md and other platform files from current state
 ```
 
+A sixth read-only command surfaces the git history behind a memory entry:
+
+```bash
+lore history                    # List commits for an entry / file / scope
+lore history DEC-2026-02-03-7c19
+lore history frontend/src/store/index.ts
+lore history --scope=frontend   # all .md files in that scope
+lore history --json             # machine-readable
+```
+
 Three read-only commands round out the toolkit:
 
 ```bash
@@ -79,6 +89,7 @@ Each entry is a single Markdown bullet (≤ 2 lines) with a deterministic ID and
 | `audit` | Read-only; checks memory vs. current code; writes report | `.mem-man/audit/*` only |
 | `compress` | Generates `SUMMARY.md` from current entries | `SUMMARY.md` + platform mirrors |
 | `mirror` | Force-regenerate platform mirrors (with content dedup) | `CLAUDE.md`, `.cursorrules`, etc. |
+| `history` | Read-only; lists git commits related to an entry / file / scope | nothing |
 
 `sync` deliberately does **not** update platform mirrors. Mirror files are agent-facing entry points, not per-change logs. Regenerating them on every `sync` would clutter `git log` and dilute the "human-merged" signal they're supposed to provide. Run `mem-man mirror` (or `compress`) when you want the agent-facing view to catch up.
 

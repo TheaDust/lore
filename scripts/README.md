@@ -20,6 +20,7 @@ The script list and quick-reference command examples live in the project root `R
 
 | Script | Call site | Purpose |
 |---|---|---|
+| `history.py` | lore history | List git commits related to a memory entry / file / scope |
 | `id_hash.py` | Any time a new entry is written (init / sync) | Compute the 4-char content hash for the entry ID |
 | `list_entries.py` | Pre-step of query / audit / compress | Enumerate all entries as JSON for downstream processing |
 | `find_duplicates.py` | sync step 5 (de-duplication) | Identify candidate duplicate entries before writing |
