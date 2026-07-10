@@ -112,7 +112,7 @@ lore's canonical store is `.lore/*`, but it projects into the config files agent
 | Claude Code | `CLAUDE.md` | ✅ |
 | Cursor | `.cursorrules` (or `.cursor/rules/*.mdc`) | ✅ |
 | Cline | `.clinerules` | ✅ |
-| Aider / Codex | `AGENTS.md` (or `CONVENTIONS.md`) | ✅ |
+| Aider / Codex / OpenCode | `AGENTS.md` (or `CONVENTIONS.md`) | ✅ |
 | Windsurf | `.windsurfrules` | ✅ |
 | GitHub Copilot | `.github/copilot-instructions.md` | ✅ |
 | Continue.dev | `.continue/rules/lore.md` | ✅ |
