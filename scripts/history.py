@@ -177,6 +177,39 @@ def parse_commit_line(line):
     }
 
 
+# Match PR/issue references. Order matters: longer keywords first so
+# "Closes" doesn't get eaten by "#NNN" alone. We require word boundary
+# (or start of string) before the keyword to avoid matching substrings
+# like "address#N" mid-word.
+REFS_RE = re.compile(
+    r"(?:\(|\b(?:Closes|Refs|Fixes|Resolves)\s+)"
+    r"(#\d+)",
+    re.IGNORECASE,
+)
+
+
+def extract_refs(message):
+    """Return a list of PR/issue references found in a commit message.
+
+    Each item is either "#NNN" (from parens form) or "Keyword #NNN"
+    (from Closes/Refs/Fixes/Resolves form). Duplicates are removed
+    in order of appearance.
+    """
+    matches = []
+    seen = set()
+    for m in REFS_RE.finditer(message):
+        prefix = m.group(0).split("#")[0]
+        ref = "#" + m.group(1)[1:]  # normalize to "#NNN"
+        if ref in seen:
+            continue
+        seen.add(ref)
+        if prefix.startswith("("):
+            matches.append(ref)
+        else:
+            matches.append(f"{prefix.strip()} {ref}")
+    return matches
+
+
 if __name__ == "__main__":
     # Placeholder; real CLI wiring comes in later tasks.
     if len(sys.argv) < 2:

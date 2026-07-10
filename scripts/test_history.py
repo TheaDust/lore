@@ -4,6 +4,7 @@ import unittest
 from history import (
     COMMIT_DELIM,
     extract_added_date,
+    extract_refs,
     find_entry,
     parse_arg,
     parse_commit_line,
@@ -129,6 +130,30 @@ class TestParseCommitLine(unittest.TestCase):
 
     def test_too_few_fields_returns_none(self):
         self.assertIsNone(parse_commit_line("abc" + COMMIT_DELIM + "def"))
+
+
+class TestExtractRefs(unittest.TestCase):
+    def test_paren_form(self):
+        self.assertEqual(extract_refs("Some change (#123)"), ["#123"])
+
+    def test_closes_form(self):
+        self.assertEqual(extract_refs("Fix bug\n\nCloses #456"), ["Closes #456"])
+
+    def test_refs_form(self):
+        self.assertEqual(extract_refs("Refs #789 and Refs #012"), ["Refs #789", "Refs #012"])
+
+    def test_fixes_form(self):
+        self.assertEqual(extract_refs("Fixes #345"), ["Fixes #345"])
+
+    def test_no_refs(self):
+        self.assertEqual(extract_refs("Just a commit"), [])
+
+    def test_ignores_email(self):
+        self.assertEqual(extract_refs("Co-authored-by: Alice <a@b.com>"), [])
+
+    def test_mixed(self):
+        msg = "Big refactor (#111)\n\nCloses #222, Refs #333"
+        self.assertEqual(extract_refs(msg), ["#111", "Closes #222", "Refs #333"])
 
 
 if __name__ == "__main__":
