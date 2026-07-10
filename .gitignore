@@ -33,3 +33,5 @@ Thumbs.db
 build/
 dist/
 *.egg
+
+docs/
