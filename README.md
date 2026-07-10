@@ -132,6 +132,23 @@ Each mirror file is split into two sections by a `---` separator:
 
 The Skill only writes inside the `## Lore` section. Everything under `## My notes` is yours to edit freely. The Skill preserves it verbatim across every `sync` and `compress`.
 
+## Token cost
+
+`CLAUDE.md` and equivalent platform files are loaded by your agent on **every session**. lore keeps this cost flat by emitting an index (~500 bytes) rather than the project digest content.
+
+Typical mirror sizes:
+
+| Project state | Mirror size | Per-session context cost |
+|---|---|---|
+| Empty / new | ~200 bytes | negligible |
+| Small (~30 entries) | ~500 bytes | negligible |
+| Medium (~120 entries) | ~500 bytes | negligible |
+| Large (~250 entries) | ~500 bytes | negligible |
+
+Index size does not grow with project size. The agent fetches detail on demand via standard file reads or `lore query <term>`.
+
+If you need ambient knowledge (the agent has full context immediately, no fetch step), be aware that ambient knowledge is no longer the default. See `references/platform-mirrors.md` for the index template details.
+
 ## Scripts
 
 Helper scripts in `scripts/` reduce repetitive mechanical work:
@@ -157,7 +174,7 @@ All scripts are cross-platform Python 3.6+ with no third-party dependencies. See
   "sync_updates_mirror": false,
   "sync_trust": "medium",
   "mirror_targets": ["CLAUDE.md"], // optional — auto-detected if absent
-  "mirror_mode": "summary",
+  "mirror_mode": "index",
   "compress_thresholds": { "max_entries": 500, "max_days_since_compress": 30 },
   "sync_thresholds": { "min_lines_changed": 50, "min_directories_changed": 2 }
 }
