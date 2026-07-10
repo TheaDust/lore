@@ -43,6 +43,7 @@ Detailed specifications live in `references/`. Load these on demand.
 | `references/stale-new-markers.md` | During `sync` — full marking convention and user reply semantics |
 | `references/platform-mirrors.md` | Platform file mapping (CLAUDE.md / .cursorrules / etc.), two-section file structure |
 | `references/config.md` | `.mem-man/.config.json` schema and field semantics |
+| `references/history-command.md` | Running `history` — full spec, dispatch rules, error table |
 | `scripts/README.md` | Helper scripts (id_hash, list_entries, find_duplicates, find_stale) — also in 中文 (`scripts/README.zh-CN.md`) |
 
 ## Memory architecture
@@ -258,6 +259,49 @@ Read-only.
 4. If not found but inferable from the code: say so explicitly ("Not in memory, but inferable from `frontend/src/store/index.ts`..."). Offer to add it.
 5. Never fabricate an entry. If memory doesn't have it, say it doesn't have it.
 
+### `history` — Show git commits related to a memory entry
+
+Read-only. Surfaces the git history that backs a memory entry, a file,
+or a scope, so the agent can answer "why does this decision exist?"
+with a pointer to the actual commits rather than a guess.
+
+**When to trigger:** only when the user explicitly invokes `lore
+history` or names a subcommand ("查 git 历史", "show me the commits
+behind this entry"). Generic "history" or "git log" alone does not
+trigger — defer to the user's intent.
+
+| User says (examples) | Command |
+|---|---|
+| "lore history DEC-2026-02-03-7c19" | `lore history <entry-id>` |
+| "lore history frontend/src/store/index.ts" | `lore history <file-path>` |
+| "lore history --scope=frontend" | `lore history --scope=<name>` |
+
+**Procedure (entry form):**
+
+1. Resolve project root (`.lore/` must exist; else exit 2).
+2. Confirm git repo + git CLI on PATH (exit 4 / 5 otherwise).
+3. Load entry index via `python scripts/list_entries.py --json`.
+4. Locate the entry. If not found, exit 3 with a hint of available IDs.
+5. Extract `#added` date as the default `--since`. If missing, print a
+   warning to stderr and use `1970-01-01`.
+6. Resolve the code file: backtick path in entry text → scope
+   directory → project root.
+7. Run `git log --since=<since> -- <code_file>` with a custom delimited
+   format string.
+8. For each commit, fetch the body via `git show -s --format=%B` and
+   extract PR/issue refs via regex.
+9. Render Markdown (default) or JSON (`--json`) and print to stdout.
+10. **Stop.** No files are written.
+
+**Data source contract:** local git CLI only. No GitHub / GitLab API.
+No LLM call. The agent invoking the command does the semantic work
+(interpreting commit messages, deciding relevance).
+
+**Relationship to other commands:** fills the previously-empty cell of
+"read git history" (other commands read either the current file system
+or `git diff` only). See `references/history-command.md` for the full
+dispatch rules, output format, and error table.
+
 ### `audit` — Check memory vs. reality
 
 Read-only diagnostic. Reports drift; does not fix and does not mutate `.mem-man/*.md` or `SUMMARY.md`.
@@ -327,6 +371,7 @@ mem-man query     # Read-only. Answer from memory, cite entry IDs with file path
 mem-man audit     # Read-only. Write .mem-man/audit/audit-<date>.md. No entry file is modified.
 mem-man compress  # Generate/refresh SUMMARY.md from existing entries, then update platform mirrors.
 mem-man mirror    # Force-regenerate all platform mirrors from current .mem-man/* state. Skips targets whose content is unchanged.
+lore history      # Read-only. List git commits related to an entry / file / scope. Pure stdout.
 ```
 
 Of the six, only `init`, `sync`, `compress`, and `mirror` write files. `init` and `sync` mutate `.mem-man/*.md`. `compress` writes `SUMMARY.md`. `mirror` writes platform mirror files (with content-based dedup). Each requires explicit user confirmation before any file is written unless `auto_mirror: true` is set in `.mem-man/.config.json`. `query` and `audit` are pure read.
