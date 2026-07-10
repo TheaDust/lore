@@ -20,10 +20,20 @@
 
 | 脚本 | 调用点 | 用途 |
 |---|---|---|
+| `history.py` | lore history | 列出与 memory entry / file / scope 相关的 git commits |
 | `id_hash.py` | 写新 entry 时（init / sync）| 计算 entry ID 的 4 字符内容 hash |
 | `list_entries.py` | query / audit / compress 的预步骤 | 把所有 entry 枚举为 JSON 供后续处理 |
 | `find_duplicates.py` | sync 步骤 5（去重）| 写之前找出可能的重复 entry |
 | `find_stale.py` | audit 步骤 2；compress 步骤 2；lore mirror（可选）| 找出过期 entry 或已标记 `#stale` 的 entry |
+
+## 输出通道
+
+**stdout 是数据通道；stderr 是警告通道。** 所有脚本遵循这个分离，这样 `--json` 消费者就不必从解析结果里过滤噪音。当前只有 `list_entries.py` 会发警告：
+
+- `[WARN] .lore/.config.json has no schema_version field.` —— 配置文件存在但缺 `schema_version` 字段时，每个调用触发一次。加 `"schema_version": 1` 即可消除。
+- `[WARN] .lore/.config.json#schema_version=N is newer than this lore skill expects (max: 1).` —— 配置版本超过本 skill 能理解的范围时触发。从上游 pull 最新 lore。
+
+两条警告都是告知性质；`list_entries.py` 不管配置状态如何，stdout 输出始终一致。完整 schema 版本策略见 `references/compatibility.md`。
 
 ## 测试
 

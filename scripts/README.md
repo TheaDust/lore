@@ -26,6 +26,15 @@ The script list and quick-reference command examples live in the project root `R
 | `find_duplicates.py` | sync step 5 (de-duplication) | Identify candidate duplicate entries before writing |
 | `find_stale.py` | audit step 2; compress step 2; lore mirror (optional) | Identify entries past the verified-date threshold or already marked `#stale` |
 
+## Output channels
+
+**stdout is the data channel; stderr is the warning channel.** All scripts follow this split so `--json` consumers never have to filter noise out of their parsers. Currently `list_entries.py` is the only script that emits a warning:
+
+- `[WARN] .lore/.config.json has no schema_version field.` — fires once per invocation when the config file exists but lacks the version field. Add `"schema_version": 1` to silence it.
+- `[WARN] .lore/.config.json#schema_version=N is newer than this lore skill expects (max: 1).` — fires when the config version exceeds what this skill understands. Pull the latest lore from upstream.
+
+Both warnings are informational; `list_entries.py` always produces the same stdout regardless of config state. See `references/compatibility.md` for the full schema versioning policy.
+
 ## Testing
 
 Without a real `.lore/`, you can sanity-check that imports and argument parsing work:
