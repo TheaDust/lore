@@ -439,7 +439,10 @@ def main():
                   file=sys.stderr)
             since = "1970-01-01"
         code_file = resolve_code_file(entry)
-        commits = run_git_log(project_root, since, code_file)
+        try:
+            commits = run_git_log(project_root, since, code_file)
+        except RuntimeError as exc:
+            die(ERR_GIT_FAIL, str(exc))
         _enrich_commits_with_body_and_refs(project_root, commits)
         meta = _build_meta_entry(entry, code_file, since, "entry_added")
         out = render_json(meta, commits) if json_mode else render_markdown(meta, commits)
@@ -449,7 +452,10 @@ def main():
     if parsed["form"] == "file":
         since = since_override or "1970-01-01"
         code_file = parsed["value"]
-        commits = run_git_log(project_root, since, code_file)
+        try:
+            commits = run_git_log(project_root, since, code_file)
+        except RuntimeError as exc:
+            die(ERR_GIT_FAIL, str(exc))
         _enrich_commits_with_body_and_refs(project_root, commits)
         meta = {
             "entry_id": f"<file:{code_file}>",
@@ -469,7 +475,10 @@ def main():
             # we git log the md file's project-relative path to find commits
             # that touched that lore file. (Useful for tracking lore edits.)
             rel = str(md_path.relative_to(project_root))
-            commits = run_git_log(project_root, "1970-01-01", rel)
+            try:
+                commits = run_git_log(project_root, "1970-01-01", rel)
+            except RuntimeError as exc:
+                die(ERR_GIT_FAIL, str(exc))
             _enrich_commits_with_body_and_refs(project_root, commits)
             if json_mode:
                 meta = {
