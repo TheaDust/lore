@@ -1,6 +1,6 @@
 # Platform mirrors reference
 
-How `.lore/*` content gets mirrored to platform-specific config files. The main `SKILL.md` covers the high-level rules; this file holds the per-platform mapping and the two-section file structure.
+How `.lore/*` content gets mirrored to platform-specific config files. The main `SKILL.md` covers the high-level rules; this file holds the per-platform mapping, the two-section file structure, and the algorithm that resolves which files to generate (auto-detect by default, explicit override available).
 
 ## Platform → file mapping
 
@@ -17,6 +17,74 @@ How `.lore/*` content gets mirrored to platform-specific config files. The main 
 | LangGraph / DeepAgents | (no file — inject at runtime) | — |
 
 For LangGraph and DeepAgents, the skill does not produce a mirror file. Read `.lore/*.md` directly or ingest into the system prompt at runtime — that ingestion is the user's responsibility.
+
+## Resolution: how `mirror_targets` is computed
+
+When the skill needs to know which platform files to generate (during `init`, `mirror`, and `compress` when `auto_mirror: true`), it runs the following procedure:
+
+```
+resolve_mirror_targets(config, repo_root):
+
+    # 1. If config has mirror_targets set, use it verbatim (auto-detect skipped)
+    if "mirror_targets" in config:
+        return list(config["mirror_targets"])
+
+    # 2. Scan repo root for existing platform files (see Scan candidates)
+    detected = scan_existing_platform_files(repo_root)
+    if detected:
+        return detected
+
+    # 3. Nothing detected → ask user via multi-select, persist to config, return
+    selected = ask_user_multi_select(AGENT_CHOICES)
+    write_mirror_targets_to_config(selected)
+    return selected
+```
+
+This is the core resolution used by all three commands. `init` extends it with classification and per-file takeover steps — see "Init-time behavior (full procedure)" below.
+
+### Scan candidates
+
+The auto-detect step checks for the following paths at `repo_root`:
+
+```
+CLAUDE.md
+.claude/CLAUDE.md
+.cursorrules
+.clinerules
+AGENTS.md
+CONVENTIONS.md
+.windsurfrules
+.github/copilot-instructions.md
+.continue/rules/lore.md
+.cursor/rules/*.mdc        # glob: any .mdc file under .cursor/rules/
+```
+
+These match the platform table above (default + "Also accepted" filenames). The `.cursor/rules/*.mdc` entry is a glob — it's a hit if `.cursor/rules/` exists and contains at least one `.mdc` file.
+
+### Multi-select agent choices
+
+When Step 3 fires, present this question to the user:
+
+| Choice | Primary file written |
+|---|---|
+| Claude Code | `CLAUDE.md` |
+| Cursor | `.cursorrules` |
+| Cline | `.clinerules` |
+| Aider | `AGENTS.md` |
+| Codex | `AGENTS.md` |
+| Windsurf | `.windsurfrules` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Continue.dev | `.continue/rules/lore.md` |
+
+Aider and Codex both map to `AGENTS.md`. Selecting both produces one entry. Selecting nothing is valid — writes `mirror_targets: []` (no mirrors generated).
+
+### When this runs
+
+- `lore init` — always interactive.
+- `lore mirror` when `mirror_targets` is absent — also interactive (skill is invoked through chat).
+- `lore compress` (when `auto_mirror: true`) — also goes through this resolution if `mirror_targets` is absent.
+
+Both paths use the same function. Once `init` has run, `mirror_targets` is set, so subsequent `mirror` calls hit Step 1 and are silent.
 
 ## Two-section file structure
 
@@ -73,12 +141,58 @@ This is the actual write step for platform mirrors.
 
 The content-based dedup step (4) is the key reason `mirror` can be run frequently without polluting `git log` — most invocations will be no-ops once the mirror is in sync.
 
-## Init-time behavior
+## Init-time behavior (full procedure)
 
-1. If the mirror file does not exist → create it with the full template: `## Lore` header + initial content + `\n---\n\n## My notes (free edit)\n\n` (empty My notes section).
-2. If the mirror file exists with both sections → discard old Lore content, preserve My notes content, fill in new Lore content.
-3. If the mirror file exists with only `## My notes` section (no `## Lore` header) → ask the user: skip this mirror / restructure file (move user content below `---`, add new Lore section above) / overwrite everything.
-4. If the mirror file exists without any section markers → ask the user: skip / treat as My notes (add new Lore section above with `---` separator) / overwrite.
+The `init` command extends the resolution algorithm above with classification and per-file takeover steps. The full procedure:
+
+1. **Check whether `.lore/` exists.**
+   - Absent → create `.lore/` and write an initial empty config.
+   - Present → load existing `.lore/.config.json` (use defaults if missing).
+
+2. **Scan existing platform files** in repo root using the same candidate list as the resolution algorithm. Result: list of paths that exist.
+
+3. **Classify each detected file** into one of three classes:
+   - **Class (a)** — already a lore mirror: contains `## Lore` section.
+   - **Class (b)** — user-written: contains `## My notes` but no `## Lore`.
+   - **Class (c)** — unmarked: neither header present.
+
+   For class (b) and (c) files, present a per-file choice:
+   - **Take over**: file becomes a two-section mirror; existing content is preserved as My notes.
+   - **Preserve as-is**: file is left alone; NOT added to `mirror_targets`.
+   - **Abort**: exit init entirely. `.lore/` may exist (from Step 1) but no `mirror_targets` is written.
+
+   Class (a) files are auto-included in `mirror_targets`.
+
+4. **Multi-select question.** "Which agents do you use in this project?" Default pre-selection: every agent corresponding to a class (a) file. Empty selection is allowed — but class (a) files still get included via Step 5.
+
+5. **Compute final `mirror_targets`** by combining three sources and deduplicating:
+   - All class (a) files from Step 3 (always included, regardless of Step 4 selection).
+   - Files chosen via "take over" in Step 3.
+   - Primary files for additional agents the user selected in Step 4 that aren't already covered.
+
+   Dedup: Aider and Codex both map to `AGENTS.md` and collapse to one entry.
+
+6. **Write `.lore/.config.json`** with `mirror_targets` populated.
+
+7. **Generate initial mirror files** for each target:
+   - File absent → full template (`## Lore` + `---` + empty `## My notes`).
+   - File present with `## Lore` → refresh Lore section, preserve My notes verbatim.
+   - File present and "take over" chosen → old content becomes My notes, new `## Lore` above.
+   - File present and "preserve" chosen → no write.
+
+For each generated mirror file, the section template is:
+
+```
+## Lore (auto-managed)
+
+<initial or refreshed Lore content>
+
+---
+
+## My notes (free edit)
+
+<preserved or empty>
+```
 
 ## What gets mirrored
 

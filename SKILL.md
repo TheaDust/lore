@@ -110,7 +110,7 @@ The canonical store is `.lore/*`. Agents that expect a single config file at the
 
 **Default behavior:**
 
-- **Init**: missing mirror file → auto-create with both sections. Existing mirror with both sections → refresh Lore section, preserve My notes. Existing mirror with only My notes (no Lore header) → ask user how to handle. File with no section markers → ask user.
+- **Init**: targets are auto-detected (existing platform files in repo root) — see `references/platform-mirrors.md`. If none detected, ask the user via multi-select which agents they use. For each detected file lacking a `## Lore` section, ask take over / preserve / abort per file. Auto-create missing files with the full two-section template; refresh existing lore mirrors; preserve My notes verbatim.
 - **Sync / Compress**: controlled by `.lore/.config.json#auto_mirror`. Default is `false` (ask per target). When `true`, mirrors update automatically. My notes section is **always** preserved.
 
 By default the Lore section contains `SUMMARY.md` plus a scope-tagged index — not the full content. Full-content mirroring is opt-in via `mirror_mode: full`.
@@ -144,14 +144,14 @@ To disable Claude Code's automatic `/init` on a project where `lore` is in use, 
 
 Runs once per project (or to start over).
 
-0. **Takeover check.** For each configured mirror target (e.g. `CLAUDE.md`, `.cursorrules`):
+0. **Resolve targets and takeover check.** Targets are determined by the resolution algorithm — see `references/platform-mirrors.md`. Default behavior: scan repo root for existing platform files; if none found, ask the user via multi-select which agents they use. Explicit `mirror_targets` in `.lore/.config.json` overrides auto-detect (Replace semantics). For each resolved target:
    - If the file does not exist → no action; it will be created later in step 7.
    - If the file exists AND contains a `## Lore` section → it's already a lore mirror; note it and continue (its My notes will be processed as seed in step 5).
    - If the file exists AND does NOT contain a `## Lore` section → it's likely from the agent's native `/init` or hand-written. Show the user:
      - (a) **Take over** — rewrite the file as a two-section mirror. The existing content becomes the My notes section (preserved verbatim, treated as seed knowledge in step 5).
      - (b) **Preserve as-is** — leave the file alone. Remove it from `mirror_targets` for this project (lore won't write to it). `.lore/` is still generated normally; the user can read `SUMMARY.md` directly or merge manually later.
      - (c) **Abort** — exit init. Nothing is created. The user can decide later.
-   - Repeat for each configured mirror target before proceeding.
+   - Repeat for each resolved target before proceeding.
 1. Check if `.lore/` already exists. If yes, warn and ask: archive the current one and re-init, or abort?
 2. Detect monorepo structure (per `references/monorepo-detection.md`). Propose scope list to the user; let them rename / merge / split before proceeding. No monorepo → `_global/` only.
 3. Scan the project (per scope if applicable):
