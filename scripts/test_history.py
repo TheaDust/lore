@@ -10,6 +10,7 @@ from history import (
     parse_arg,
     parse_commit_line,
     resolve_code_file,
+    render_markdown,
 )
 
 
@@ -171,6 +172,64 @@ class TestFetchCommitBody(unittest.TestCase):
     def test_truncate_body_strips_trailing_whitespace(self):
         from history import truncate_body
         self.assertEqual(truncate_body("a\nb\n\n\n", max_lines=3), "a\nb")
+
+
+class TestRenderMarkdown(unittest.TestCase):
+    def test_header_and_metadata(self):
+        meta = {
+            "entry_id": "DEC-2026-02-03-7c19",
+            "lore_file": "scopes/frontend/DECISIONS.md",
+            "code_file": "frontend/src/store/index.ts",
+            "since": "2026-02-03",
+            "since_source": "entry_added",
+        }
+        commits = []
+        out = render_markdown(meta, commits)
+        self.assertIn("# history: [DEC-2026-02-03-7c19]", out)
+        self.assertIn("> Entry: scopes/frontend/DECISIONS.md", out)
+        self.assertIn("> Since: 2026-02-03 (entry #added date)", out)
+        self.assertIn("> File: frontend/src/store/index.ts", out)
+        self.assertIn("> Commits: 0", out)
+        self.assertNotIn("Suggested next step", out)
+
+    def test_commit_block_with_body_and_refs(self):
+        meta = {
+            "entry_id": "X-2026-01-01-aaaa",
+            "lore_file": "x.md",
+            "code_file": "x.ts",
+            "since": "2026-01-01",
+            "since_source": "entry_added",
+        }
+        commits = [
+            {
+                "hash": "abc1234567890abcdef1234567890abcdef12345",
+                "short": "abc1234",
+                "author": "alice",
+                "date": "2026-04-12",
+                "subject": "Use Zustand v4",
+                "body": "Migration notes here.",
+                "refs": ["#234"],
+            },
+        ]
+        out = render_markdown(meta, commits)
+        self.assertIn("## abc1234 (2026-04-12, alice)", out)
+        self.assertIn("Use Zustand v4", out)
+        self.assertIn('Body: "Migration notes here."', out)
+        self.assertIn("Refs: #234", out)
+        self.assertIn("Suggested next step", out)
+
+    def test_commit_block_no_body_no_refs(self):
+        meta = {"entry_id": "X", "lore_file": "x.md", "code_file": "x.ts",
+                "since": "2026-01-01", "since_source": "entry_added"}
+        commits = [
+            {"hash": "abcdef1", "short": "abcdef1", "author": "bob",
+             "date": "2026-01-02", "subject": "tweak", "body": "", "refs": []},
+        ]
+        out = render_markdown(meta, commits)
+        self.assertIn("## abcdef1 (2026-01-02, bob)", out)
+        self.assertIn("tweak", out)
+        self.assertNotIn("Body:", out)
+        self.assertNotIn("Refs:", out)
 
 
 if __name__ == "__main__":

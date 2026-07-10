@@ -245,6 +245,46 @@ def fetch_commit_body(project_root, commit_hash):
     return proc.stdout.rstrip()
 
 
+def render_markdown(meta, commits):
+    """Render the Markdown output for a `lore history` invocation.
+
+    Args:
+        meta: dict with keys entry_id, lore_file, code_file, since,
+              since_source.
+        commits: list of commit dicts (see parse_commit_line + extract_refs).
+
+    Returns:
+        Markdown string ready for stdout.
+    """
+    lines = []
+    lines.append(f"# history: [{meta['entry_id']}]")
+    lines.append("")
+    lines.append(f"> Entry: {meta['lore_file']}")
+    lines.append(f"> Since: {meta['since']} (entry #added date)")
+    lines.append(f"> File: {meta['code_file']}")
+    lines.append(f"> Commits: {len(commits)} (showing all)")
+    lines.append("")
+
+    if not commits:
+        return "\n".join(lines) + "\n"
+
+    for c in commits:
+        lines.append(f"## {c['short']} ({c['date']}, {c['author']})")
+        lines.append(c["subject"])
+        if c.get("body"):
+            body = truncate_body(c["body"], max_lines=3)
+            lines.append(f'  Body: "{body}"')
+        if c.get("refs"):
+            lines.append(f"  Refs: {', '.join(c['refs'])}")
+        lines.append("")
+
+    lines.append("## Suggested next step")
+    lines.append("Run `lore sync` to check whether any of these commits")
+    lines.append("introduce a [REFINED] candidate for this entry.")
+    lines.append("")
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
     # Placeholder; real CLI wiring comes in later tasks.
     if len(sys.argv) < 2:
