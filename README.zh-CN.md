@@ -105,16 +105,17 @@ lore history --json                 # 机器可读
 
 ## 平台 Mirror
 
-lore 的事实源是 `.lore/*`，但它会投影到 agent 已经读取的配置文件：
+lore 的事实源是 `.lore/*`，但它会投影到 agent 已经读取的配置文件。targets 通过扫描 repo 根目录的现有平台文件自动检测（auto-detect）；都没找到时 `lore init` 用 multi-select 问用户想给哪些 agent 写。在 `.lore/.config.json` 显式写 `mirror_targets` 会覆盖这个行为（Replace 语义）。
 
-| 平台 | 文件 | 默认？ |
+| 平台 | 文件 | 自动检测？ |
 |---|---|---|
-| Claude Code | `CLAUDE.md` | ✅ 是 |
-| Cursor | `.cursorrules` | ❌ 通过 `mirror_targets` 启用 |
-| Cline | `.clinerules` | ❌ |
-| Aider / Codex | `AGENTS.md` | ❌ |
-| Windsurf | `.windsurfrules` | ❌ |
-| GitHub Copilot | `.github/copilot-instructions.md` | ❌ |
+| Claude Code | `CLAUDE.md` | ✅ |
+| Cursor | `.cursorrules` (或 `.cursor/rules/*.mdc`) | ✅ |
+| Cline | `.clinerules` | ✅ |
+| Aider / Codex | `AGENTS.md` (或 `CONVENTIONS.md`) | ✅ |
+| Windsurf | `.windsurfrules` | ✅ |
+| GitHub Copilot | `.github/copilot-instructions.md` | ✅ |
+| Continue.dev | `.continue/rules/lore.md` | ✅ |
 | LangGraph / DeepAgents |（无文件 — 直接读 `.lore/*.md`）| n/a |
 
 每个 mirror 文件用 `---` 分隔符切成两段：
