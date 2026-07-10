@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Unit tests for scripts/history.py."""
+import json as _json
 import unittest
 from history import (
     COMMIT_DELIM,
@@ -10,6 +11,7 @@ from history import (
     parse_arg,
     parse_commit_line,
     resolve_code_file,
+    render_json,
     render_markdown,
 )
 
@@ -172,6 +174,36 @@ class TestFetchCommitBody(unittest.TestCase):
     def test_truncate_body_strips_trailing_whitespace(self):
         from history import truncate_body
         self.assertEqual(truncate_body("a\nb\n\n\n", max_lines=3), "a\nb")
+
+
+class TestRenderJson(unittest.TestCase):
+    def test_round_trip(self):
+        meta = {
+            "entry_id": "DEC-2026-02-03-7c19",
+            "lore_file": "scopes/frontend/DECISIONS.md",
+            "code_file": "frontend/src/store/index.ts",
+            "since": "2026-02-03",
+            "since_source": "entry_added",
+        }
+        commits = [
+            {"hash": "abc1234567890abcdef1234567890abcdef12345",
+             "short": "abc1234", "author": "alice", "date": "2026-04-12",
+             "subject": "Use Zustand v4", "body": "Migrate notes.",
+             "refs": ["#234"]},
+        ]
+        out = render_json(meta, commits)
+        parsed = _json.loads(out)
+        self.assertEqual(parsed["entry_id"], "DEC-2026-02-03-7c19")
+        self.assertEqual(len(parsed["commits"]), 1)
+        self.assertEqual(parsed["commits"][0]["short"], "abc1234")
+        self.assertEqual(parsed["commits"][0]["refs"], ["#234"])
+
+    def test_empty_commits(self):
+        meta = {"entry_id": "X", "lore_file": "x.md", "code_file": "x.ts",
+                "since": "2026-01-01", "since_source": "entry_added"}
+        out = render_json(meta, [])
+        parsed = _json.loads(out)
+        self.assertEqual(parsed["commits"], [])
 
 
 class TestRenderMarkdown(unittest.TestCase):

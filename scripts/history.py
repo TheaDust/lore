@@ -14,6 +14,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+import json as _json  # standard library; aliased to avoid clashing with future vars
 
 
 # Entry ID pattern: LAYER-YYYY-MM-DD-xxxx (4 hex chars)
@@ -243,6 +244,22 @@ def fetch_commit_body(project_root, commit_hash):
     if proc.returncode != 0:
         return ""
     return proc.stdout.rstrip()
+
+
+def render_json(meta, commits):
+    """Render the JSON output for a `lore history` invocation.
+
+    Output matches the schema documented in the spec.
+    """
+    payload = {
+        "entry_id": meta["entry_id"],
+        "lore_file": meta["lore_file"],
+        "code_file": meta["code_file"],
+        "since": meta["since"],
+        "since_source": meta["since_source"],
+        "commits": commits,
+    }
+    return _json.dumps(payload, indent=2, ensure_ascii=False)
 
 
 def render_markdown(meta, commits):
