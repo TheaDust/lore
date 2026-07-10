@@ -318,13 +318,185 @@ def die(code, message):
     sys.exit(code)
 
 
-if __name__ == "__main__":
-    # Placeholder; real CLI wiring comes in later tasks.
-    if len(sys.argv) < 2:
-        print("usage: lore history <entry-id|file-path|--scope=NAME>", file=sys.stderr)
-        sys.exit(2)
-    parsed = parse_arg(sys.argv[1])
+def _load_entries_via_subprocess():
+    """Run scripts/list_entries.py --json and return the parsed list.
+
+    Mirrors the pattern in find_duplicates.py / find_stale.py.
+    Returns [] if no entries.
+    """
+    here = Path(__file__).resolve().parent
+    cmd = [sys.executable, str(here / "list_entries.py"), "--json"]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", check=False)
+    except FileNotFoundError as exc:
+        die(ERR_NO_GIT, f"python executable not found: {exc}")
+    if proc.returncode != 0:
+        die(ERR_NO_LORE, f"list_entries.py failed: {proc.stderr.strip()}")
+    try:
+        return _json.loads(proc.stdout)
+    except _json.JSONDecodeError as exc:
+        die(ERR_NO_LORE, f"list_entries.py returned invalid JSON: {exc}")
+
+
+def _find_lore_root_or_die():
+    """Walk up from CWD to find .lore/. Die with ERR_NO_LORE if not found."""
+    p = Path(".").resolve()
+    while p != p.parent:
+        if (p / ".lore").is_dir():
+            return p
+        p = p.parent
+    die(ERR_NO_LORE, ".lore/ not found. Run 'lore init' first.")
+
+
+def _build_meta_entry(entry, code_file, since, since_source):
+    return {
+        "entry_id": entry["id"],
+        "lore_file": entry["file"],
+        "code_file": code_file,
+        "since": since,
+        "since_source": since_source,
+    }
+
+
+def _resolve_scope_to_md_files(project_root, scope_name):
+    """For scope form: list the (layer_file, md_path) tuples under the scope."""
+    scopes_dir = project_root / ".lore" / "scopes" / scope_name
+    if not scopes_dir.is_dir():
+        available = sorted(
+            p.name for p in (project_root / ".lore" / "scopes").iterdir()
+            if p.is_dir()
+        ) if (project_root / ".lore" / "scopes").is_dir() else []
+        available_display = ", ".join(available) if available else "(none)"
+        die(ERR_BAD_SCOPE, f"Scope '{scope_name}' not found. Available: {available_display}")
+    files = []
+    for md in sorted(scopes_dir.glob("*.md")):
+        files.append((md.stem, md))
+    return files
+
+
+def _is_git_repo(project_root):
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(project_root), "rev-parse", "--git-dir"],
+            capture_output=True, text=True, check=False,
+        )
+    except FileNotFoundError:
+        die(ERR_NO_GIT, "git executable not found on PATH.")
+    return proc.returncode == 0
+
+
+def _enrich_commits_with_body_and_refs(project_root, commits):
+    """For each commit, fetch body and extract refs. Mutates in place."""
+    for c in commits:
+        msg = fetch_commit_body(project_root, c["hash"])
+        if msg:
+            # Body is everything after the first line.
+            parts = msg.split("\n", 1)
+            subject = parts[0]
+            body = parts[1].strip() if len(parts) > 1 else ""
+            c["subject"] = subject
+            c["body"] = truncate_body(body, max_lines=3)
+            c["refs"] = extract_refs(msg)
+
+
+def main():
+    args = sys.argv[1:]
+    json_mode = "--json" in args
+    since_override = None
+    for a in args:
+        if a.startswith("--since="):
+            since_override = a.split("=", 1)[1]
+
+    positional = [a for a in args if not a.startswith("--") and a != "--json"]
+    if not positional:
+        print("usage: lore history <entry-id|file-path|--scope=NAME>",
+              file=sys.stderr)
+        die(ERR_USAGE, "missing argument")
+
+    parsed = parse_arg(positional[0])
     if parsed is None:
-        print(f"error: unrecognized argument: {sys.argv[1]}", file=sys.stderr)
-        sys.exit(2)
-    print(parsed)
+        die(ERR_USAGE, f"unrecognized argument: {positional[0]}")
+
+    project_root = _find_lore_root_or_die()
+
+    if not _is_git_repo(project_root):
+        die(ERR_NOT_GIT,
+            "Not a git repository. 'lore history' requires git; "
+            "use 'lore query' for in-memory answers.")
+
+    if parsed["form"] == "entry":
+        entries = _load_entries_via_subprocess()
+        entry = find_entry(entries, parsed["value"])
+        if entry is None:
+            ids = ", ".join(e["id"] for e in entries[:20])
+            more = "" if len(entries) <= 20 else f" (and {len(entries)-20} more)"
+            die(ERR_NO_ENTRY,
+                f"Entry {parsed['value']} not found. Available: {ids}{more}")
+        since = since_override or extract_added_date(entry.get("tags", {}))
+        if since is None:
+            print("warning: entry has no #added tag; using full history",
+                  file=sys.stderr)
+            since = "1970-01-01"
+        code_file = resolve_code_file(entry)
+        commits = run_git_log(project_root, since, code_file)
+        _enrich_commits_with_body_and_refs(project_root, commits)
+        meta = _build_meta_entry(entry, code_file, since, "entry_added")
+        out = render_json(meta, commits) if json_mode else render_markdown(meta, commits)
+        print(out)
+        return
+
+    if parsed["form"] == "file":
+        since = since_override or "1970-01-01"
+        code_file = parsed["value"]
+        commits = run_git_log(project_root, since, code_file)
+        _enrich_commits_with_body_and_refs(project_root, commits)
+        meta = {
+            "entry_id": f"<file:{code_file}>",
+            "lore_file": "(direct file query)",
+            "code_file": code_file,
+            "since": since,
+            "since_source": "user_arg" if since_override else "default",
+        }
+        out = render_json(meta, commits) if json_mode else render_markdown(meta, commits)
+        print(out)
+        return
+
+    if parsed["form"] == "scope":
+        layer_files = _resolve_scope_to_md_files(project_root, parsed["value"])
+        for layer_name, md_path in layer_files:
+            # For scope form we treat each .md file as a "code file" stand-in:
+            # we git log the md file's project-relative path to find commits
+            # that touched that lore file. (Useful for tracking lore edits.)
+            rel = str(md_path.relative_to(project_root))
+            commits = run_git_log(project_root, "1970-01-01", rel)
+            _enrich_commits_with_body_and_refs(project_root, commits)
+            if json_mode:
+                meta = {
+                    "entry_id": f"<scope:{parsed['value']}/{layer_name}>",
+                    "lore_file": rel,
+                    "code_file": rel,
+                    "since": "1970-01-01",
+                    "since_source": "scope_form",
+                }
+                print(render_json(meta, commits))
+            else:
+                print(f"## Scope: {parsed['value']} / {layer_name}")
+                print("")
+                if not commits:
+                    print("(no commits)")
+                    print("")
+                    continue
+                for c in commits:
+                    print(f"### {c['short']} ({c['date']}, {c['author']})")
+                    print(c["subject"])
+                    if c.get("body"):
+                        print(f'  Body: "{c["body"]}"')
+                    if c.get("refs"):
+                        print(f"  Refs: {', '.join(c['refs'])}")
+                    print("")
+        return
+
+
+if __name__ == "__main__":
+    main()
