@@ -1,4 +1,4 @@
-# mem-man
+# lore
 
 > Framework-agnostic project memory for AI coding agents.
 
@@ -13,25 +13,25 @@ When you work on a project across multiple AI tools (Claude Code, Cursor, Cline,
 - **Agents disagree with each other.** Cursor follows `.cursorrules`, Claude Code follows `CLAUDE.md`, but the two files drift apart.
 - **Onboarding takes weeks.** New members / new agents need to learn the conventions from scratch.
 
-mem-man maintains a single source of truth (`.mem-man/`) and projects it into whatever config files your agents already read. It tracks *why* decisions were made, not just *what* the code does, and keeps that history across sessions and tools.
+lore maintains a single source of truth (`.lore/`) and projects it into whatever config files your agents already read. It tracks *why* decisions were made, not just *what* the code does, and keeps that history across sessions and tools.
 
 ## Quick start
 
 ```bash
 # 1. Initialize (run once per project)
-mem-man init
-# Walks the project, drafts entries, asks for confirmation, creates .mem-man/
+lore init
+# Walks the project, drafts entries, asks for confirmation, creates .lore/
 
 # 2. After a non-trivial change
-mem-man sync
+lore sync
 # Detects code diffs, proposes [NEW]/[STALE]/[REFINED] entries, waits for your call
 
 # 3. After many changes, refresh the agent-facing summary
-mem-man compress
+lore compress
 # Regenerates SUMMARY.md and updates CLAUDE.md / .cursorrules / etc.
 
-# 4. Force a mirror refresh (e.g. after hand-editing .mem-man/)
-mem-man mirror
+# 4. Force a mirror refresh (e.g. after hand-editing .lore/)
+lore mirror
 # Rewrites CLAUDE.md and other platform files from current state
 ```
 
@@ -48,14 +48,14 @@ lore history --json             # machine-readable
 Three read-only commands round out the toolkit:
 
 ```bash
-mem-man query    # Answer a question from memory, cite entry IDs
-mem-man audit    # Check memory vs. reality, write report to .mem-man/audit/
+lore query    # Answer a question from memory, cite entry IDs
+lore audit    # Check memory vs. reality, write report to .lore/audit/
 ```
 
-## What lives in `.mem-man/`
+## What lives in `.lore/`
 
 ```
-.mem-man/
+.lore/
 ├── SUMMARY.md                    # Top-level digest; new agents read this first
 ├── _global/                      # Cross-scope facts
 │   ├── ARCHITECTURE.md
@@ -83,17 +83,17 @@ Each entry is a single Markdown bullet (≤ 2 lines) with a deterministic ID and
 
 | Command | What it does | Writes |
 |---|---|---|
-| `init` | First-time project scan; drafts entries; user confirms | `.mem-man/*` + platform mirrors |
-| `sync` | Detects code changes; proposes updates; user approves | `.mem-man/*` only (not mirrors) |
+| `init` | First-time project scan; drafts entries; user confirms | `.lore/*` + platform mirrors |
+| `sync` | Detects code changes; proposes updates; user approves | `.lore/*` only (not mirrors) |
 | `query` | Read-only; answers from memory with entry IDs | nothing |
-| `audit` | Read-only; checks memory vs. current code; writes report | `.mem-man/audit/*` only |
+| `audit` | Read-only; checks memory vs. current code; writes report | `.lore/audit/*` only |
 | `compress` | Generates `SUMMARY.md` from current entries | `SUMMARY.md` + platform mirrors |
 | `mirror` | Force-regenerate platform mirrors (with content dedup) | `CLAUDE.md`, `.cursorrules`, etc. |
 | `history` | Read-only; lists git commits related to an entry / file / scope | nothing |
 
-`sync` deliberately does **not** update platform mirrors. Mirror files are agent-facing entry points, not per-change logs. Regenerating them on every `sync` would clutter `git log` and dilute the "human-merged" signal they're supposed to provide. Run `mem-man mirror` (or `compress`) when you want the agent-facing view to catch up.
+`sync` deliberately does **not** update platform mirrors. Mirror files are agent-facing entry points, not per-change logs. Regenerating them on every `sync` would clutter `git log` and dilute the "human-merged" signal they're supposed to provide. Run `lore mirror` (or `compress`) when you want the agent-facing view to catch up.
 
-To restore old behavior (mirror updates on every `sync`), set `"sync_updates_mirror": true` in `.mem-man/.config.json`.
+To restore old behavior (mirror updates on every `sync`), set `"sync_updates_mirror": true` in `.lore/.config.json`.
 
 ## Sync trust levels
 
@@ -111,7 +111,7 @@ The default `medium` is a balance: low-risk changes apply silently, real additio
 
 ## Platform mirrors
 
-mem-man's canonical store is `.mem-man/*`, but it projects into the config files agents already read:
+lore's canonical store is `.lore/*`, but it projects into the config files agents already read:
 
 | Platform | File | Default? |
 |---|---|---|
@@ -121,13 +121,13 @@ mem-man's canonical store is `.mem-man/*`, but it projects into the config files
 | Aider / Codex | `AGENTS.md` | ❌ opt-in |
 | Windsurf | `.windsurfrules` | ❌ opt-in |
 | GitHub Copilot | `.github/copilot-instructions.md` | ❌ opt-in |
-| LangGraph / DeepAgents | (no file — read `.mem-man/*.md` directly) | n/a |
+| LangGraph / DeepAgents | (no file — read `.lore/*.md` directly) | n/a |
 
 Each mirror file is split into two sections by a `---` separator:
 
 ```markdown
-## Mem-man (auto-managed)
-... Skill-managed content from .mem-man/ ...
+## Lore (auto-managed)
+... Skill-managed content from .lore/ ...
 
 ---
 
@@ -135,7 +135,7 @@ Each mirror file is split into two sections by a `---` separator:
 ... your hand-written notes, preserved verbatim across syncs ...
 ```
 
-The Skill only writes inside the `## Mem-man` section. Everything under `## My notes` is yours to edit freely. The Skill preserves it verbatim across every `sync` and `compress`.
+The Skill only writes inside the `## Lore` section. Everything under `## My notes` is yours to edit freely. The Skill preserves it verbatim across every `sync` and `compress`.
 
 ## Scripts
 
@@ -153,7 +153,7 @@ All scripts are cross-platform Python 3.6+ with no third-party dependencies. See
 
 ## Configuration
 
-`.mem-man/.config.json` is optional. The defaults work for most projects.
+`.lore/.config.json` is optional. The defaults work for most projects.
 
 ```json
 {
@@ -169,35 +169,35 @@ All scripts are cross-platform Python 3.6+ with no third-party dependencies. See
 
 Field semantics: see `references/config.md`.
 
-## When NOT to use mem-man
+## When NOT to use lore
 
-mem-man is built for long-term projects. It's overkill for:
+lore is built for long-term projects. It's overkill for:
 
 - **Short-lived scripts / one-off demos.** The maintenance overhead exceeds the value.
 - **Rapid prototyping** where decisions change weekly. The decision-tracking machinery gets in the way.
 - **Tiny single-file projects.** Just use a `README.md`.
-- **Projects where you never want AI to make decisions.** If you want a pure read-only agent, mem-man adds no value.
+- **Projects where you never want AI to make decisions.** If you want a pure read-only agent, lore adds no value.
 - **Massive monorepos with 50+ packages.** The scope tree becomes unwieldy; consider splitting per-package or using a sub-skill per cluster.
 
 ## FAQ
 
-**Q: Does mem-man work without git?**
+**Q: Does lore work without git?**
 A: Partially. `sync` uses `git diff` to detect changes. Without git, you can still use `init` / `query` / `audit` / `compress` / `mirror`, but `sync` will need you to tell it what changed.
 
-**Q: Can I hand-edit `.mem-man/*.md` directly?**
-A: Yes. The files are plain Markdown. Use `id_hash.py` if you're adding new entries (to keep IDs deterministic). After hand-editing, run `mem-man mirror` to update agent-facing files.
+**Q: Can I hand-edit `.lore/*.md` directly?**
+A: Yes. The files are plain Markdown. Use `id_hash.py` if you're adding new entries (to keep IDs deterministic). After hand-editing, run `lore mirror` to update agent-facing files.
 
-**Q: What if I don't want a mirror file at all (just `.mem-man/`)?**
+**Q: What if I don't want a mirror file at all (just `.lore/`)?**
 A: Set `mirror_targets: []` in `.config.json`. The `compress` and `mirror` commands will be no-ops on the file system; only `SUMMARY.md` and the entry files matter.
 
 **Q: How is this different from Cursor's `.cursorrules` or Aider's `AGENTS.md`?**
-A: Those are flat lists of rules. mem-man is structured (architecture / decisions / conventions), atomic (one fact per entry), and historical (every entry has `#added` and `#verified` tags). It also produces those files for you.
+A: Those are flat lists of rules. lore is structured (architecture / decisions / conventions), atomic (one fact per entry), and historical (every entry has `#added` and `#verified` tags). It also produces those files for you.
 
-**Q: Does mem-man talk to the agent's API?**
-A: No. mem-man is pure file I/O. The agent invoking mem-man does the semantic work (scanning code, deciding what to extract, classifying changes); mem-man provides the file layout, the ID scheme, the markers, and the verification scripts.
+**Q: Does lore talk to the agent's API?**
+A: No. lore is pure file I/O. The agent invoking lore does the semantic work (scanning code, deciding what to extract, classifying changes); lore provides the file layout, the ID scheme, the markers, and the verification scripts.
 
 **Q: What about the agent's native `/init` or `/compact` commands?**
-A: They serve different purposes. `/init` is a one-shot project scan → `CLAUDE.md`. `/compact` compresses conversation context. mem-man `init` and `compress` manage long-term project knowledge, not session context. If you run `mem-man init` on a project that already has a non-mem-man `CLAUDE.md`, the takeover check (init step 0) handles integration.
+A: They serve different purposes. `/init` is a one-shot project scan → `CLAUDE.md`. `/compact` compresses conversation context. lore `init` and `compress` manage long-term project knowledge, not session context. If you run `lore init` on a project that already has a non-lore `CLAUDE.md`, the takeover check (init step 0) handles integration.
 
 ## License
 

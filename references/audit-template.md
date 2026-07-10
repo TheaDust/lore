@@ -1,6 +1,6 @@
 # Audit report template
 
-`audit` writes its output to `.mem-man/audit/audit-YYYY-MM-DD.md`. This file is read-only with respect to `.mem-man/*.md` (see main `SKILL.md` Conflict resolution — audit never mutates and never ALERTs).
+`audit` writes its output to `.lore/audit/audit-YYYY-MM-DD.md`. This file is read-only with respect to `.lore/*.md` (see main `SKILL.md` Conflict resolution — audit never mutates and never ALERTs).
 
 ## Template
 
@@ -37,7 +37,7 @@
 
 ## Summary
 
-Recommended action: run `mem-man sync` to address these findings.
+Recommended action: run `lore sync` to address these findings.
 Audit itself does not modify any entry.
 ```
 
@@ -51,7 +51,7 @@ Audit itself does not modify any entry.
 
 ## Required rules
 
-- The audit report **never** modifies any `.mem-man/*.md` file.
+- The audit report **never** modifies any `.lore/*.md` file.
 - The audit report **never** emits ALERT blocks (ALERT noise is contained to `sync` and `query`).
 - Audit is a pure read-and-report operation. To act on findings, the user runs `sync`.
 

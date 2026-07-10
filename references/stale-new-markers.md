@@ -30,7 +30,7 @@ When `sync` proposes a change, it never silently mutates files. Instead it emits
 - Sync proposes `[CONV-2026-07-09-c5e1]` (no `any`), but `[CONV-2026-06-01-f0a1]` already says "use `any` sparingly in test mocks". Resolution: refined entry above clarifies the exception.
 
 ## [COMPRESS NOTICE]
-- Memory bank has 612 entries; last compression 47 days ago. Consider running `mem-man compress` after this sync.
+- Memory bank has 612 entries; last compression 47 days ago. Consider running `lore compress` after this sync.
 ```
 
 ## User reply semantics
@@ -59,4 +59,4 @@ Note: `[STALE]` does not delete or move anything. The entry remains in its file 
 
 ## When audit uses these markers
 
-`audit` does **not** use these markers. It writes its own severity tags (`[CONFLICT]`, `[STALE]`, `[UNVERIFIED]`) into the audit report file under `.mem-man/audit/`. The naming overlap (`[STALE]` in sync vs `[STALE]` severity in audit) is intentional — both refer to the same concept (entry no longer accurate) but operate in different files with different downstream actions.
+`audit` does **not** use these markers. It writes its own severity tags (`[CONFLICT]`, `[STALE]`, `[UNVERIFIED]`) into the audit report file under `.lore/audit/`. The naming overlap (`[STALE]` in sync vs `[STALE]` severity in audit) is intentional — both refer to the same concept (entry no longer accurate) but operate in different files with different downstream actions.

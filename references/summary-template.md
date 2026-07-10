@@ -5,7 +5,7 @@
 ## Skeleton
 
 ```markdown
-# .mem-man SUMMARY
+# .lore SUMMARY
 
 > Last compressed: <YYYY-MM-DD>
 > Total entries: <N> across <M> scopes
@@ -52,7 +52,7 @@ If a (scope, layer) is empty, omit the subsection entirely.
 ## Worked example
 
 ```markdown
-# .mem-man SUMMARY
+# .lore SUMMARY
 
 > Last compressed: 2026-07-09
 > Total entries: 247 across 3 scopes

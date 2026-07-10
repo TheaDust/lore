@@ -1,6 +1,6 @@
 # Entry format reference
 
-Detailed specification for `.mem-man/` entries. The main `SKILL.md` covers entry structure briefly; this file is the full spec.
+Detailed specification for `.lore/` entries. The main `SKILL.md` covers entry structure briefly; this file is the full spec.
 
 ## Bullet structure
 
@@ -47,7 +47,7 @@ When `SUMMARY.md` or another file references an entry, qualify it with the file 
 [_global/CONVENTIONS.md#CONV-2026-01-20-b1e8]
 ```
 
-The path is relative to `.mem-man/`.
+The path is relative to `.lore/`.
 
 ## Splitting vs. single entries
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""List all mem-man entries in `.mem-man/` as JSON or human-readable text.
+"""List all lore entries in `.lore/` as JSON or human-readable text.
 
 Usage:
     python list_entries.py                 # human-readable
@@ -7,7 +7,7 @@ Usage:
     python list_entries.py --scope=frontend
     python list_entries.py --layer=ARCH
 
-Walks `.mem-man/_global/*` and `.mem-man/scopes/*/*` and parses every
+Walks `.lore/_global/*` and `.lore/scopes/*/*` and parses every
 Markdown bullet that matches the entry format. Output is one record per
 entry with these fields:
 
@@ -15,7 +15,7 @@ entry with these fields:
     layer           prefix, e.g. "ARCH" / "DEC" / "CONV"
     layer_file      source file stem, e.g. "ARCHITECTURE"
     scope           scope name, or "_global"
-    file            path relative to .mem-man/, e.g. "scopes/frontend/ARCHITECTURE.md"
+    file            path relative to .lore/, e.g. "scopes/frontend/ARCHITECTURE.md"
     text            entry body, with tags stripped
     tags            dict of tag name -> value, e.g. {"added": "2026-07-09", "verified": "2026-07-15"}
     last_verified   value of #verified tag, or None

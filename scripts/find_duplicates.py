@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Find potential duplicate entries in .mem-man/.
+"""Find potential duplicate entries in .lore/.
 
 Usage:
     python find_duplicates.py                       # default threshold 0.7

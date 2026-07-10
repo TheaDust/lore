@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Find stale entries in .mem-man/.
+"""Find stale entries in .lore/.
 
 Usage:
     python find_stale.py                  # default: 90-day threshold
@@ -12,14 +12,14 @@ Reports two categories:
                  (or has no #verified at all, and was added > threshold
                  days ago).
   Pending arch : entry already carries a `#stale:` tag and is waiting
-                 to be moved into .mem-man/archive/.
+                 to be moved into .lore/archive/.
 
 Output is plain text by default, JSON with --json.
 
 Used by:
     - `audit` workflow (read-only)
     - `compress` workflow (advisory)
-    - `mem-man mirror` (sanity check before regenerating)
+    - `lore mirror` (sanity check before regenerating)
 """
 import json
 import subprocess

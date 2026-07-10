@@ -1,6 +1,6 @@
 # Configuration reference
 
-`.mem-man/.config.json` holds user-tunable settings. The file is optional; without it, the skill uses sensible defaults.
+`.lore/.config.json` holds user-tunable settings. The file is optional; without it, the skill uses sensible defaults.
 
 ## Schema
 
@@ -29,7 +29,7 @@
 
 Default: `false`.
 
-Controls whether `compress` and `mem-man mirror` regenerate platform mirrors automatically after the canonical change is accepted.
+Controls whether `compress` and `lore mirror` regenerate platform mirrors automatically after the canonical change is accepted.
 
 - `true` — regenerate mirrors automatically
 - `false` — ask per target before writing
@@ -42,7 +42,7 @@ Default: `false`.
 
 Controls whether `sync` regenerates platform mirrors as a side effect.
 
-- `false` — `sync` only writes `.mem-man/*.md`. Mirrors are updated by `compress` or explicit `mem-man mirror`. This is the recommended setting to avoid cluttering `git log` of mirror files.
+- `false` — `sync` only writes `.lore/*.md`. Mirrors are updated by `compress` or explicit `lore mirror`. This is the recommended setting to avoid cluttering `git log` of mirror files.
 - `true` — `sync` regenerates mirrors (with content-based dedup) after the canonical change is accepted. Restore this setting if the old "update everything on every sync" behavior is preferred.
 
 ### `sync_trust`
@@ -59,14 +59,14 @@ Controls how much confirmation `sync` requires for individual change types.
 
 Default: `["CLAUDE.md"]`.
 
-Array of file paths (relative to project root) that should be kept in sync with `.mem-man/*`. Path must match one of the platform entries in `references/platform-mirrors.md`. Unsupported paths trigger a warning at config-load time.
+Array of file paths (relative to project root) that should be kept in sync with `.lore/*`. Path must match one of the platform entries in `references/platform-mirrors.md`. Unsupported paths trigger a warning at config-load time.
 
 ### `mirror_mode`
 
 Default: `"summary"`.
 
 - `"summary"` — Mirror only `SUMMARY.md` content (plus a scope-tagged index). Recommended for most projects.
-- `"full"` — Mirror full per-file content. Useful for agents that don't reliably read `.mem-man/*` directly.
+- `"full"` — Mirror full per-file content. Useful for agents that don't reliably read `.lore/*` directly.
 
 ### `compress_thresholds`
 
@@ -82,7 +82,7 @@ Defaults: `{"min_lines_changed": 50, "min_directories_changed": 2}`.
 
 ## Editing the config
 
-Edit `.mem-man/.config.json` directly. After editing:
+Edit `.lore/.config.json` directly. After editing:
 
 - `sync` and `compress` re-read the config on every run; no restart needed.
 - Invalid JSON → fall back to defaults + warn the user.
