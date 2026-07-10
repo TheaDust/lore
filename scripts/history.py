@@ -35,6 +35,17 @@ def parse_arg(arg: str):
     return None
 
 
+def find_entry(entries, entry_id):
+    """Look up an entry by ID in the list from list_entries.py --json.
+
+    Returns the entry dict, or None if not found.
+    """
+    for e in entries:
+        if e.get("id") == entry_id:
+            return e
+    return None
+
+
 if __name__ == "__main__":
     # Placeholder; real CLI wiring comes in later tasks.
     if len(sys.argv) < 2:

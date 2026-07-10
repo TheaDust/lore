@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for scripts/history.py."""
 import unittest
-from history import parse_arg
+from history import parse_arg, find_entry
 
 
 class TestParseArg(unittest.TestCase):
@@ -24,6 +24,36 @@ class TestParseArg(unittest.TestCase):
     def test_empty_arg(self):
         result = parse_arg("")
         self.assertIsNone(result)
+
+
+class TestFindEntry(unittest.TestCase):
+    def test_returns_matching_entry(self):
+        entries = [
+            {
+                "id": "DEC-2026-02-03-7c19",
+                "file": "scopes/frontend/DECISIONS.md",
+                "scope": "frontend",
+                "text": "Use Zustand",
+                "tags": {"added": "2026-02-03"},
+            },
+            {
+                "id": "ARCH-2026-01-15-d7a3",
+                "file": "_global/ARCHITECTURE.md",
+                "scope": "_global",
+                "text": "Monorepo with pnpm",
+                "tags": {"added": "2026-01-15"},
+            },
+        ]
+        result = find_entry(entries, "DEC-2026-02-03-7c19")
+        self.assertEqual(result["file"], "scopes/frontend/DECISIONS.md")
+        self.assertEqual(result["tags"]["added"], "2026-02-03")
+
+    def test_missing_entry_returns_none(self):
+        entries = [
+            {"id": "DEC-2026-02-03-7c19", "file": "x.md", "scope": "frontend",
+             "text": "t", "tags": {}},
+        ]
+        self.assertIsNone(find_entry(entries, "ARCH-2099-01-01-ffff"))
 
 
 if __name__ == "__main__":
