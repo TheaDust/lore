@@ -213,8 +213,8 @@ Project memory. Read deeper on demand.
 - Digest: `.lore/SUMMARY.md` (top-level overview)
 - Global: `.lore/_global/` (architecture, decisions, conventions)
 - Scopes:
-  - `<scope_name>` — <scope_dir> (<description>)
-  - `<scope_name>` — <scope_dir>
+  - `<scope_name>` (<description>)
+  - `<scope_name>`
   ...
 
 **Query**: `lore query <term>` or `lore query <scope>:<term>`
@@ -224,11 +224,14 @@ Project memory. Read deeper on demand.
 ## My notes (free edit)
 ```
 
+The `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edit)` closer are **always present** — only the `**Structure**:` body varies with adaptive rendering. Agent preserves the My notes section verbatim across regenerations.
+
 ### Field sources
 
-- `<scope_name>` — directory name under `.lore/`.
-- `<scope_dir>` — project-root-relative path from `.lore/.config.json#scope_paths` or auto-detection. Omit if unknown.
-- `<description>` — extracted from `.lore/<scope>/SUMMARY.md` via the HTML comment `<!-- description: ... -->`. See "Scope description extraction" below. If absent, the description is omitted (scope row still appears, just without parenthetical).
+- `<scope_name>` — directory name under `.lore/`. Each scope's full path is `.lore/<scope_name>/`.
+- `<description>` — extracted from `.lore/<scope_name>/ARCHITECTURE.md` via the HTML comment `<!-- description: ... -->`. See "Scope description extraction" below. If absent, the description is omitted (scope row still appears, just without parenthetical).
+
+The index does **not** track the project's source-directory mapping for each scope (e.g. `packages/frontend/` for the `frontend` scope). Source paths are detected by `references/monorepo-detection.md` at init time but not persisted in `.lore/`. If a user needs source paths surfaced in the mirror, that mapping belongs in the project's own docs.
 
 ### Section visibility rules
 
@@ -241,6 +244,8 @@ Project memory. Read deeper on demand.
 | `Update:` line | always |
 
 ### Adaptive renderings
+
+Only the `**Structure**:` body varies. The `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edit)` closer are always present and unchanged.
 
 **Empty project** (just initialized, no entries yet):
 
@@ -268,7 +273,7 @@ Project memory. Read deeper on demand.
 - Digest: `.lore/SUMMARY.md`
 - Global: `.lore/_global/`
 - Scopes:
-  - `frontend` — packages/frontend/ (React 18 + TypeScript)
+  - `frontend` (React 18 + TypeScript)
 ```
 
 `Scopes:` block has one entry.
@@ -280,23 +285,32 @@ Project memory. Read deeper on demand.
 - Digest: `.lore/SUMMARY.md`
 - Global: `.lore/_global/`
 - Scopes:
-  - `frontend` — packages/frontend/ (React 18 + TypeScript)
-  - `backend` — apps/backend/ (PostgreSQL + Prisma)
-  - `shared` — packages/shared/
+  - `frontend` (React 18 + TypeScript)
+  - `backend` (PostgreSQL + Prisma)
+  - `shared`
 ```
 
 ### Scope description extraction
 
-The agent scans `.lore/<scope>/SUMMARY.md` for a line matching `<!-- description: <text> -->`. `<text>` is everything after `description:` until the closing `-->`, trimmed. If found, it appears as the scope description. If not, the scope row is rendered without a parenthetical.
+The agent scans `.lore/<scope_name>/ARCHITECTURE.md` for the **first line matching** `<!-- description: <text> -->` (anchored to start of line; `description:` literal). Rules:
 
-Example `SUMMARY.md` with description:
+- **First match wins.** If multiple `<!-- description: ... -->` lines exist, only the first is used.
+- **`<text>` is single-line.** A comment must not contain a newline before `-->`. Multi-line comments are ignored.
+- **Whitespace trimmed.** Leading and trailing whitespace inside `<text>` is stripped.
+- **No match → no description.** The scope row appears without parenthetical; the row is not removed.
+
+Example `ARCHITECTURE.md` with description:
 
 ```
 <!-- description: React 18 + TypeScript frontend -->
-# Frontend scope
+# Frontend Architecture
 
 All UI code lives here. ...
 ```
+
+### Scope ordering
+
+Scope rows in the `Scopes:` block are emitted in **alphabetical order** by `<scope_name>`. Pinning order is important: the content-based dedup step compares byte-for-byte, so any order change between runs causes spurious "Mirror updated" reports.
 
 ### What does NOT trigger mirror regeneration
 
@@ -304,10 +318,12 @@ Index content does not change when:
 - Individual entries are edited
 - `SUMMARY.md` content is updated (the index only points to its path)
 - Entry counts change
+- A scope's `ARCHITECTURE.md` content changes (only the `<!-- description: -->` comment affects the index)
 
 Index content changes require regeneration when:
-- A new scope is added to `.lore/`
-- A scope's `SUMMARY.md` `<!-- description: -->` comment changes
+- A new scope directory is added under `.lore/`
+- A scope is removed
+- A scope's `ARCHITECTURE.md` `<!-- description: -->` line changes
 - `.lore/_global/` gains or loses its first entry (Global section visibility flips)
 
 ## Manual operations
