@@ -198,13 +198,117 @@ For each generated mirror file, the section template is:
 
 ## What gets mirrored
 
-By default, the mirror's Lore section contains:
-- `SUMMARY.md` content (top-level digest)
-- A scope-tagged index pointing into `.lore/*`
+The mirror's Lore section is an **index** into `.lore/` — not a copy of its content. This keeps per-session token cost flat (~500 B regardless of project size) and aligns with how platform instruction files (`CLAUDE.md`, `.cursorrules`, etc.) are designed to be used: as small pointers that tell the agent where to find detail on demand.
 
-The full per-file content (every entry in every layer) is **not** mirrored by default. Mirrors are entry points, not full copies. Agents that need details should read `.lore/*` directly.
+The agent generating the mirror walks `.lore/` and emits the structure below. Sections appear only when their content exists (adaptive rendering).
 
-To mirror full content instead, set `mirror_mode: full` in `.lore/.config.json` (see `references/config.md`).
+### Index template
+
+```
+## Lore (auto-managed)
+
+Project memory. Read deeper on demand.
+
+**Structure**:
+- Digest: `.lore/SUMMARY.md` (top-level overview)
+- Global: `.lore/_global/` (architecture, decisions, conventions)
+- Scopes:
+  - `<scope_name>` — <scope_dir> (<description>)
+  - `<scope_name>` — <scope_dir>
+  ...
+
+**Query**: `lore query <term>` or `lore query <scope>:<term>`
+**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror)
+
+---
+## My notes (free edit)
+```
+
+### Field sources
+
+- `<scope_name>` — directory name under `.lore/`.
+- `<scope_dir>` — project-root-relative path from `.lore/.config.json#scope_paths` or auto-detection. Omit if unknown.
+- `<description>` — extracted from `.lore/<scope>/SUMMARY.md` via the HTML comment `<!-- description: ... -->`. See "Scope description extraction" below. If absent, the description is omitted (scope row still appears, just without parenthetical).
+
+### Section visibility rules
+
+| Section | Visible when |
+|---|---|
+| `Digest:` line | always |
+| `Global:` line | `.lore/_global/` exists and has any entry |
+| `Scopes:` block | at least one scope directory exists under `.lore/` |
+| `Query:` line | always |
+| `Update:` line | always |
+
+### Adaptive renderings
+
+**Empty project** (just initialized, no entries yet):
+
+```
+## Lore (auto-managed)
+
+Project memory. Read deeper on demand.
+
+**Structure**:
+- Digest: `.lore/SUMMARY.md` (top-level overview)
+
+**Query**: `lore query <term>`
+**Update**: see the `lore` skill
+
+---
+## My notes (free edit)
+```
+
+`Global:` and `Scopes:` blocks omitted.
+
+**Single-scope project**:
+
+```
+**Structure**:
+- Digest: `.lore/SUMMARY.md`
+- Global: `.lore/_global/`
+- Scopes:
+  - `frontend` — packages/frontend/ (React 18 + TypeScript)
+```
+
+`Scopes:` block has one entry.
+
+**Monorepo with multiple scopes**:
+
+```
+**Structure**:
+- Digest: `.lore/SUMMARY.md`
+- Global: `.lore/_global/`
+- Scopes:
+  - `frontend` — packages/frontend/ (React 18 + TypeScript)
+  - `backend` — apps/backend/ (PostgreSQL + Prisma)
+  - `shared` — packages/shared/
+```
+
+### Scope description extraction
+
+The agent scans `.lore/<scope>/SUMMARY.md` for a line matching `<!-- description: <text> -->`. `<text>` is everything after `description:` until the closing `-->`, trimmed. If found, it appears as the scope description. If not, the scope row is rendered without a parenthetical.
+
+Example `SUMMARY.md` with description:
+
+```
+<!-- description: React 18 + TypeScript frontend -->
+# Frontend scope
+
+All UI code lives here. ...
+```
+
+### What does NOT trigger mirror regeneration
+
+Index content does not change when:
+- Individual entries are edited
+- `SUMMARY.md` content is updated (the index only points to its path)
+- Entry counts change
+
+Index content changes require regeneration when:
+- A new scope is added to `.lore/`
+- A scope's `SUMMARY.md` `<!-- description: -->` comment changes
+- `.lore/_global/` gains or loses its first entry (Global section visibility flips)
 
 ## Manual operations
 
