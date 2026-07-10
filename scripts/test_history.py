@@ -4,6 +4,13 @@ import json as _json
 import unittest
 from history import (
     COMMIT_DELIM,
+    ERR_BAD_SCOPE,
+    ERR_GIT_FAIL,
+    ERR_NO_ENTRY,
+    ERR_NO_GIT,
+    ERR_NO_LORE,
+    ERR_NOT_GIT,
+    die,
     extract_added_date,
     extract_refs,
     fetch_commit_body,
@@ -262,6 +269,28 @@ class TestRenderMarkdown(unittest.TestCase):
         self.assertIn("tweak", out)
         self.assertNotIn("Body:", out)
         self.assertNotIn("Refs:", out)
+
+
+class TestExitCodes(unittest.TestCase):
+    def test_constants(self):
+        self.assertEqual(ERR_NO_LORE, 2)
+        self.assertEqual(ERR_NO_ENTRY, 3)
+        self.assertEqual(ERR_NOT_GIT, 4)
+        self.assertEqual(ERR_NO_GIT, 5)
+        self.assertEqual(ERR_GIT_FAIL, 7)
+        self.assertEqual(ERR_BAD_SCOPE, 6)
+
+    def test_die_writes_to_stderr_and_exits(self):
+        import subprocess, sys
+        result = subprocess.run(
+            [sys.executable, "-c",
+             "import sys; sys.path.insert(0, 'scripts'); "
+             "from history import die, ERR_NO_ENTRY; "
+             "die(ERR_NO_ENTRY, 'X not found')"],
+            capture_output=True, text=True
+        )
+        self.assertEqual(result.returncode, 3)
+        self.assertIn("X not found", result.stderr)
 
 
 if __name__ == "__main__":

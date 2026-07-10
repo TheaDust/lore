@@ -302,6 +302,22 @@ def render_markdown(meta, commits):
     return "\n".join(lines)
 
 
+# Exit codes per spec section "Error handling".
+ERR_USAGE      = 2  # no arg / unrecognized arg (also used by argparse path)
+ERR_NO_LORE    = 2  # .lore/ not found
+ERR_NO_ENTRY   = 3  # entry ID not in index
+ERR_NOT_GIT    = 4  # not a git repository
+ERR_NO_GIT     = 5  # git CLI missing
+ERR_BAD_SCOPE  = 6  # scope name not in scopes/
+ERR_GIT_FAIL   = 7  # git log returned non-zero for other reasons
+
+
+def die(code, message):
+    """Print message to stderr and exit with the given code."""
+    print(f"error: {message}", file=sys.stderr)
+    sys.exit(code)
+
+
 if __name__ == "__main__":
     # Placeholder; real CLI wiring comes in later tasks.
     if len(sys.argv) < 2:
