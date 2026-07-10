@@ -210,6 +210,41 @@ def extract_refs(message):
     return matches
 
 
+def truncate_body(body, max_lines=3):
+    """Trim a multi-line string to at most `max_lines`, stripping blank tails.
+
+    Used to keep commit bodies short in the Markdown output. The subject
+    is already shown separately; the body is supplementary context.
+    """
+    lines = body.splitlines()
+    trimmed = lines[:max_lines]
+    while trimmed and not trimmed[-1].strip():
+        trimmed.pop()
+    return "\n".join(trimmed)
+
+
+def fetch_commit_body(project_root, commit_hash):
+    """Fetch the full commit message (subject + body) via `git show`.
+
+    Returns a string with the subject as the first line and the body
+    (if any) following a blank line. Trailing blank lines are removed.
+    """
+    cmd = [
+        "git", "-C", str(project_root),
+        "show", "-s", "--format=%B", commit_hash,
+    ]
+    try:
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", check=False,
+        )
+    except FileNotFoundError:
+        return ""
+    if proc.returncode != 0:
+        return ""
+    return proc.stdout.rstrip()
+
+
 if __name__ == "__main__":
     # Placeholder; real CLI wiring comes in later tasks.
     if len(sys.argv) < 2:

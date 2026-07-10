@@ -5,6 +5,7 @@ from history import (
     COMMIT_DELIM,
     extract_added_date,
     extract_refs,
+    fetch_commit_body,
     find_entry,
     parse_arg,
     parse_commit_line,
@@ -154,6 +155,22 @@ class TestExtractRefs(unittest.TestCase):
     def test_mixed(self):
         msg = "Big refactor (#111)\n\nCloses #222, Refs #333"
         self.assertEqual(extract_refs(msg), ["#111", "Closes #222", "Refs #333"])
+
+
+class TestFetchCommitBody(unittest.TestCase):
+    def test_truncate_body_short(self):
+        from history import truncate_body
+        self.assertEqual(truncate_body("line1\nline2", max_lines=3), "line1\nline2")
+
+    def test_truncate_body_long(self):
+        from history import truncate_body
+        text = "\n".join(f"line {i}" for i in range(10))
+        result = truncate_body(text, max_lines=3)
+        self.assertEqual(result, "line 0\nline 1\nline 2")
+
+    def test_truncate_body_strips_trailing_whitespace(self):
+        from history import truncate_body
+        self.assertEqual(truncate_body("a\nb\n\n\n", max_lines=3), "a\nb")
 
 
 if __name__ == "__main__":
