@@ -409,7 +409,7 @@ def main():
         if a.startswith("--since="):
             since_override = a.split("=", 1)[1]
 
-    positional = [a for a in args if not a.startswith("--") and a != "--json"]
+    positional = [a for a in args if a != "--json" and not a.startswith("--since=")]
     if not positional:
         print("usage: lore history <entry-id|file-path|--scope=NAME>",
               file=sys.stderr)
