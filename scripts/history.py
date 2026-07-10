@@ -57,6 +57,37 @@ def extract_added_date(tags):
     return tags.get("added")
 
 
+# Match a backtick-quoted path inside an entry's text. The path must
+# contain at least one slash OR start with a dot OR end with a common
+# code extension, to avoid false positives like `Zustand`.
+BACKTICK_PATH_RE = re.compile(
+    r"`([^\s`]+\.[a-zA-Z0-9]{1,8}(?:\.[a-zA-Z0-9]{1,8})*"
+    r"|[^\s`]+/[^\s`]+"
+    r"|\.[a-zA-Z][^\s`]*)`"
+)
+
+
+def resolve_code_file(entry):
+    """Decide which file path to git-log for this entry.
+
+    Priority:
+      1. First backtick-quoted path in entry.text (looks like a file).
+      2. Scope directory at project root (e.g. "frontend" for scope "frontend").
+      3. "." for the _global scope (project root).
+
+    The path returned is relative to the project root. git log handles
+    "." to mean the whole repo.
+    """
+    if entry.get("text"):
+        m = BACKTICK_PATH_RE.search(entry["text"])
+        if m:
+            return m.group(1)
+    scope = entry.get("scope", "_global")
+    if scope == "_global":
+        return "."
+    return scope
+
+
 if __name__ == "__main__":
     # Placeholder; real CLI wiring comes in later tasks.
     if len(sys.argv) < 2:

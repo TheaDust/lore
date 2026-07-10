@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for scripts/history.py."""
 import unittest
-from history import extract_added_date, find_entry, parse_arg
+from history import extract_added_date, find_entry, parse_arg, resolve_code_file
 
 
 class TestParseArg(unittest.TestCase):
@@ -66,6 +66,37 @@ class TestExtractAddedDate(unittest.TestCase):
 
     def test_empty(self):
         self.assertIsNone(extract_added_date({"verified": "2026-06-15"}))
+
+
+class TestResolveCodeFile(unittest.TestCase):
+    def test_backtick_path_wins(self):
+        entry = {
+            "text": "Use Zustand; see `src/store/index.ts` for the implementation.",
+            "scope": "frontend",
+        }
+        self.assertEqual(resolve_code_file(entry), "src/store/index.ts")
+
+    def test_backtick_path_ignores_scope_dir(self):
+        entry = {
+            "text": "see `lib/api.ts`",
+            "scope": "backend",
+        }
+        self.assertEqual(resolve_code_file(entry), "lib/api.ts")
+
+    def test_no_backtick_falls_back_to_global(self):
+        entry = {"text": "All packages use TypeScript strict mode", "scope": "_global"}
+        self.assertEqual(resolve_code_file(entry), ".")
+
+    def test_no_backtick_falls_back_to_scope(self):
+        entry = {"text": "Use TanStack Query", "scope": "frontend"}
+        self.assertEqual(resolve_code_file(entry), "frontend")
+
+    def test_multiple_backticks_uses_first(self):
+        entry = {
+            "text": "see `a/foo.ts` and `b/bar.ts`",
+            "scope": "frontend",
+        }
+        self.assertEqual(resolve_code_file(entry), "a/foo.ts")
 
 
 if __name__ == "__main__":
