@@ -38,9 +38,9 @@ Every mirror file is split into two sections by a `---` separator. The top secti
 
 ## My notes (free edit)
 
-- 回答要简洁
-- 当前在重构用户认证模块
-- 中文优先
+- Keep answers concise
+- Currently refactoring the user auth module
+- Prefer English
 ```
 
 The `---` separator is a literal Markdown horizontal rule. Both sections are plain Markdown so any agent or editor can render them normally.

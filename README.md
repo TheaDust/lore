@@ -144,7 +144,7 @@ python scripts/find_stale.py --days=90                    # Find stale entries
 python scripts/history.py DEC-2026-02-03-7c19             # Show git history for an entry
 ```
 
-All scripts are cross-platform Python 3.6+ with no third-party dependencies. See `scripts/README.md` (English) or `scripts/README.zh-CN.md` (中文) for details.
+All scripts are cross-platform Python 3.6+ with no third-party dependencies. See `scripts/README.md` (English) or `scripts/README.zh-CN.md` (Chinese) for details.
 
 ## Configuration
 

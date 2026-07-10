@@ -1,6 +1,6 @@
 ---
 name: lore
-description: Framework-agnostic Memory Management for AI coding agents. Use this skill ONLY when the user explicitly invokes a `lore` command (`lore init` / `lore sync` / `lore query` / `lore audit` / `lore compress`) or names the skill directly ("lore", "项目记忆", "记忆库"). Do NOT trigger on generic phrases like "init", "initialize project", or "compress" — those may map to the agent's native commands (Claude Code's `/init`, `/compact`, etc.). The skill manages `.lore/` as the canonical store and optionally mirrors to CLAUDE.md / .cursorrules / .clinerules / AGENTS.md. Supports multi-scope projects (frontend / backend / shared in monorepos) and long-term compression via SUMMARY.md.
+description: Framework-agnostic Memory Management for AI coding agents. Use this skill ONLY when the user explicitly invokes a `lore` command (`lore init` / `lore sync` / `lore query` / `lore audit` / `lore compress`) or names the skill directly ("lore", "project memory", "memory bank"). Do NOT trigger on generic phrases like "init", "initialize project", or "compress" — those may map to the agent's native commands (Claude Code's `/init`, `/compact`, etc.). The skill manages `.lore/` as the canonical store and optionally mirrors to CLAUDE.md / .cursorrules / .clinerules / AGENTS.md. Supports multi-scope projects (frontend / backend / shared in monorepos) and long-term compression via SUMMARY.md.
 ---
 
 # lore — Framework-agnostic Memory Management
@@ -21,12 +21,12 @@ The skill only triggers when the user **explicitly** invokes `lore` or names a s
 
 | User says (examples) | Command |
 |---|---|
-| "lore init" / "建 lore 知识库" / "初始化 lore" | `init` |
-| "lore sync" / "把这个改动同步到 lore" / "记录这次的决策到 lore" | `sync` |
-| "lore query" / "查 lore" / "项目里约定是什么" | `query` |
-| "lore audit" / "检查 lore" / "记忆还准吗" | `audit` |
-| "lore compress" / "压缩 lore" / "总结一下 lore" | `compress` |
-| "lore mirror" / "更新 CLAUDE.md" / "刷新一下 mirror" | `mirror` |
+| "lore init" / "create lore memory bank" / "initialize lore" | `init` |
+| "lore sync" / "sync this change to lore" / "record this decision in lore" | `sync` |
+| "lore query" / "query lore" / "what's the project convention" | `query` |
+| "lore audit" / "check lore" / "is memory still accurate" | `audit` |
+| "lore compress" / "compress lore" / "summarize lore" | `compress` |
+| "lore mirror" / "update CLAUDE.md" / "refresh mirror" | `mirror` |
 
 If the user finishes a non-trivial change without explicitly asking for sync, the skill can still suggest running `lore sync` (see sync trigger threshold below).
 
@@ -44,7 +44,7 @@ Detailed specifications live in `references/`. Load these on demand.
 | `references/platform-mirrors.md` | Platform file mapping (CLAUDE.md / .cursorrules / etc.), two-section file structure |
 | `references/config.md` | `.lore/.config.json` schema and field semantics |
 | `references/history-command.md` | Running `history` — full spec, dispatch rules, error table |
-| `scripts/README.md` | Helper scripts (id_hash, list_entries, find_duplicates, find_stale) — also in 中文 (`scripts/README.zh-CN.md`) |
+| `scripts/README.md` | Helper scripts (id_hash, list_entries, find_duplicates, find_stale) — also in Chinese (`scripts/README.zh-CN.md`) |
 
 ## Memory architecture
 
@@ -103,9 +103,9 @@ The canonical store is `.lore/*`. Agents that expect a single config file at the
 
 ## My notes (free edit)
 
-- 回答要简洁
-- 中文优先
-- 当前在重构用户认证模块
+- Keep answers concise
+- Prefer English
+- Currently refactoring the user auth module
 ```
 
 **Default behavior:**
@@ -221,7 +221,7 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
 3. Conversation context (lowest priority — see below)
 4. Test/build output (auxiliary — only consulted if 1–3 are ambiguous)
 
-**Conversation context is opt-in.** The skill does **not** automatically mine chat messages for memory updates. It only extracts from conversation when the user explicitly says things like "记录一下" / "remember this" / "this is important". Reason: chat context is high-noise, and silent extraction creates false entries.
+**Conversation context is opt-in.** The skill does **not** automatically mine chat messages for memory updates. It only extracts from conversation when the user explicitly says things like "note this down" / "remember this" / "this is important". Reason: chat context is high-noise, and silent extraction creates false entries.
 
 **Mirror update triggers.** Platform mirrors (`CLAUDE.md`, `.cursorrules`, etc.) are regenerated on only three occasions, not on every `sync`:
 
@@ -266,8 +266,9 @@ or a scope, so the agent can answer "why does this decision exist?"
 with a pointer to the actual commits rather than a guess.
 
 **When to trigger:** only when the user explicitly invokes `lore
-history` or names a subcommand ("查 git 历史", "show me the commits
-behind this entry"). Generic "history" or "git log" alone does not
+history` or names a subcommand ("show me the git history", "show me
+the commits behind this entry"). Generic "history" or "git log" alone
+does not
 trigger — defer to the user's intent.
 
 | User says (examples) | Command |
