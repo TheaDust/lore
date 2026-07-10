@@ -36,3 +36,6 @@ dist/
 
 # Internal workflow artifacts (superpowers specs/plans)
 .superpowers/
+
+# Mock test projects (sandbox for E2E testing)
+sandbox/
