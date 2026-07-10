@@ -44,6 +44,7 @@ Detailed specifications live in `references/`. Load these on demand.
 | `references/platform-mirrors.md` | Platform file mapping (CLAUDE.md / .cursorrules / etc.), two-section file structure |
 | `references/config.md` | `.lore/.config.json` schema and field semantics |
 | `references/history-command.md` | Running `history` — full spec, dispatch rules, error table |
+| `references/compatibility.md` | Versioning policy: `.config.json#schema_version`, migration tools, deprecation workflow |
 | `scripts/README.md` | Helper scripts (id_hash, list_entries, find_duplicates, find_stale) — also in Chinese (`scripts/README.zh-CN.md`) |
 
 ## Memory architecture

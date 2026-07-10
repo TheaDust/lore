@@ -23,6 +23,17 @@
 }
 ```
 
+## Schema version (`schema_version`)
+
+**Required** (set automatically by `lore init`). Tracks the schema version of `.lore/.config.json` so future migrations can detect old configs and upgrade them.
+
+- **Missing** → treated as `schema_version: 1`. A `[DEPRECATION]` notice is printed at the first skill run; the user is asked to either add the field manually or run `python scripts/migrate.py` to upgrade.
+- **Equal to skill's expected version** → use as-is.
+- **Lower than expected** → refuse to write; ask the user to run `python scripts/migrate.py`.
+- **Higher than expected** → refuse to read with an error; the user's skill is older than their `.lore/`. They need to upgrade lore (pull latest from upstream) before continuing.
+
+For the full compatibility policy (migration tools, deprecation cycle, reader/writer contracts), see `references/compatibility.md`.
+
 ## Field semantics
 
 ### `auto_mirror`
@@ -93,4 +104,14 @@ Edit `.lore/.config.json` directly. After editing:
 
 - `sync` and `compress` re-read the config on every run; no restart needed.
 - Invalid JSON → fall back to defaults + warn the user.
-- Schema-version field reserved for future migrations: `"schema_version": 1`. If missing, treated as version 1.
+- After editing, verify with `python scripts/list_entries.py --config-check` (added in a future migration).
+- For schema version changes, see `references/compatibility.md`.
+
+## Upgrade path
+
+When lore is upgraded to a new minor version that introduces new config fields:
+
+1. The skill auto-prompts: "Your `.lore/.config.json` is v1; lore now expects v2. Run `python scripts/migrate.py` to upgrade."
+2. `migrate.py` is idempotent — running it twice is a no-op.
+3. After migration, the file is updated in place; no manual editing needed.
+4. The old version is preserved as `schema_version_v1_archived` for one major version before being removed.

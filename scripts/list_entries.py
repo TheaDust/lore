@@ -31,6 +31,44 @@ import sys
 from pathlib import Path
 
 
+# Schema version this skill understands. Bumped only on breaking
+# config changes; see references/compatibility.md.
+KNOWN_SCHEMA_VERSION = 1
+
+
+def check_schema_version(lore_root: Path) -> None:
+    """Warn if .lore/.config.json is missing or has an unknown schema_version.
+
+    Output goes to stderr so it does not pollute --json consumers.
+    Idempotent and best-effort: any failure (missing file, malformed
+    JSON, permission error) is silent — config is optional and the
+    user can address it separately.
+    """
+    cfg_path = lore_root / ".config.json"
+    if not cfg_path.exists():
+        return
+    try:
+        cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return
+
+    version = cfg.get("schema_version")
+    if version is None:
+        print(
+            "[WARN] .lore/.config.json has no schema_version field. "
+            "Add \"schema_version\": 1 so future lore upgrades can detect "
+            "this config and run scripts/migrate.py automatically.",
+            file=sys.stderr,
+        )
+    elif isinstance(version, int) and version > KNOWN_SCHEMA_VERSION:
+        print(
+            f"[WARN] .lore/.config.json#schema_version={version} is newer "
+            f"than this lore skill expects (max: {KNOWN_SCHEMA_VERSION}). "
+            "Pull the latest lore from upstream.",
+            file=sys.stderr,
+        )
+
+
 def find_lore_root(start: Path) -> Path:
     """Walk up from start to find the project root containing .lore/."""
     p = start.resolve()
@@ -117,6 +155,7 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
+    check_schema_version(root)
     entries = collect_entries(root)
 
     if scope_filter:

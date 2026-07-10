@@ -170,6 +170,7 @@ All scripts are cross-platform Python 3.6+ with no third-party dependencies. See
 
 ```json
 {
+  "schema_version": 1,
   "auto_mirror": false,
   "sync_updates_mirror": false,
   "sync_trust": "medium",
@@ -180,7 +181,7 @@ All scripts are cross-platform Python 3.6+ with no third-party dependencies. See
 }
 ```
 
-Field semantics: see `references/config.md`.
+Field semantics: see `references/config.md`. The `schema_version` field is required and bumped automatically by `scripts/migrate.py` when lore is upgraded — see `references/compatibility.md`.
 
 ## When NOT to use lore
 

@@ -170,6 +170,7 @@ python scripts/history.py DEC-2026-02-03-7c19             # 展示某 entry 的 
 
 ```json
 {
+  "schema_version": 1,
   "auto_mirror": false,
   "sync_updates_mirror": false,
   "sync_trust": "medium",
@@ -180,7 +181,7 @@ python scripts/history.py DEC-2026-02-03-7c19             # 展示某 entry 的 
 }
 ```
 
-字段含义：见 `references/config.md`。
+字段含义：见 `references/config.md`。`schema_version` 字段必填，升级 lore 时由 `scripts/migrate.py` 自动 bump —— 见 `references/compatibility.md`。
 
 ## 不适用场景
 
