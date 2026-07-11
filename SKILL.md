@@ -1,6 +1,6 @@
 ---
 name: lore
-description: Framework-agnostic Memory Management for AI coding agents. Use this skill ONLY when the user explicitly invokes a `lore` command (`lore init` / `lore sync` / `lore query` / `lore audit` / `lore compress`) or names the skill directly ("lore", "project memory", "memory bank"). Do NOT trigger on generic phrases like "init", "initialize project", or "compress" — those may map to the agent's native commands (Claude Code's `/init`, `/compact`, etc.). The skill manages `.lore/` as the canonical store and optionally mirrors to CLAUDE.md / .cursorrules / .clinerules / AGENTS.md. Supports multi-scope projects (frontend / backend / shared in monorepos) and long-term compression via SUMMARY.md.
+description: Long-term Markdown project memory for AI coding agents. Use when the user wants to record, recall, audit, sync, or compress project decisions, architecture, conventions, monorepo scopes, or `.lore/` entries, including natural-language requests like "remember this decision" or explicit `lore init/sync/query/audit/compress/mirror`. Do not trigger on native `/init` or `/compact`, or generic init/compress/audit/query tasks unless the object is clearly project memory, `.lore/`, decisions, or conventions. Stores `.lore/` Markdown and can mirror to CLAUDE.md / .cursorrules / AGENTS.md.
 ---
 
 # lore — Framework-agnostic Memory Management
@@ -19,7 +19,7 @@ This knowledge is persisted as **plain Markdown files** in `.lore/` at the proje
 
 The skill uses a **two-tier trigger model**:
 
-**Tier 1 — Loading the skill.** The skill only loads when the user **explicitly** invokes `lore` or names a subcommand. Generic phrases like "init" or "compress" alone are not enough — they may map to the agent's native commands (Claude Code's `/init`, `/compact`, etc.).
+**Tier 1 — Loading the skill.** Load this skill when the user explicitly invokes `lore`, names a subcommand, references `.lore/`, or asks to record, recall, audit, sync, or compress project memory about decisions, architecture, conventions, or monorepo scopes. Generic phrases like "init", "compress", "audit", or "query" alone are not enough — they may map to the agent's native commands or unrelated tasks (Claude Code's `/init`, `/compact`, security audits, SQL queries, etc.).
 
 | User says (examples) | Command |
 |---|---|
@@ -37,7 +37,7 @@ The skill uses a **two-tier trigger model**:
 - `audit` emits `[ALERT]` markers during sync when an active entry conflicts with current code or with a candidate change.
 - `mirror` regenerates automatically during `compress` if `auto_mirror: true` is set in `.lore/.config.json`.
 
-Other commands (`init`, `query`, `history`) are always explicit — they need user intent. See [`WORKFLOWS.md`](../WORKFLOWS.md) for a plain-language explanation of when each workflow is used.
+Other commands (`init`, `query`, `history`) are always explicit — they need user intent. See [`WORKFLOWS.md`](WORKFLOWS.md) for a plain-language explanation of when each workflow is used.
 
 ## Reference index
 
@@ -377,7 +377,7 @@ The user then either: (a) confirms memory is wrong and runs `sync` to update it,
 
 **What never happens silently:** file mutation (sync proposes; user accepts/rejects); platform mirror rewrite on every sync (separate command); `compress` deleting entries (only writes SUMMARY.md); entry marked as `[STALE]` without proposal; `init` overwriting user-written platform files without explicit takeover.
 
-For a user-facing explanation of each workflow (when to use it, frequency, examples), see [`WORKFLOWS.md`](../WORKFLOWS.md).
+For a user-facing explanation of each workflow (when to use it, frequency, examples), see [`WORKFLOWS.md`](WORKFLOWS.md).
 
 ## Anti-patterns
 
