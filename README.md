@@ -6,7 +6,7 @@
 
 <p align="center"><em><strong>lore</strong> (noun) — a body of traditions and knowledge on a subject, passed from person to person. — Oxford English Dictionary</em></p>
 
-<p align="right"><a href="README.zh-CN.md">简体中文</a> · <a href="https://github.com/TheaDust/lore/blob/main/README.md">English</a> (this page)</p>
+<p align="right"><a href="README.zh-CN.md">简体中文</a> · English (this page)</p>
 
 > Framework-agnostic project memory for AI coding agents.
 
