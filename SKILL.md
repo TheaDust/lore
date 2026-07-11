@@ -17,7 +17,9 @@ This knowledge is persisted as **plain Markdown files** in `.lore/` at the proje
 
 ## When to trigger
 
-The skill only triggers when the user **explicitly** invokes `lore` or names a subcommand. Generic phrases like "init" or "compress" alone are not enough — they may map to the agent's native commands.
+The skill uses a **two-tier trigger model**:
+
+**Tier 1 — Loading the skill.** The skill only loads when the user **explicitly** invokes `lore` or names a subcommand. Generic phrases like "init" or "compress" alone are not enough — they may map to the agent's native commands (Claude Code's `/init`, `/compact`, etc.).
 
 | User says (examples) | Command |
 |---|---|
@@ -28,7 +30,14 @@ The skill only triggers when the user **explicitly** invokes `lore` or names a s
 | "lore compress" / "compress lore" / "summarize lore" | `compress` |
 | "lore mirror" / "update CLAUDE.md" / "refresh mirror" | `mirror` |
 
-If the user finishes a non-trivial change without explicitly asking for sync, the skill can still suggest running `lore sync` (see sync trigger threshold below).
+**Tier 2 — Internal proposals (after the skill is loaded).** Once the skill is loaded for this session, certain commands may proactively propose themselves based on internal thresholds. These proposals still require user acceptance — the skill never mutates files silently.
+
+- `sync` proposes when ≥50 changed lines span ≥2 directories, OR a new top-level module/directory/dependency was added or removed, OR a new convention was explicitly discussed in chat.
+- `compress` appends a `[COMPRESS NOTICE]` to sync proposals when entries > 500, `SUMMARY.md` is missing, or last compression > 30 days ago.
+- `audit` emits `[ALERT]` markers during sync when an active entry conflicts with current code or with a candidate change.
+- `mirror` regenerates automatically during `compress` if `auto_mirror: true` is set in `.lore/.config.json`.
+
+Other commands (`init`, `query`, `history`) are always explicit — they need user intent. See [`references/workflows.md`](references/workflows.md) for the full procedure, output format, and edge cases of each.
 
 ## Reference index
 
@@ -44,6 +53,7 @@ Detailed specifications live in `references/`. Load these on demand.
 | `references/platform-mirrors.md` | Platform file mapping (CLAUDE.md / .cursorrules / etc.), two-section file structure |
 | `references/config.md` | `.lore/.config.json` schema and field semantics |
 | `references/history-command.md` | Running `history` — full spec, dispatch rules, error table |
+| `references/workflows.md` | Detailed per-workflow procedures, output formats, edge cases (also in Chinese: `references/workflows.zh-CN.md`) |
 | `references/compatibility.md` | Versioning policy: `.config.json#schema_version`, migration tools, deprecation workflow |
 | `scripts/README.md` | Helper scripts (id_hash, list_entries, find_duplicates, find_stale) — also in Chinese (`scripts/README.zh-CN.md`) |
 
