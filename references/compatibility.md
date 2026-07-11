@@ -14,7 +14,7 @@ This document defines how `lore` evolves without breaking existing user projects
 
 - `schema_version` is **required** (integer). See `references/config.md` for handling missing/newer/older values.
 - Adding a new field = bump `schema_version` to N+1; old fields stay; the field is added with its default value at first read.
-- Removing a field requires the deprecation cycle (one major version's worth of warnings before hard removal).
+- Removing a field requires the deprecation cycle (one schema version's worth of warnings before hard removal).
 - Renaming a field: write the new field, copy the value, mark the old one with `_deprecated: "reason"`. The migration tool handles this in `migrate.py`.
 
 ### Layer 2: Entry format
@@ -54,7 +54,7 @@ Current scripts: `id_hash.py`, `list_entries.py`, `find_stale.py`, `find_duplica
 Rules:
 
 - **Renaming is breaking.** All names are part of the public surface; they're referenced from `SKILL.md`, `references/*.md`, and downstream tooling. Don't rename; deprecate and add a new one if needed.
-- **Removing is breaking.** A deprecated script stays on disk with a clear "Deprecated: use `migrate.py` instead" header for one major version.
+- **Removing is breaking.** A deprecated script stays on disk with a clear "Deprecated: use `migrate.py` instead" header for one schema version.
 - **Adding a new script is non-breaking.** Reference it from `SKILL.md` reference index on introduction.
 - **Changing output format is breaking for `--json` consumers.** Add `--v2-output` or a new flag; old flag keeps old behavior forever.
 
@@ -90,7 +90,7 @@ Rules:
 
 - **Renaming a reference doc is breaking.** Every external link (issue trackers, blog posts, README badges) breaks. Add a redirect stub instead.
 - **Splitting a doc** (e.g., `platform-mirrors.md` → `mirror-index.md` + `mirror-takeover.md`) requires a stub at the old path that points to the new location. Update `SKILL.md` reference index on the same commit.
-- **Removing a doc** is breaking. Mark it `<!-- DEPRECATED: see new-location.md -->` for one major version, then move to `archive/` (in `references/`, not in `.lore/`).
+- **Removing a doc** is breaking. Mark it `<!-- DEPRECATED: see new-location.md -->` for one schema version, then move to `archive/` (in `references/`, not in `.lore/`).
 - **Adding a doc** is non-breaking. Add to `SKILL.md` reference index on introduction.
 
 ## Migration tool
@@ -163,13 +163,13 @@ if __name__ == "__main__":
 
 ## Deprecation workflow
 
-Any capability slated for removal follows a three-stage cycle. The minimum cycle is **two major versions** (typically 6–12 months).
+Any capability slated for removal follows a three-stage cycle. The minimum cycle is **two schema versions** (typically 6–12 months).
 
-| Stage | Major version | Behavior |
+| Stage | Schema version | Behavior |
 |---|---|---|
-| **Announce** | N.0 | Add an entry to `references/deprecations.md` with the feature name, replacement, and removal target version. The skill prints a one-line notice when the feature is used. |
-| **Warn** | N+1.0 | The skill prints a louder warning (with remediation steps) and writes a `_deprecation_warnings_shown` array to `.lore/.config.json` so the warning doesn't repeat. |
-| **Remove** | N+2.0 | Hard delete. Old `.lore/` data is migrated by `migrate.py` to the new format. Users who skipped migrations will see explicit errors pointing at `migrate.py`. |
+| **Announce** | N | Add an entry to `references/deprecations.md` with the feature name, replacement, and removal target version. The skill prints a one-line notice when the feature is used. |
+| **Warn** | N+1 | The skill prints a louder warning (with remediation steps) and writes a `_deprecation_warnings_shown` array to `.lore/.config.json` so the warning doesn't repeat. |
+| **Remove** | N+2 | Hard delete. Old `.lore/` data is migrated by `migrate.py` to the new format. Users who skipped migrations will see explicit errors pointing at `migrate.py`. |
 
 Skipping a stage is allowed only for security fixes or unreleased features that were never shipped.
 
@@ -199,7 +199,7 @@ Adding a new `compress_thresholds.max_entries_per_scope` field:
 Renaming `mirror_mode` to `render_mode`:
 
 - Every existing `.lore/.config.json` would silently lose its `mirror_mode: "index"` setting on next migration (old field dropped, new field absent → defaults kick in).
-- Bad. Instead: add `render_mode` as the new canonical field; mark `mirror_mode` as `_deprecated`; keep both for one major version; eventually remove `mirror_mode` via the deprecation cycle.
+- Bad. Instead: add `render_mode` as the new canonical field; mark `mirror_mode` as `_deprecated`; keep both for one schema version; eventually remove `mirror_mode` via the deprecation cycle.
 
 ### Breaking change (deprecation cycle required)
 
