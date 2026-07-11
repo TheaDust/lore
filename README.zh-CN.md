@@ -1,7 +1,7 @@
 # lore
 
 <p align="center">
-  <img src="docs/lore-poster.svg" alt="lore — 给短命 agent 的一份长记忆" width="100%">
+  <img src="docs/lore-poster.svg" alt="lore" width="100%">
 </p>
 
 <p align="center"><em><strong>lore</strong>（名词）—— 某一主题的传统与知识，由人口口相传。</em></p>

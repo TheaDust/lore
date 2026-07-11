@@ -1,7 +1,7 @@
 # lore
 
 <p align="center">
-  <img src="docs/lore-poster.svg" alt="lore — a long memory for short-lived agents" width="100%">
+  <img src="docs/lore-poster.svg" alt="lore" width="100%">
 </p>
 
 <p align="center"><em><strong>lore</strong> (noun) — a body of traditions and knowledge on a subject, passed from person to person. — Oxford English Dictionary</em></p>
