@@ -4,7 +4,7 @@
   <img src="docs/lore-poster.svg" alt="lore — 给短命 agent 的一份长记忆" width="100%">
 </p>
 
-<p align="center"><em>每个项目都有记忆。大部分记忆只存在于原作者脑中——PR 里没写完的半句话、文件夹名背后的旧故事、因为懒得再吵一次而定下的约定。<strong>lore</strong> 给这段记忆一个家，就放在任何 agent 都能读的纯 Markdown 里。Agent 来来去去，记忆留下。</em></p>
+<p align="center"><em><strong>lore</strong>（名词）—— 某一主题的传统与知识，由人口口相传。</em></p>
 
 <p align="right">中文（当前页面）· <a href="https://github.com/TheaDust/lore/blob/main/README.md">English</a></p>
 

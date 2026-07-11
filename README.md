@@ -4,7 +4,7 @@
   <img src="docs/lore-poster.svg" alt="lore — a long memory for short-lived agents" width="100%">
 </p>
 
-<p align="center"><em>Every project has a memory. Most of it lives only in the original developer's head — the half-finished sentences in old PRs, the war stories behind a folder name, the conventions that exist because somebody got tired of arguing. <strong>lore</strong> gives that memory a home in plain Markdown, where any agent can read it and any human can edit it. The agents come and go; the memory stays.</em></p>
+<p align="center"><em><strong>lore</strong> (noun) — a body of traditions and knowledge on a subject, passed from person to person. — Oxford English Dictionary</em></p>
 
 <p align="right"><a href="README.zh-CN.md">简体中文</a> · <a href="https://github.com/TheaDust/lore/blob/main/README.md">English</a> (this page)</p>
 
