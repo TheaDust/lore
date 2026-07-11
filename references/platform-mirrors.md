@@ -90,7 +90,7 @@ Both paths use the same function. Once `init` has run, `mirror_targets` is set, 
 
 ## Two-section file structure
 
-Every mirror file is split into two sections by a `---` separator. The top section is Skill-managed and rewritten on every sync. The bottom section is user-editable and preserved verbatim.
+Every mirror file is split into two sections by a `---` separator. The top section is Skill-managed and rewritten on mirror regeneration. The bottom section is user-editable and preserved verbatim.
 
 ```markdown
 ## Lore (auto-managed)
@@ -212,9 +212,9 @@ Project memory. Read deeper on demand.
 **Structure**:
 - Digest: `.lore/SUMMARY.md` (top-level overview)
 - Global: `.lore/_global/` (architecture, decisions, conventions)
-- Scopes:
-  - `<scope_name>` (<description>)
-  - `<scope_name>`
+- Scopes: `.lore/scopes/`
+  - `.lore/scopes/<scope_name>/` (<description>)
+  - `.lore/scopes/<scope_name>/`
   ...
 
 **Query**: `lore query <term>` or `lore query <scope>:<term>`
@@ -228,8 +228,8 @@ The `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edi
 
 ### Field sources
 
-- `<scope_name>` — directory name under `.lore/`. Each scope's full path is `.lore/<scope_name>/`.
-- `<description>` — extracted from `.lore/<scope_name>/ARCHITECTURE.md` via the HTML comment `<!-- description: ... -->`. See "Scope description extraction" below. If absent, the description is omitted (scope row still appears, just without parenthetical).
+- `<scope_name>` — directory name under `.lore/scopes/`. Each scope's full path is `.lore/scopes/<scope_name>/`.
+- `<description>` — extracted from `.lore/scopes/<scope_name>/ARCHITECTURE.md` via the HTML comment `<!-- description: ... -->`. See "Scope description extraction" below. If absent, the description is omitted (scope row still appears, just without parenthetical).
 
 The index does **not** track the project's source-directory mapping for each scope (e.g. `packages/frontend/` for the `frontend` scope). Source paths are detected by `references/monorepo-detection.md` at init time but not persisted in `.lore/`. If a user needs source paths surfaced in the mirror, that mapping belongs in the project's own docs.
 
@@ -272,8 +272,8 @@ Project memory. Read deeper on demand.
 **Structure**:
 - Digest: `.lore/SUMMARY.md`
 - Global: `.lore/_global/`
-- Scopes:
-  - `frontend` (React 18 + TypeScript)
+- Scopes: `.lore/scopes/`
+  - `.lore/scopes/frontend/` (React 18 + TypeScript)
 ```
 
 `Scopes:` block has one entry.
@@ -284,15 +284,15 @@ Project memory. Read deeper on demand.
 **Structure**:
 - Digest: `.lore/SUMMARY.md`
 - Global: `.lore/_global/`
-- Scopes:
-  - `frontend` (React 18 + TypeScript)
-  - `backend` (PostgreSQL + Prisma)
-  - `shared`
+- Scopes: `.lore/scopes/`
+  - `.lore/scopes/frontend/` (React 18 + TypeScript)
+  - `.lore/scopes/backend/` (PostgreSQL + Prisma)
+  - `.lore/scopes/shared/`
 ```
 
 ### Scope description extraction
 
-The agent scans `.lore/<scope_name>/ARCHITECTURE.md` for the **first line matching** `<!-- description: <text> -->` (anchored to start of line; `description:` literal). Rules:
+The agent scans `.lore/scopes/<scope_name>/ARCHITECTURE.md` for the **first line matching** `<!-- description: <text> -->` (anchored to start of line; `description:` literal). Rules:
 
 - **First match wins.** If multiple `<!-- description: ... -->` lines exist, only the first is used.
 - **`<text>` is single-line.** A comment must not contain a newline before `-->`. Multi-line comments are ignored.

@@ -100,7 +100,7 @@ Each entry is a Markdown bullet (≤ 2 lines), with a layer prefix, a determinis
 
 The canonical store is `.lore/*`. Agents that expect a single config file at the project root (`CLAUDE.md` for Claude Code, `.cursorrules` for Cursor, `.clinerules` for Cline, `AGENTS.md` for Aider, etc.) read a synced projection of that store.
 
-**A mirror is a synced projection, not a strict derivative.** It contains two sections: a Skill-managed `## Lore` section (rewritten on every sync) and a user-editable `## My notes` section (preserved verbatim). Both sections are legitimate mirror content. The user can write personal preferences, temporary instructions, or any project-specific note in the My notes section; the Skill never touches it.
+**A mirror is a synced projection, not a strict derivative.** It contains two sections: a Skill-managed `## Lore` section (rewritten on mirror regeneration) and a user-editable `## My notes` section (preserved verbatim). Both sections are legitimate mirror content. The user can write personal preferences, temporary instructions, or any project-specific note in the My notes section; the Skill never touches it.
 
 ```markdown
 ## Lore (auto-managed)
@@ -402,4 +402,4 @@ lore mirror    # Force-regenerate all platform mirrors from current .lore/* stat
 lore history   # Read-only. List git commits related to an entry / file / scope. Pure stdout.
 ```
 
-Of the six, only `init`, `sync`, `compress`, and `mirror` write files. `init` and `sync` mutate `.lore/*.md`. `compress` writes `SUMMARY.md`. `mirror` writes platform mirror files (with content-based dedup). Each requires explicit user confirmation before any file is written unless `auto_mirror: true` is set in `.lore/.config.json`. `query` and `audit` are pure read.
+Of the seven, only `init`, `sync`, `compress`, and `mirror` write files. `init` and `sync` mutate `.lore/*.md`. `compress` writes `SUMMARY.md`. `mirror` writes platform mirror files (with content-based dedup). Each requires explicit user confirmation before any file is written unless `auto_mirror: true` is set in `.lore/.config.json`. `query`, `audit`, and `history` are pure read.

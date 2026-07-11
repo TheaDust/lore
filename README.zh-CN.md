@@ -113,10 +113,10 @@ Project memory. Read deeper on demand.
 **Structure**:
 - Digest: `.lore/SUMMARY.md` (top-level overview)
 - Global: `.lore/_global/` (architecture, decisions, conventions)
-- Scopes:
-  - `backend` (Flask 3 + SQLAlchemy 2 + pytest; Python 3.11+)
-  - `frontend` (React 18 + TypeScript + Vite + Zustand + Axios)
-  - `shared` (TypeScript types mirrored as Python dataclasses)
+- Scopes: `.lore/scopes/`
+  - `.lore/scopes/backend/` (Flask 3 + SQLAlchemy 2 + pytest; Python 3.11+)
+  - `.lore/scopes/frontend/` (React 18 + TypeScript + Vite + Zustand + Axios)
+  - `.lore/scopes/shared/` (TypeScript types mirrored as Python dataclasses)
 
 **Query**: `lore query <term>` or `lore query <scope>:<term>`
 **Update**: see the `lore` skill (init / sync / query / audit / compress / mirror)
