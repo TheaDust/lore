@@ -359,7 +359,7 @@ A: Git is the recommended transport (`.lore/` is plain text in your repo; `git p
 
 ## License
 
-This skill is provided as-is. Use it, fork it, modify it for your project's needs.
+[MIT](./LICENSE) — use, modify, redistribute, sublicense, and sell, including commercially. No warranty.
 
 ---
 
