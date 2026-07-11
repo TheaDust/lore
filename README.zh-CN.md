@@ -192,7 +192,6 @@ Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `gi
 | `compress` | 从当前 entry 生成 `SUMMARY.md` | `SUMMARY.md` + 平台 mirror | [`references/summary-template.md`](references/summary-template.md) |
 | `mirror` | 强制重新生成平台 mirror（带内容去重）| `CLAUDE.md`、`.cursorrules` 等 | [`references/platform-mirrors.md`](references/platform-mirrors.md) |
 | `history` | 只读；列出与 entry / 文件 / scope 相关的 git commits | 不写任何东西 | [`references/history-command.md`](references/history-command.md) |
-| `history` | 只读；列出某条目/文件/scope 相关的 git commits | 无 |
 
 `sync` **不会**更新平台 mirror。这是刻意的：mirror 文件是 agent 入口，不是变更日志。每次 sync 都重写会让 `git log` 变得很乱，稀释"人工合并"这个 mirror 应该提供的信号。当你需要 agent 视图跟上时，跑 `lore mirror`（或 `compress`）。
 
