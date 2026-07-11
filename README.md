@@ -308,7 +308,7 @@ lore is built for long-term projects. It's overkill for:
 ## FAQ
 
 **Q: Does lore work without git?**
-A: Partially. `sync` uses `git diff` to detect changes. Without git, you can still use `init` / `query` / `audit` / `compress` / `mirror`, but `sync` will need you to tell it what changed.
+A: Partially. Most of lore is **agent workflow** described in `SKILL.md` — the agent reads your files, drafts entries, edits `.lore/*.md`, and (when asked) regenerates mirrors. Without git, the agent can still do `init` / `query` / `audit` / `compress` / `mirror` by reading files directly. What you lose: `sync` uses `git diff` to detect changes (no diff → the agent asks you what changed), and `lore history` requires a git repo (it runs `git log`). The helper scripts (`list_entries.py`, `find_stale.py`, etc.) work either way.
 
 **Q: Can I hand-edit `.lore/*.md` directly?**
 A: Yes. The files are plain Markdown. Use `id_hash.py` if you're adding new entries (to keep IDs deterministic). After hand-editing, run `lore mirror` to update agent-facing files.
@@ -324,6 +324,18 @@ A: No. lore is pure file I/O. The agent invoking lore does the semantic work (sc
 
 **Q: What about the agent's native `/init` or `/compact` commands?**
 A: They serve different purposes. `/init` is a one-shot project scan → `CLAUDE.md`. `/compact` compresses conversation context. lore `init` and `compress` manage long-term project knowledge, not session context. If you run `lore init` on a project that already has a non-lore `CLAUDE.md`, the takeover check (init step 0) handles integration.
+
+**Q: What's the difference between `sync` and `mirror`?**
+A: `sync` updates `.lore/` from code changes (run after a feature or refactor). `mirror` updates agent-facing files (`CLAUDE.md`, `.cursorrules`, etc.) from current `.lore/`. `sync` deliberately does **not** update mirrors — mirror files should be human-merged, not regenerated on every commit, so `git log` stays readable. Run `mirror` (or `compress`) explicitly when you want agent-facing files to catch up.
+
+**Q: How is lore different from ADRs (Architecture Decision Records)?**
+A: ADRs are documents — one markdown file per decision. lore is structured project memory: one fact per entry, with a stable ID and `#added` / `#verified` / `#stale` markers. The `DEC` layer can replace `docs/adr/` (one DEC entry per decision), but lore also covers `ARCH` (architecture) and `CON` (conventions) in the same store, plus generates agent-facing summaries via `compress` / `mirror`. Use lore **instead of** ADRs, or **alongside** them (one DEC entry pointing to the existing ADR document).
+
+**Q: What if I disagree with an entry the agent wrote?**
+A: Edit `.lore/*.md` directly — it's plain Markdown. The next `mirror` / `compress` will reflect your edit, and the helper scripts keep the ID stable as long as the entry text is unchanged. To revert to pre-AI state, `git checkout .lore/` like any tracked file.
+
+**Q: Can I sync `.lore/` across multiple machines without git?**
+A: Git is the recommended transport (`.lore/` is plain text in your repo; `git push` / `git pull` carry it). Other transports (Dropbox, OneDrive, Syncthing) work as long as you trust their text-file conflict resolution — they won't understand lore's ID scheme or `#added` markers. **Don't run two agents on the same `.lore/` simultaneously**; last-writer-wins, and IDs aren't protected by a remote lock.
 
 ## License
 
