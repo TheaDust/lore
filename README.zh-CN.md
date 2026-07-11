@@ -275,7 +275,13 @@ lore 的 token 模型有 5 个组件；只有 mirror 文件是 per-session，其
 
 `lore query <term>` 返回命中 entry 的稳定 ID + 一句话摘要，不是整个 `.lore/` 内容。单次 query 的 token 量按命中条数 bound，跟项目总规模无关。
 
-如果需要 ambient knowledge（agent 立即拥有全部上下文，无需 fetch 步骤），请注意这不再是默认行为。详见 [`references/platform-mirrors.md`](references/platform-mirrors.md)。
+### Ambient 与 on-demand 知识
+
+**Ambient** 知识 = agent 会话启动时已经在上下文里，无需 fetch。**On-demand** 知识 = agent 主动读时才有（`cat [file#ID]`、`lore query <term>`）。
+
+lore 的 mirror 文件（`CLAUDE.md`、`AGENTS.md` 等）是 ambient —— agent 每个 session 自动看到。`.lore/` 下所有内容是 on-demand：`SUMMARY.md` 当目录，entry 按需 fetch。
+
+默认是 on-demand。如果你倾向把整个 `SUMMARY.md` 倒进 `CLAUDE.md`（真 ambient），可行但**不推荐** —— 用「会话启动开销」换「零 fetch」。详见 [`references/platform-mirrors.md`](references/platform-mirrors.md)。
 
 ## 脚本
 

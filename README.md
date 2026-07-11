@@ -275,7 +275,13 @@ Every time you say `lore sync` or `lore query`, the agent loads `SKILL.md` (~10 
 
 `lore query <term>` returns matched entries with stable IDs and one-line summaries, not the full text of `.lore/`. A single query is bounded by the number of matches regardless of total project size.
 
-If you need ambient knowledge (the agent has full context immediately, no fetch step), be aware that ambient knowledge is no longer the default. See [`references/platform-mirrors.md`](references/platform-mirrors.md) for the index template details.
+### Ambient vs on-demand knowledge
+
+**Ambient** knowledge is already in the agent's context at session start — no fetch needed. **On-demand** knowledge is read only when the agent asks (`cat [file#ID]`, `lore query <term>`).
+
+lore's mirror file (`CLAUDE.md`, `AGENTS.md`, etc.) is ambient — the agent sees it every session. Everything under `.lore/` is on-demand: `SUMMARY.md` is the table of contents, and entries are fetched when the agent actually needs them.
+
+Default is on-demand. If you'd rather dump the full `SUMMARY.md` into `CLAUDE.md` every session (true ambient), that works but isn't recommended — it trades session-start cost for zero fetch. See [`references/platform-mirrors.md`](references/platform-mirrors.md) for the index template.
 
 ## Scripts
 
