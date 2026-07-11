@@ -37,7 +37,7 @@ The skill uses a **two-tier trigger model**:
 - `audit` emits `[ALERT]` markers during sync when an active entry conflicts with current code or with a candidate change.
 - `mirror` regenerates automatically during `compress` if `auto_mirror: true` is set in `.lore/.config.json`.
 
-Other commands (`init`, `query`, `history`) are always explicit — they need user intent. See [`references/workflows.md`](references/workflows.md) for the full procedure, output format, and edge cases of each.
+Other commands (`init`, `query`, `history`) are always explicit — they need user intent. See [`WORKFLOWS.md`](../WORKFLOWS.md) for a plain-language explanation of when each workflow is used.
 
 ## Reference index
 
@@ -53,7 +53,6 @@ Detailed specifications live in `references/`. Load these on demand.
 | `references/platform-mirrors.md` | Platform file mapping (CLAUDE.md / .cursorrules / etc.), two-section file structure |
 | `references/config.md` | `.lore/.config.json` schema and field semantics |
 | `references/history-command.md` | Running `history` — full spec, dispatch rules, error table |
-| `references/workflows.md` | Detailed per-workflow procedures, output formats, edge cases (also in Chinese: `references/workflows.zh-CN.md`) |
 | `references/compatibility.md` | Versioning policy: `.config.json#schema_version`, migration tools, deprecation workflow |
 | `scripts/README.md` | Helper scripts (id_hash, list_entries, find_duplicates, find_stale) — also in Chinese (`scripts/README.zh-CN.md`) |
 
@@ -362,6 +361,23 @@ When the agent's current understanding contradicts a memory entry, **memory wins
 ```
 
 The user then either: (a) confirms memory is wrong and runs `sync` to update it, or (b) explicitly overrides for this case.
+
+## Cross-workflow notes
+
+**Typical sequence:** `init` → `[sync ⇄ query ⇄ audit]` (interchangeable, agent picks by context) → `compress` (when SUMMARY.md grows stale) → `mirror` (or auto via `compress` if `auto_mirror: true`).
+
+**Who writes what:**
+
+| File | Written by |
+|---|---|
+| `.lore/SUMMARY.md` | `compress` |
+| `.lore/{_global,scopes/<scope>}/<LAYER>.md` | `sync`, manual edits |
+| `.lore/.config.json` | `init`, manual edits |
+| `<project-root>/<platform files>` | `init`, `mirror`, `compress` (if `auto_mirror: true`) |
+
+**What never happens silently:** file mutation (sync proposes; user accepts/rejects); platform mirror rewrite on every sync (separate command); `compress` deleting entries (only writes SUMMARY.md); entry marked as `[STALE]` without proposal; `init` overwriting user-written platform files without explicit takeover.
+
+For a user-facing explanation of each workflow (when to use it, frequency, examples), see [`WORKFLOWS.md`](../WORKFLOWS.md).
 
 ## Anti-patterns
 

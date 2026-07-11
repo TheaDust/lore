@@ -26,7 +26,7 @@ Or, simpler — tell your agent:
 
 Each agent host loads skills from its own directory (`~/.claude/skills/` for Claude Code, `<project>/.claude/skills/` for project-scoped, etc.). Your agent knows its own skills directory and can clone the repo into the right place.
 
-> Looking for a specific doc? Jump to: [Quick start](#quick-start) · [What it looks like](#what-this-looks-like) · [What lives in `.lore/`](#what-lives-in-lore) · [Seven workflows](#seven-workflows) · [Platform mirrors](#platform-mirrors) · [Configuration](#configuration) · [Upgrading](#upgrading) · [FAQ](#faq). Full reference docs live in [`references/`](references/).
+> Looking for a specific doc? Jump to: [Quick start](#quick-start) · [What it looks like](#what-this-looks-like) · [What lives in `.lore/`](#what-lives-in-lore) · [Seven workflows](#seven-workflows) · [Platform mirrors](#platform-mirrors) · [Configuration](#configuration) · [Upgrading](#upgrading) · [FAQ](#faq). Full reference docs live in [`references/`](references/). **Want plain-language "when to use each workflow"?** See [`WORKFLOWS.md`](WORKFLOWS.md) (also in [中文](WORKFLOWS.zh-CN.md)).
 
 ## What it solves
 
@@ -192,6 +192,8 @@ For the full format spec (ID generation, tags, splitting rules), see [`reference
 | `compress` | Generates `SUMMARY.md` from current entries | `SUMMARY.md` + platform mirrors | [`references/summary-template.md`](references/summary-template.md) |
 | `mirror` | Force-regenerate platform mirrors (with content dedup) | `CLAUDE.md`, `.cursorrules`, etc. | [`references/platform-mirrors.md`](references/platform-mirrors.md) |
 | `history` | Read-only; lists git commits related to an entry / file / scope | nothing | [`references/history-command.md`](references/history-command.md) |
+
+For a plain-language explanation of each workflow (when you'd actually use each one, with real scenarios), see [`WORKFLOWS.md`](WORKFLOWS.md) (中文版: [`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)).
 
 `sync` deliberately does **not** update platform mirrors. Mirror files are agent-facing entry points, not per-change logs. Regenerating them on every `sync` would clutter `git log` and dilute the "human-merged" signal they're supposed to provide. Run `lore mirror` (or `compress`) when you want the agent-facing view to catch up.
 

@@ -26,7 +26,7 @@ git clone git@github.com:TheaDust/lore.git <你的-agent-skills-目录>
 
 每个 agent host 从自己的目录加载 skill（Claude Code 是 `~/.claude/skills/`，项目级是 `<project>/.claude/skills/`，等等）。你的 agent 知道自己的 skills 目录在哪，能把仓库克隆到正确的位置。
 
-> 找特定章节？跳到：[快速上手](#快速上手) · [实际长什么样](#实际长什么样) · [`.lore/` 目录结构](#lore-目录结构) · [七个工作流](#七个工作流) · [平台 Mirror](#平台-mirror) · [配置](#配置) · [升级](#升级) · [FAQ](#faq)。完整参考文档在 [`references/`](references/)。
+> 找特定章节？跳到：[快速上手](#快速上手) · [实际长什么样](#实际长什么样) · [`.lore/` 目录结构](#lore-目录结构) · [七个工作流](#七个工作流) · [平台 Mirror](#平台-mirror) · [配置](#配置) · [升级](#升级) · [FAQ](#faq)。完整参考文档在 [`references/`](references/)。**想看每个工作流什么时候用的平实解释？** 见 [`WORKFLOWS.md`](WORKFLOWS.md) / [English](./WORKFLOWS.md)。
 
 ## 解决什么问题
 
@@ -192,6 +192,8 @@ Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `gi
 | `compress` | 从当前 entry 生成 `SUMMARY.md` | `SUMMARY.md` + 平台 mirror | [`references/summary-template.md`](references/summary-template.md) |
 | `mirror` | 强制重新生成平台 mirror（带内容去重）| `CLAUDE.md`、`.cursorrules` 等 | [`references/platform-mirrors.md`](references/platform-mirrors.md) |
 | `history` | 只读；列出与 entry / 文件 / scope 相关的 git commits | 不写任何东西 | [`references/history-command.md`](references/history-command.md) |
+
+想看每个工作流什么时候用、用在哪里的平实解释，见 [`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)（English: [`WORKFLOWS.md`](WORKFLOWS.md)）。
 
 `sync` **不会**更新平台 mirror。这是刻意的：mirror 文件是 agent 入口，不是变更日志。每次 sync 都重写会让 `git log` 变得很乱，稀释"人工合并"这个 mirror 应该提供的信号。当你需要 agent 视图跟上时，跑 `lore mirror`（或 `compress`）。
 
