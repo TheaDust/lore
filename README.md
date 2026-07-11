@@ -242,18 +242,38 @@ The Skill only writes inside the `## Lore` section. Everything under `## My note
 
 ## Token cost
 
-`CLAUDE.md` and equivalent platform files are loaded by your agent on **every session**. lore keeps this cost flat by emitting an index (~500 bytes) rather than the project digest content.
+lore's token model has five components. Only the mirror file is per-session; everything else is on-demand or per-invocation.
 
-Typical mirror sizes:
+| Component | Loaded when | Typical size | Per-session? |
+|---|---|---|---|
+| **Mirror file** (CLAUDE.md, AGENTS.md, etc.) | Every session start | ~500 bytes (index mode) | yes |
+| **SKILL.md** (the lore spec itself) | Every `lore <cmd>` invocation | ~10 KB | no, per-invocation |
+| **`.lore/SUMMARY.md`** | Agent reads on demand as the table of contents | 1–30 KB | no, on demand |
+| **`scopes/<scope>/{ARCH,DEC,CON}.md`** | Agent reads only the relevant scope | 1–5 KB each | no, on demand |
+| **`lore query <term>`** result | Agent runs a query | bounded by matches | no, per query |
 
-| Project state | Mirror size | Per-session context cost |
+### The mirror is constant-cost
+
+`CLAUDE.md` and equivalent platform files are loaded by your agent on **every session**. lore keeps this cost flat by emitting an index (~500 bytes) rather than the project digest content. This is the only line item that scales with session count.
+
+| Project size | Mirror size | Per-session context cost |
 |---|---|---|
 | Empty / new | ~200 bytes | negligible |
 | Small (~30 entries) | ~500 bytes | negligible |
 | Medium (~120 entries) | ~500 bytes | negligible |
 | Large (~250 entries) | ~500 bytes | negligible |
 
-Index size does not grow with project size. The agent fetches detail on demand via standard file reads or `lore query <term>`.
+### Memory is on-demand
+
+`.lore/*.md` files are **not** pre-loaded. The agent reads `SUMMARY.md` as a table of contents, then drills into the specific scope or entry it needs (`cat [file#ID]`). A 250-entry project costs the agent ~500 bytes at session start, plus only the entries it actively reads.
+
+### SKILL.md is per-invocation
+
+Every time you say `lore sync` or `lore query`, the agent loads `SKILL.md` (~10 KB) to follow the workflow. Outside of lore invocations, no lore content sits in the agent's context.
+
+### Queries are bounded
+
+`lore query <term>` returns matched entries with stable IDs and one-line summaries, not the full text of `.lore/`. A single query is bounded by the number of matches regardless of total project size.
 
 If you need ambient knowledge (the agent has full context immediately, no fetch step), be aware that ambient knowledge is no longer the default. See [`references/platform-mirrors.md`](references/platform-mirrors.md) for the index template details.
 
