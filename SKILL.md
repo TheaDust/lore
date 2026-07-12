@@ -198,8 +198,13 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
 
 **Procedure:**
 
-1. **Detect the delta** from `git diff` (committed or working tree) and re-scan any new files.
-2. **Determine target scope(s)** for each change. Use `git diff --name-only` paths to map files → scopes (e.g. `frontend/src/...` → `scopes/frontend/`). Cross-scope changes (root config files) → `_global/`.
+1. **Detect the delta** from two sources, combined and de-duplicated:
+   - `git diff <last_sync_sha>..HEAD` if `.lore/.config.json#last_sync_sha` is set and reachable from any local ref. This captures every commit since the last successful `sync`.
+   - `git diff` (working tree vs. `HEAD`) — always included. Catches uncommitted changes that are not yet in any commit.
+   - **Re-scan any new files**.
+   - **Fallback** when `last_sync_sha` is absent (older config) or no longer reachable (e.g. after `git rebase` or a force-push that orphaned the SHA): use `git diff HEAD` alone and emit a one-line `[WARN]` to stderr noting that incremental sync is degraded. Working tree alone will not pick up commits made before the next sync ran — the user should re-run `sync` after `git pull --rebase` to re-establish the baseline.
+   - **Empty repo** (no commits yet): `last_sync_sha` is `null`; only the working tree diff applies.
+2. **Determine target scope(s)** for each change. Use `git diff --name-only` paths (over the combined commit + working-tree diff) to map files → scopes (e.g. `frontend/src/...` → `scopes/frontend/`). Cross-scope changes (root config files) → `_global/`.
 3. **Classify each change** into one layer:
    - New module, new dependency, new file structure → `ARCHITECTURE.md`
    - "We picked X over Y because Z" → `DECISIONS.md`
@@ -223,6 +228,7 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
 7. **Generate the proposed diff** (for any confirmation-required changes) using the `[NEW]/[STALE]/[REFINED]/[ALERT]/[COMPRESS NOTICE]` markers. See `references/stale-new-markers.md` for the full convention and user reply semantics.
 8. **Stop and wait for user confirmation** for any pending changes. Auto-applied changes need no confirmation.
 9. After the user accepts, write to `.lore/*` only. **Do not** regenerate platform mirrors from `sync` — this is intentional. See "Mirror update triggers" below for the rationale and the dedicated `lore mirror` command.
+10. **Update `.lore/.config.json#last_sync_sha`** to the current `git rev-parse HEAD`. Idempotent: re-running sync without new commits writes the same SHA. If HEAD does not exist (empty repo), set to `null`. The bump from v1 → v2 added this field; v1 configs without it keep working through the fallback in step 1.
 
 **Source priority** (when sources disagree):
 

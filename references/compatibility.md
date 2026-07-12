@@ -194,6 +194,22 @@ Adding a new `compress_thresholds.max_entries_per_scope` field:
 - Old skill reads v2 config: sees only the fields it knows; ignores `max_entries_per_scope`.
 - New skill reads v1 config: detects `schema_version` mismatch, refuses to write until migration runs.
 
+Adding an optional field without a migration script — the first additive bump:
+
+The optional `last_sync_sha` field was added to `.lore/.config.json` in `schema_version: 2` without shipping `scripts/migrate.py`. This is acceptable because:
+
+- The field is optional. v1 configs continue to operate; sync falls back to working-tree diff alone.
+- v1 readers do not break: forward-compatibility already ignores unknown fields.
+- No data loss, no rename, no required behavior change.
+
+**Rule of thumb.** A schema bump requires `scripts/migrate.py` **only** when one of the following holds:
+
+- A new field is required (old configs cannot function without it).
+- An existing field is renamed or its accepted values are tightened.
+- The entry ID algorithm changes.
+
+Optional, additive fields do not require a migration script.
+
 ### Incompatible change (avoid)
 
 Renaming `mirror_mode` to `render_mode`:

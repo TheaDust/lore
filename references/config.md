@@ -6,7 +6,7 @@
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "auto_mirror": true | false,
   "sync_updates_mirror": true | false,
   "sync_trust": "high" | "medium" | "low",
@@ -19,7 +19,8 @@
   "sync_thresholds": {
     "min_lines_changed": 50,
     "min_directories_changed": 2
-  }
+  },
+  "last_sync_sha": "f9ca271..."  // set automatically by sync; null on first run
 }
 ```
 
@@ -97,6 +98,19 @@ Defaults: `{"max_entries": 500, "max_days_since_compress": 30}`.
 Defaults: `{"min_lines_changed": 50, "min_directories_changed": 2}`.
 
 `sync` only proposes an update when at least one trigger threshold is met (see `SKILL.md` sync trigger threshold). Lowering these values means `sync` proposes updates more often.
+
+### `last_sync_sha`
+
+Default: absent (treated as `null`). Added in `schema_version: 2`.
+
+The git commit SHA from which the next `sync` will compute its delta. Written automatically by `sync` after every successful `.lore/*` update. Bumps the published skill to v2 the first time it is set on a config that did not have it.
+
+- **Absent or `null`** — `sync` falls back to working-tree diff alone (`git diff`, working tree vs. `HEAD`). Already-committed changes between two syncs are invisible. This is the pre-v2 behavior.
+- **Set to a reachable SHA** — `sync` uses `git diff <last_sync_sha>..HEAD` for committed changes plus working-tree diff for uncommitted changes. This is the recommended state and lets batched commits be captured by a single later sync.
+- **Set to an unreachable SHA** (e.g., after `git rebase` or a force-push that orphaned the SHA) — `sync` prints a `[WARN]` to stderr and falls back to the working-tree diff alone. The next successful sync resets the baseline.
+- **Empty repo** (no commits yet) — the field is `null`; only the working-tree diff applies.
+
+Old v1 configs without this field keep working: `sync` simply operates in fallback mode on every run. No `scripts/migrate.py` is needed because the field is optional and additive.
 
 ## Editing the config
 
