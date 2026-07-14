@@ -63,9 +63,11 @@ Rules:
 Mirror files (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`, etc.) follow this contract:
 
 ```markdown
+<!-- LORE:START -->
 ## Lore (auto-managed)
 
 ... lore content ...
+<!-- LORE:END -->
 
 ---
 ## My notes (free edit)
@@ -75,10 +77,12 @@ Mirror files (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`, etc.) follow this contra
 
 Rules:
 
-- `## Lore (auto-managed)` is a **contract string**. Never rename; never remove. Mirror detection regexes depend on it.
+- `<!-- LORE:START -->` and `<!-- LORE:END -->` are **contract strings** for new mirrors (post-v1). Never rename; never remove. They are the authoritative boundary the skill uses for detection.
+- `## Lore (auto-managed)` is a **contract string**. Never rename; never remove. Mirror detection regexes depend on it as a secondary signal.
 - `## My notes (free edit)` is a **contract string**. Never rename; never remove. User-written content depends on it.
-- The content between `## Lore` and `---` is lore's domain; content after `---` is the user's. Respect the boundary on every regeneration.
-- Adding a new auto-managed section (e.g., `## Sync history (auto-managed)`) is allowed; insert before `---`. Old skills ignore it.
+- The content between `<!-- LORE:START -->` and `<!-- LORE:END -->` is lore's domain; content after `<!-- LORE:END -->` and `---` is the user's. Respect the boundary on every regeneration.
+- Pre-v1 mirrors without HTML comments are still detected and preserved via the `---` separator and `## My notes` header. The first `lore mirror` run on such a file offers the user an upgrade prompt (see `references/platform-mirrors.md` rule 5b).
+- Adding a new auto-managed section (e.g., `## Sync history (auto-managed)`) is allowed; insert before `<!-- LORE:END -->`. Old skills ignore it.
 - Changing the index template body (e.g., adding a "Last mirror:" line) is non-breaking: content-based dedup means unchanged mirrors are not rewritten, so old mirrors stay valid.
 - **Backward-write safety**: if the existing mirror has no `## My notes (free edit)` section (e.g., a legacy single-section mirror from a pre-v1 project), the first `lore mirror` run must **append** an empty My notes section rather than overwriting the file.
 
@@ -232,7 +236,7 @@ Before merging any change to lore, answer these questions:
 
 1. Does this change add, modify, or remove anything in `.lore/`?
 2. Does this change add, modify, or remove any script in `scripts/`?
-3. Does this change add, modify, or remove any contract string (`## Lore (auto-managed)`, `## My notes (free edit)`, etc.)?
+3. Does this change add, modify, or remove any contract string (`## Lore (auto-managed)`, `## My notes (free edit)`, `<!-- LORE:START -->`, `<!-- LORE:END -->`, etc.)?
 4. Does this change add, modify, or remove any reference doc filename?
 5. Does this change add, modify, or remove any entry tag?
 

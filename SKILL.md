@@ -103,11 +103,13 @@ The canonical store is `.lore/*`. Agents that expect a single config file at the
 **A mirror is a synced projection, not a strict derivative.** It contains two sections: a Skill-managed `## Lore` section (rewritten on mirror regeneration) and a user-editable `## My notes` section (preserved verbatim). Both sections are legitimate mirror content. The user can write personal preferences, temporary instructions, or any project-specific note in the My notes section; the Skill never touches it.
 
 ```markdown
+<!-- LORE:START -->
 ## Lore (auto-managed)
 
 # .lore SUMMARY (synced 2026-07-09)
 
 ...auto-generated content from .lore/*...
+<!-- LORE:END -->
 
 ---
 

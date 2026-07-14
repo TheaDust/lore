@@ -106,6 +106,7 @@ Every answer cites the exact `[file#ID]` so you can `cat` the entry or run `lore
 `lore` keeps per-session cost flat by emitting a small index, not the full memory:
 
 ```markdown
+<!-- LORE:START -->
 ## Lore (auto-managed)
 
 Project memory. Read deeper on demand.
@@ -120,6 +121,7 @@ Project memory. Read deeper on demand.
 
 **Query**: `lore query <term>` or `lore query <scope>:<term>`
 **Update**: see the `lore` skill (init / sync / query / audit / compress / mirror)
+<!-- LORE:END -->
 
 ---
 ## My notes (free edit)
@@ -228,11 +230,13 @@ lore's canonical store is `.lore/*`, but it projects into the config files agent
 | Continue.dev | `.continue/rules/lore.md` | ✅ |
 | LangGraph / DeepAgents | (no file — read `.lore/*.md` directly) | n/a |
 
-Each mirror file is split into two sections by a `---` separator:
+Each mirror file is split into two sections by a `---` separator, with the auto-managed section bounded by `<!-- LORE:START -->` and `<!-- LORE:END -->` HTML comments:
 
 ```markdown
+<!-- LORE:START -->
 ## Lore (auto-managed)
 ... Skill-managed content from .lore/ ...
+<!-- LORE:END -->
 
 ---
 

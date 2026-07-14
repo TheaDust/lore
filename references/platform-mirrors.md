@@ -93,6 +93,7 @@ Both paths use the same function. Once `init` has run, `mirror_targets` is set, 
 Every mirror file is split into two sections by a `---` separator. The top section is Skill-managed and rewritten on mirror regeneration. The bottom section is user-editable and preserved verbatim.
 
 ```markdown
+<!-- LORE:START -->
 ## Lore (auto-managed)
 
 # .lore SUMMARY (synced 2026-07-09)
@@ -103,6 +104,7 @@ Every mirror file is split into two sections by a `---` separator. The top secti
 ## Global
 - Monorepo with pnpm workspaces + Turborepo — [_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3]
 ...
+<!-- LORE:END -->
 
 ---
 
@@ -113,7 +115,7 @@ Every mirror file is split into two sections by a `---` separator. The top secti
 - Prefer English
 ```
 
-The `---` separator is a literal Markdown horizontal rule. Both sections are plain Markdown so any agent or editor can render them normally.
+The `<!-- LORE:START -->` and `<!-- LORE:END -->` HTML comments are the canonical boundary markers for new mirrors (see rule 5a). The `---` separator is a literal Markdown horizontal rule. Both sections are plain Markdown so any agent or editor can render them normally.
 
 ### Section detection rules
 
@@ -123,7 +125,30 @@ When syncing a mirror file:
 2. If the file contains a `## My notes` header, the My notes section starts at that header and goes to EOF.
 3. If neither marker is present, the entire file is treated as the Lore section (i.e. no My notes section). Subsequent sync appends a separator + empty My notes section.
 4. If the file is missing the `## Lore` header but has `## My notes`, the entire file is treated as user notes. Skill does not write to it. User is asked to confirm before sync restructures the file.
-5. **Additive HTML comment markers** (optional, recommended for new mirrors): the file may also include `<!-- LORE:START -->` and `<!-- LORE:END -->` HTML comments bounding the auto-managed section. When present, the skill uses them as the authoritative boundary for the Lore section. The `## Lore (auto-managed)` header inside the markers and the `---` separator outside still apply as secondary signals. This is an additive, non-breaking option — mirrors without the HTML comments keep working under rules 1–4.
+5. **Section boundary markers (canonical form is HTML comments)**:
+
+   a) **New mirrors (post-v1 skill release)**: the canonical boundary is
+      `<!-- LORE:START -->` and `<!-- LORE:END -->` HTML comments. The
+      skill emits these on every regeneration. The `## Lore (auto-managed)`
+      header inside the start marker and the `---` separator after the
+      end marker are still required for human readers and as secondary
+      signals, but the HTML comments are the **authoritative** boundary
+      the skill uses for detection. New mirrors **must** include the HTML
+      comment markers.
+
+   b) **Existing pre-v1 mirrors (legacy form)**: the `---` line and
+      `## My notes (free edit)` header form continues to be detected
+      and preserved by rules 1–4. The skill does **not** restructure
+      an existing mirror that lacks HTML comments. The first
+      `lore mirror` run on such a file asks the user once:
+      "Add HTML markers (recommended)" or "Keep legacy form". The user
+      can upgrade a legacy mirror later by running `lore mirror` and
+      accepting the prompt, or by manually adding the HTML comments.
+
+   c) **Detection priority when both forms are present**: HTML comments
+      win. The skill uses them as the authoritative boundary; the `---`
+      and `## My notes` are not consulted for boundary detection but are
+      still respected for content placement.
 
 ## Sync-time behavior
 
@@ -178,7 +203,7 @@ The `init` command extends the resolution algorithm above with classification an
 6. **Write `.lore/.config.json`** with `mirror_targets` populated.
 
 7. **Generate initial mirror files** for each target:
-   - File absent → full template (`## Lore` + `---` + empty `## My notes`).
+   - File absent → full template (`<!-- LORE:START -->` + `## Lore` + content + `<!-- LORE:END -->` + `---` + empty `## My notes`).
    - File present with `## Lore` → refresh Lore section, preserve My notes verbatim.
    - File present and "take over" chosen → old content becomes My notes, new `## Lore` above.
    - File present and "preserve" chosen → no write.
@@ -186,9 +211,11 @@ The `init` command extends the resolution algorithm above with classification an
 For each generated mirror file, the section template is:
 
 ```
+<!-- LORE:START -->
 ## Lore (auto-managed)
 
 <initial or refreshed Lore content>
+<!-- LORE:END -->
 
 ---
 
@@ -206,6 +233,7 @@ The agent generating the mirror walks `.lore/` and emits the structure below. Se
 ### Index template
 
 ```
+<!-- LORE:START -->
 ## Lore (auto-managed)
 
 Project memory. Read deeper on demand.
@@ -220,12 +248,13 @@ Project memory. Read deeper on demand.
 
 **Query**: `lore query <term>` or `lore query <scope>:<term>`
 **Update**: see the `lore` skill (init / sync / query / audit / compress / mirror)
+<!-- LORE:END -->
 
 ---
 ## My notes (free edit)
 ```
 
-The `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edit)` closer are **always present** — only the `**Structure**:` body varies with adaptive rendering. Agent preserves the My notes section verbatim across regenerations.
+The `<!-- LORE:START -->` / `<!-- LORE:END -->` markers, `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edit)` closer are **always present** in new mirrors — only the `**Structure**:` body varies with adaptive rendering. Agent preserves the My notes section verbatim across regenerations.
 
 ### Field sources
 
@@ -246,11 +275,12 @@ The index does **not** track the project's source-directory mapping for each sco
 
 ### Adaptive renderings
 
-Only the `**Structure**:` body varies. The `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edit)` closer are always present and unchanged.
+Only the `**Structure**:` body varies. The `<!-- LORE:START -->` / `<!-- LORE:END -->` markers, `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edit)` closer are always present and unchanged in new mirrors.
 
 **Empty project** (just initialized, no entries yet):
 
 ```
+<!-- LORE:START -->
 ## Lore (auto-managed)
 
 Project memory. Read deeper on demand.
@@ -260,6 +290,7 @@ Project memory. Read deeper on demand.
 
 **Query**: `lore query <term>`
 **Update**: see the `lore` skill
+<!-- LORE:END -->
 
 ---
 ## My notes (free edit)
