@@ -104,3 +104,23 @@ commit history. `lore history` fills that gap: given a memory entry,
 it shows the commits that introduced or modified the underlying code,
 letting the agent answer "why does this decision exist?" with a pointer
 to the original commit instead of an LLM-generated guess.
+
+## `--since` normalization (same-day commit safety)
+
+`git log --since=YYYY-MM-DD` interpretation is version-dependent.
+Older git versions parse a bare date as the user's local-timezone
+midnight; newer versions parse it as UTC midnight. A commit made early
+in the day can therefore be silently dropped when filtering by a
+same-day `#added` tag.
+
+To avoid this, `lore history` normalizes date-only inputs to an explicit
+ISO-8601 timestamp before passing them to `git log`. The transformation
+is `YYYY-MM-DD` → `YYYY-MM-DD T 00:00:00`, applied at the entry-form
+extraction point and at the file-form `--since` argument. Strings that
+already contain a time component (a `T` or a space) are passed through
+unchanged.
+
+This means the JSON output's `since` field will show e.g.
+`"2026-07-13T00:00:00"` for a date-only `#added`, not `"2026-07-13"`.
+The same-day commit you want to surface is now guaranteed to be in the
+result, regardless of the host's git version or the user's timezone.

@@ -123,6 +123,7 @@ When syncing a mirror file:
 2. If the file contains a `## My notes` header, the My notes section starts at that header and goes to EOF.
 3. If neither marker is present, the entire file is treated as the Lore section (i.e. no My notes section). Subsequent sync appends a separator + empty My notes section.
 4. If the file is missing the `## Lore` header but has `## My notes`, the entire file is treated as user notes. Skill does not write to it. User is asked to confirm before sync restructures the file.
+5. **Additive HTML comment markers** (optional, recommended for new mirrors): the file may also include `<!-- LORE:START -->` and `<!-- LORE:END -->` HTML comments bounding the auto-managed section. When present, the skill uses them as the authoritative boundary for the Lore section. The `## Lore (auto-managed)` header inside the markers and the `---` separator outside still apply as secondary signals. This is an additive, non-breaking option — mirrors without the HTML comments keep working under rules 1–4.
 
 ## Sync-time behavior
 

@@ -21,6 +21,34 @@ import json as _json  # standard library; aliased to avoid clashing with future 
 ENTRY_ID_RE = re.compile(r"^[A-Z]+-\d{4}-\d{2}-\d{2}-[a-f0-9]{4}$")
 
 
+# Date-only ISO pattern (YYYY-MM-DD). Used to detect inputs that need
+# normalization before being passed to `git log --since=` (see below).
+_DATE_ONLY_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def normalize_since(value):
+    """Normalize a `--since` value to a precise timestamp before git log.
+
+    `git log --since=YYYY-MM-DD` interpretation is version-dependent:
+    older git versions parse it as the user's local-timezone midnight,
+    newer versions as UTC midnight. A commit made early in the day in
+    any timezone can therefore be silently dropped when filtering by a
+    same-day `#added` tag.
+
+    Defense: when the input is date-only (no time component), append
+    `T00:00:00` so git's date parser treats it as a precise timestamp.
+    Strings that already contain a time component (T or space) are
+    passed through unchanged. None passes through unchanged.
+
+    Refs: https://git-scm.com/docs/git-log#_date_formats
+    """
+    if value is None or not isinstance(value, str):
+        return value
+    if not _DATE_ONLY_RE.match(value):
+        return value
+    return value + "T00:00:00"
+
+
 def parse_arg(arg: str):
     """Dispatch the first positional argument to entry / file / scope form.
 
@@ -439,6 +467,7 @@ def main():
             print("warning: entry has no #added tag; using full history",
                   file=sys.stderr)
             since = "1970-01-01"
+        since = normalize_since(since)
         code_file = resolve_code_file(entry)
         try:
             commits = run_git_log(project_root, since, code_file)
@@ -452,6 +481,7 @@ def main():
 
     if parsed["form"] == "file":
         since = since_override or "1970-01-01"
+        since = normalize_since(since)
         code_file = parsed["value"]
         try:
             commits = run_git_log(project_root, since, code_file)
