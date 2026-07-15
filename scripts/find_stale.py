@@ -11,8 +11,10 @@ Reports two categories:
   Stale        : entry has not been `#verified` within the threshold
                  (or has no #verified at all, and was added > threshold
                  days ago).
-  Pending arch : entry already carries a `#stale:` tag and is waiting
-                 to be moved into .lore/archive/.
+  Pending arch : entry already carries a `#stale:` tag. (The skill does
+                 not auto-archive; this category is a heads-up that the
+                 entry is no longer accurate and should be reviewed or
+                 left as historical record.)
 
 Output is plain text by default, JSON with --json.
 
@@ -66,16 +68,16 @@ def main():
 
     entries = get_entries()
     stale = []
-    pending_arch = []
+    pending_review = []
 
     # Build a quick lookup for chain validation.
     by_id = {e["id"]: e for e in entries}
 
     broken_chains = []
-    pending_arch_by_chain = {}  # replaced_by -> [entry, ...]
+    pending_by_chain = {}  # replaced_by -> [entry, ...]
 
     for e in entries:
-        # Already marked stale → pending archive (and maybe broken chain)
+        # Already marked stale → pending review (and maybe broken chain)
         if "stale" in e["tags"]:
             target = e.get("replaced_by")
             if target and target not in by_id:
@@ -86,12 +88,12 @@ def main():
                     "missing_target": target,
                 })
             if target:
-                pending_arch_by_chain.setdefault(target, []).append(e)
+                pending_by_chain.setdefault(target, []).append(e)
             else:
                 # No chain info — keep under a sentinel so the existing
                 # output still includes it.
-                pending_arch_by_chain.setdefault(None, []).append(e)
-            pending_arch.append(e)
+                pending_by_chain.setdefault(None, []).append(e)
+            pending_review.append(e)
             continue
 
         # Determine the entry's freshness date
@@ -110,12 +112,10 @@ def main():
             "threshold_days": days,
             "as_of": today.isoformat(),
             "stale": stale,
-            "pending_archive": pending_arch,
-            "chains": {
-                target: [e["id"] for e in entries_]
-                for target, entries_ in pending_arch_by_chain.items()
-                if target is not None
-            },
+            "pending_review": pending_review,
+            "chains": {target: [e["id"] for e in entries_]
+                       for target, entries_ in pending_by_chain.items()
+                       if target is not None},
             "broken_chains": broken_chains,
         }
         print(json.dumps(out, indent=2, ensure_ascii=False))
@@ -130,11 +130,11 @@ def main():
         print(f"    ref date: {ref}")
 
     print()
-    print("=== Pending archive (tagged #stale, grouped by replacement) ===")
-    if not pending_arch_by_chain:
+    print("=== Pending review (tagged #stale, grouped by replacement) ===")
+    if not pending_by_chain:
         print("  (none)")
     for target, entries_ in sorted(
-        pending_arch_by_chain.items(), key=lambda kv: (kv[0] is None, kv[0] or "")
+        pending_by_chain.items(), key=lambda kv: (kv[0] is None, kv[0] or "")
     ):
         if target is None:
             print("  (no #superseded-by chain):")

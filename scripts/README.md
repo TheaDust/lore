@@ -24,7 +24,7 @@ The script list and quick-reference command examples live in the project root `R
 | `id_hash.py` | Any time a new entry is written (init / sync) | Compute the 4-char content hash for the entry ID |
 | `list_entries.py` | Pre-step of query / audit / compress / history | Enumerate all entries as JSON for downstream processing; emits `replaced_by` per entry when `#superseded-by` is present |
 | `find_duplicates.py` | sync step 5 (de-duplication) | Identify candidate duplicate entries before writing |
-| `find_stale.py` | audit step 2; compress step 2; lore mirror (optional) | Identify entries past the verified-date threshold or already marked `#stale`; groups pending-archive entries by their `#superseded-by` target and reports `BROKEN_CHAIN` orphans |
+| `find_stale.py` | audit step 2; compress step 2; lore mirror (optional) | Identify entries past the verified-date threshold or already marked `#stale`; groups pending-review entries by their `#superseded-by` target and reports `BROKEN_CHAIN` orphans |
 
 ## Output channels
 
@@ -50,5 +50,5 @@ python scripts/list_entries.py   # should print "(no entries)" or exit with a cl
 
 - **Token-overlap dedup, not semantic.** Jaccard similarity catches rewrites with similar words but misses semantic equivalence (e.g. "use TypeScript" vs "TypeScript-only codebase"). Deeper checks still need an LLM pass.
 - **Naive date math.** `find_stale.py` uses wall-clock dates from `#verified` / `#added` tags. If the system's clock is wrong, results will be off.
-- **No automatic archive promotion.** The script reports pending-archive entries but does not move them. Use `lore sync` to actually relocate to `.lore/archive/`.
+- **No automatic archival.** The script reports `#stale`-tagged entries (and broken chains) but does not move or delete anything. Outdated entries stay in their scope file with their `#stale` tag; git history preserves the rest.
 - **Hash collisions on identical text are theoretically possible** (4 hex chars = 16 bits = 1 in 65536). In practice a lore project will not hit this. If it does, slightly edit the entry text to bump the hash.

@@ -24,7 +24,7 @@ This document defines how `lore` evolves without breaking existing user projects
 ```
 
 - IDs (`LAYER-DATE-HASH`) are stable as long as the entry text is unchanged. Editing an entry produces a new ID; old ID stays in history (via git) for `history` queries.
-- Tag set is a closed set today: `#added`, `#verified`, `#stale`, `#archived`, `#superseded-by`. Adding a new tag is allowed; old skills' tag parsers (which match `(added|verified|stale|archived|superseded-by)`) silently ignore unknown tags.
+- Tag set is a closed set today: `#added`, `#verified`, `#stale`, `#superseded-by`. Adding a new tag is allowed; old skills' tag parsers (which match `(added|verified|stale|superseded-by)`) silently ignore unknown tags. The previous `#archived` tag is no longer part of the vocabulary; old entries carrying it are treated as unknown tags (still parse, semantic meaning is lost — use `#superseded-by` going forward).
 - **Never make a tag required.** Required tags break every old entry in every old `.lore/`.
 
 ### Layer 3: `.lore/` directory structure
@@ -37,15 +37,13 @@ Current canonical layout:
 ├── _global/
 ├── scopes/
 ├── draft/        (init only — temporary)
-├── audit/        (audit only)
-└── archive/      (referenced in spec; reserved for future)
+└── audit/        (audit only)
 ```
 
 Rules:
-
 - Adding a new top-level directory (e.g., `rejected/` for rejected entries) is non-breaking.
 - Renaming an existing directory is breaking — every reference in `references/*.md`, every script, and every user's project breaks.
-- Removing a directory is breaking unless that directory was never actually written (e.g., removing `archive/` today is non-breaking because nothing writes there yet).
+- Removing a directory is non-breaking if it was never actually written. The previous `archive/` directory fell into this category (no script ever wrote to it) and has been removed from the layout.
 
 ### Layer 4: Python scripts
 

@@ -97,7 +97,7 @@ def parse_entry(line: str):
     # so we keep it on a separate `replaced_by` field rather than in `tags`.
     ENTRY_ID = r"[A-Z]+-\d{4}-\d{2}-\d{2}-[a-f0-9]{4}"
     tag_re = re.compile(
-        r"#(added|verified|stale|archived):(\S+)"
+        r"#(added|verified|stale):(\S+)"
         r"|#superseded-by:(" + ENTRY_ID + r")"
     )
     tags = {}

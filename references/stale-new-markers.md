@@ -19,7 +19,7 @@ When `sync` proposes a change, it never silently mutates files. Instead it emits
 - [scopes/frontend/ARCHITECTURE.md] [ARCH-2026-07-09-b4d2] Use `react-hook-form` for all forms. #added:2026-07-09
 - [scopes/frontend/CONVENTIONS.md] [CONV-2026-07-09-c5e1] Never use `any` in TypeScript; prefer `unknown` + narrowing. #added:2026-07-09
 
-## [STALE] Candidates for archive
+## [STALE] Candidates for review
 - [scopes/frontend/ARCHITECTURE.md] [ARCH-2026-01-15-d7a3] Use Pages Router (Next.js). #stale:2026-07-09 #superseded-by:ARCH-2026-07-09-b4d2
   Evidence: `frontend/package.json` shows `"next": "^14.0.0"` with `app/` directory present.
   Replaced by: `[ARCH-2026-07-09-b4d2] Use App Router (Next.js 14)` (new entry in this proposal).
@@ -51,12 +51,12 @@ For partial acceptance, the user should explicitly list which items to apply.
 | Marker | File action |
 |---|---|
 | `[NEW]` | Append a new bullet to the named file, with `#added:<today>` |
-| `[STALE]` | Append `#stale:<today>` and `#superseded-by:<replacement-id>` tags to the existing entry; entry stays in the file. When `sync` proposes `[STALE]`, it must also know the replacement entry's ID (the one that supersedes it). If the replacement is a `[NEW]` entry in the same proposal, carry its ID forward. If no replacement is known, emit `#stale:<today>` only and let the user fill the chain in a later sync. |
+| `[STALE]` | Append `#stale:<today>` and (if a replacement exists) `#superseded-by:<replacement-id>` to the existing entry; entry stays in the file. Two cases: (a) the entry was superseded by a `[NEW]` entry in the same proposal — set both tags and carry the new ID forward; (b) the entry is deprecated with no successor — set `#stale:<today>` only; the user can backfill the chain later if a replacement appears. |
 | `[REFINED]` | Replace the entry text in place, keep the ID, update `#verified:<today>` |
 | `[ALERT]` | No direct file change; only marks the conflict for user resolution |
 | `[COMPRESS NOTICE]` | No file change; advisory only |
 
-Note: `[STALE]` does not delete or move anything. The entry remains in its file with a `#stale` tag until the user (or a later sync) explicitly moves it to `archive/`. This keeps the rollback path clean.
+Note: `[STALE]` does not delete or move anything. The entry remains in its file with `#stale` (and optionally `#superseded-by`) tags. There is no `archive/` step — git history is the archive, and `#superseded-by` (when present) tells `compress`/`audit`/`history` how to walk the replacement chain.
 
 ## When audit uses these markers
 

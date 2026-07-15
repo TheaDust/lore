@@ -171,8 +171,7 @@ Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `gi
 │       ├── DECISIONS.md
 │       └── CONVENTIONS.md
 ├── draft/                        # init 阶段用，存待确认的草案
-├── audit/                        # audit 阶段用，存报告
-└── archive/                      # 旧/过期的 entry
+└── audit/                        # audit 阶段用，存报告
 ```
 
 每条 entry 是一个 Markdown bullet（≤ 2 行），带确定性 ID 和内联状态 tag：

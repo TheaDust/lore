@@ -74,8 +74,7 @@ Detailed specifications live in `references/`. Load these on demand.
 │   │   └── CONVENTIONS.md
 │   └── ...
 ├── draft/                  # Used only by `init`. Proposals pending user confirmation.
-├── audit/                  # Used only by `audit`. Reports; never mutates main files.
-└── archive/                # Old/superseded entries, kept for history
+└── audit/                  # Used only by `audit`. Reports; never mutates main files.
 ```
 
 **Scope detection during init:** see `references/monorepo-detection.md` for marker detection across pnpm / Yarn / npm / Lerna / Nx / Rush / Cargo / Go / Bazel. Single-package projects fall back to `_global/` only.
@@ -393,7 +392,7 @@ For a user-facing explanation of each workflow (when to use it, frequency, examp
 - **Don't make this a changelog.** Changelogs list every commit. Memory lists only what future agents need to know to work correctly.
 - **Don't store code snippets.** Memory is for facts, not source. Link to files instead (`see src/store/index.ts`).
 - **Don't silently overwrite user-edited mirror content.** The My notes section of each mirror file is always preserved verbatim. Sync only rewrites the Lore section. Files without proper section structure require explicit user choice before sync restructures them.
-- **Don't delete silently.** Stale entries get marked, then archived to `archive/`, never lost.
+- **Don't delete silently.** Stale entries get marked with `#stale` (and `#superseded-by:<id>` when there's a replacement); git history preserves the rest. No `archive/` step — the file itself + git is the history.
 - **Don't trust the agent's word over its own audit.** If an entry claims `react@18` and the code says `react@16`, the code wins for the audit, but the entry needs an update, not a silent fix.
 - **Don't mine conversation for memory unless explicitly asked.** Chat is high-noise; silent extraction corrupts the memory bank.
 - **Don't compress without preserving detail.** `compress` writes `SUMMARY.md` but never deletes or edits the underlying entry files.

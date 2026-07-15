@@ -24,7 +24,7 @@
 | `id_hash.py` | 写新 entry 时（init / sync）| 计算 entry ID 的 4 字符内容 hash |
 | `list_entries.py` | query / audit / compress / history 的预步骤 | 把所有 entry 枚举为 JSON 供后续处理；当 entry 含 `#superseded-by` 时额外输出 `replaced_by` 字段 |
 | `find_duplicates.py` | sync 步骤 5（去重）| 写之前找出可能的重复 entry |
-| `find_stale.py` | audit 步骤 2；compress 步骤 2；lore mirror（可选）| 找出过期 entry 或已标记 `#stale` 的 entry；按 `#superseded-by` 目标对 pending-archive 分组，并报告 `BROKEN_CHAIN` 孤儿 |
+| `find_stale.py` | audit 步骤 2；compress 步骤 2；lore mirror（可选）| 找出过期 entry 或已标记 `#stale` 的 entry；按 `#superseded-by` 目标对 pending-review 分组，并报告 `BROKEN_CHAIN` 孤儿 |
 
 ## 输出通道
 
@@ -50,5 +50,5 @@ python scripts/list_entries.py   # 应输出 "(no entries)" 或清晰报错
 
 - **去重只到词袋重叠程度。** Jaccard 相似度能抓到词汇相似的改写，但抓不到语义等价（如 "use TypeScript" vs "TypeScript-only codebase"）。更深的检查仍需 LLM 介入。
 - **日期计算比较朴素。** `find_stale.py` 直接用 `#verified` / `#added` 标签的日期。如果系统时钟不对，结果会偏差。
-- **不自动 archive。** 脚本会报告待 archive 的 entry，但不会移动它们。实际搬迁到 `.lore/archive/` 仍需通过 `lore sync` 完成。
+- **不自动 archive。** 脚本会报告带 `#stale` tag 的 entry 和坏链，但不会移动或删除任何东西。过期的 entry 留在原 scope 文件、带 `#stale` tag；git 历史保留全部。
 - **理论上可能有 hash 冲突**（4 个十六进制字符 = 16 位 = 1/65536 概率）。实际项目基本不会遇到。如果遇到了，对 entry 文本做微调以改变 hash。

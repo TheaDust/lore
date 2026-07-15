@@ -33,9 +33,8 @@ If two entries have identical content (hash collision, statistically rare), add 
 |---|---|
 | `#added:YYYY-MM-DD` | When the entry was created |
 | `#verified:YYYY-MM-DD` | Last time a human or audit confirmed the entry is still true |
-| `#stale:YYYY-MM-DD` | Flagged by `sync` as superseded or contradicted; user decides keep/archive |
-| `#archived:YYYY-MM-DD` | Moved to `archive/` |
-| `#superseded-by:LAYER-YYYY-MM-DD-xxxx` | Points to the entry that replaces this one (set together with `#stale`); the `xxxx` is the 4-hex content hash of the replacement |
+| `#stale:YYYY-MM-DD` | Flagged by `sync` as no longer accurate. Two cases: (a) the entry was superseded — pair with `#superseded-by:<new-id>`; (b) deprecated with no successor — alone. |
+| `#superseded-by:LAYER-YYYY-MM-DD-xxxx` | Points to the entry that replaces this one. When present, it implies staleness; the `#stale:<date>` tag is optional but encouraged for clarity. The `xxxx` is the 4-hex content hash of the replacement. |
 
 Multiple tags can co-exist on one entry (e.g. `#added:2026-01-15 #verified:2026-06-01`).
 

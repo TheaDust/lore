@@ -171,8 +171,7 @@ The agent reads the commit messages and tells you *why* — without you having t
 │       ├── DECISIONS.md
 │       └── CONVENTIONS.md
 ├── draft/                        # Used by `init` for proposals pending confirmation
-├── audit/                        # Used by `audit` for reports
-└── archive/                      # Old/superseded entries
+└── audit/                        # Used by `audit` for reports
 ```
 
 Each entry is a single Markdown bullet (≤ 2 lines) with a deterministic ID and inline status tags:
