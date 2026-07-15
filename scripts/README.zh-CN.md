@@ -10,7 +10,7 @@
 
 **JSON 友好输出。** 每个脚本都支持 `--json` 便于机器消费。Agent 调用方解析输出；人类可以直接 `less` 或 `jq`（如果装了）。
 
-**组合而非重复。** `find_duplicates.py` 和 `find_stale.py` 通过 `list_entries.py --json` 复用解析器，不重复实现 entry 格式解析。Entry 格式只在一处定义——将来格式变更只需改 `list_entries.py`。
+**组合而非重复。** `find_duplicates.py`、`find_stale.py` 和 `history.py` 通过 `list_entries.py --json` 复用解析器，不重复实现 entry 格式解析。Entry 格式只在一处定义——将来格式变更只需改 `list_entries.py`。
 
 **默认只读。** 这些脚本不写 `.lore/`，只观察。Agent 决定如何处理发现的问题。
 
@@ -20,11 +20,11 @@
 
 | 脚本 | 调用点 | 用途 |
 |---|---|---|
-| `history.py` | lore history | 列出与 memory entry / file / scope 相关的 git commits |
+| `history.py` | lore history | 列出与 memory entry / file / scope 相关的 git commits；带 `--follow-superseded` 时沿 `#superseded-by` 链向前遍历 |
 | `id_hash.py` | 写新 entry 时（init / sync）| 计算 entry ID 的 4 字符内容 hash |
-| `list_entries.py` | query / audit / compress 的预步骤 | 把所有 entry 枚举为 JSON 供后续处理 |
+| `list_entries.py` | query / audit / compress / history 的预步骤 | 把所有 entry 枚举为 JSON 供后续处理；当 entry 含 `#superseded-by` 时额外输出 `replaced_by` 字段 |
 | `find_duplicates.py` | sync 步骤 5（去重）| 写之前找出可能的重复 entry |
-| `find_stale.py` | audit 步骤 2；compress 步骤 2；lore mirror（可选）| 找出过期 entry 或已标记 `#stale` 的 entry |
+| `find_stale.py` | audit 步骤 2；compress 步骤 2；lore mirror（可选）| 找出过期 entry 或已标记 `#stale` 的 entry；按 `#superseded-by` 目标对 pending-archive 分组，并报告 `BROKEN_CHAIN` 孤儿 |
 
 ## 输出通道
 

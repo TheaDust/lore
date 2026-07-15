@@ -236,7 +236,7 @@ The agent generating the mirror walks `.lore/` and emits the structure below. Se
 <!-- LORE:START -->
 ## Lore (auto-managed)
 
-Project memory. Read deeper on demand.
+Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md`; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.
 
 **Structure**:
 - Digest: `.lore/SUMMARY.md` (top-level overview)
@@ -275,7 +275,9 @@ The index does **not** track the project's source-directory mapping for each sco
 
 ### Adaptive renderings
 
-Only the `**Structure**:` body varies. The `<!-- LORE:START -->` / `<!-- LORE:END -->` markers, `## Lore (auto-managed)` opener, `---` separator, and `## My notes (free edit)` closer are always present and unchanged in new mirrors.
+Only the `**Structure**:` body varies. The `<!-- LORE:START -->` / `<!-- LORE:END -->` markers, `## Lore (auto-managed)` opener, the **first-line instruction** (see below), `---` separator, and `## My notes (free edit)` closer are always present and unchanged in new mirrors.
+
+**First-line instruction.** The opening sentence after `## Lore (auto-managed)` is the agent-facing imperative that triggers memory lookup (e.g. "Before project-specific questions, read `.lore/SUMMARY.md`; cite entry IDs when using memory."). It is constant across all renderings (empty / single-scope / multi-scope) because the agent's responsibility is the same regardless of project shape. Editing this sentence is a template-body change (non-breaking per `references/compatibility.md`); content-based dedup means existing mirrors keep their old opening until regenerated.
 
 **Empty project** (just initialized, no entries yet):
 
@@ -283,7 +285,7 @@ Only the `**Structure**:` body varies. The `<!-- LORE:START -->` / `<!-- LORE:EN
 <!-- LORE:START -->
 ## Lore (auto-managed)
 
-Project memory. Read deeper on demand.
+Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md`; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.
 
 **Structure**:
 - Digest: `.lore/SUMMARY.md` (top-level overview)

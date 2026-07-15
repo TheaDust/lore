@@ -35,6 +35,7 @@ If two entries have identical content (hash collision, statistically rare), add 
 | `#verified:YYYY-MM-DD` | Last time a human or audit confirmed the entry is still true |
 | `#stale:YYYY-MM-DD` | Flagged by `sync` as superseded or contradicted; user decides keep/archive |
 | `#archived:YYYY-MM-DD` | Moved to `archive/` |
+| `#superseded-by:LAYER-YYYY-MM-DD-xxxx` | Points to the entry that replaces this one (set together with `#stale`); the `xxxx` is the 4-hex content hash of the replacement |
 
 Multiple tags can co-exist on one entry (e.g. `#added:2026-01-15 #verified:2026-06-01`).
 
@@ -59,6 +60,32 @@ If a fact can't fit in ≤ 2 lines, split into multiple entries and cross-refere
 ```
 
 Instead of stuffing them into a single overly long bullet.
+
+## Superseded-by chain
+
+When an entry is replaced by another (e.g. a tech-stack swap, a convention reversal), the old entry carries `#superseded-by:<new-id>` alongside `#stale:<date>`. This turns the replacement relationship from prose into data that scripts can walk.
+
+Syntax: `#superseded-by:LAYER-YYYY-MM-DD-xxxx` — the replacement entry's full ID. The replacement entry itself carries no back-reference; its `#verified:DATE` and `#added:DATE` are sufficient.
+
+Worked example — bcrypt replaces SHA-256 in `scopes/backend/DECISIONS.md`:
+
+```markdown
+- [DEC-2026-07-10-ee31] SHA-256 + salt for password hashing; reason: no native dep, deterministic. #added:2026-07-10 #stale:2026-07-10 #superseded-by:DEC-2026-07-10-e45d
+- [DEC-2026-07-10-e45d] Use bcrypt (rounds=12) for password hashing; reason: industry standard, built-in salt. #added:2026-07-10
+```
+
+Consumers:
+
+- `find_stale.py --json` — groups stale entries by their `replaced_by` target; flags chains where the target ID does not exist (broken chain).
+- `history.py --follow-superseded <id>` — prints the entry plus every successor along the chain (newest first).
+- `compress` — skips entries with `replaced_by` set when selecting the 3–5 entries per (scope, layer).
+- `audit` — when reporting CONFLICT between two entries, surfaces the chain if both belong to one.
+
+Constraints:
+
+- The tag is **optional**. Old entries without it continue to work; old skills ignore it.
+- Multiple `#superseded-by` tags on one entry are permitted (rare; means the entry was replaced more than once).
+- Cross-file references: the ID is sufficient because the LAYER prefix plus hash makes collisions across files vanishingly rare. If two files contain the same ID, prefer the one in the same scope as the entry being read.
 
 ## What counts as "atomic"
 

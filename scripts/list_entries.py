@@ -19,6 +19,7 @@ entry with these fields:
     text            entry body, with tags stripped
     tags            dict of tag name -> value, e.g. {"added": "2026-07-09", "verified": "2026-07-15"}
     last_verified   value of #verified tag, or None
+    replaced_by     value of #superseded-by tag (replacement entry ID), or None
 
 Used by:
     - query / audit / compress workflows (pre-step enumeration)
@@ -91,9 +92,24 @@ def parse_entry(line: str):
     layer, date, h, rest = m.group(1), m.group(2), m.group(3), m.group(4)
     eid = f"{layer}-{date}-{h}"
 
-    # Extract #tag:value pairs
-    tag_re = re.compile(r"#(added|verified|stale|archived):(\S+)")
-    tags = {name: val for name, val in tag_re.findall(rest)}
+    # Extract #tag:value pairs.
+    # #superseded-by:<id> is special: its value is an entry ID, not a date,
+    # so we keep it on a separate `replaced_by` field rather than in `tags`.
+    ENTRY_ID = r"[A-Z]+-\d{4}-\d{2}-\d{2}-[a-f0-9]{4}"
+    tag_re = re.compile(
+        r"#(added|verified|stale|archived):(\S+)"
+        r"|#superseded-by:(" + ENTRY_ID + r")"
+    )
+    tags = {}
+    replaced_by = None
+    for m in tag_re.finditer(rest):
+        if m.group(1):
+            tags[m.group(1)] = m.group(2)
+        elif m.group(3):
+            if replaced_by is None:
+                replaced_by = m.group(3)
+            # else: multiple #superseded-by tags — keep the first only.
+            # (Documented as permitted in references/entry-format.md.)
     text = tag_re.sub("", rest).strip()
 
     return {
@@ -105,6 +121,7 @@ def parse_entry(line: str):
         "text": text,
         "tags": tags,
         "last_verified": tags.get("verified"),
+        "replaced_by": replaced_by,
     }
 
 
@@ -176,7 +193,10 @@ def main():
             f" [verified:{e['last_verified']}]" if e["last_verified"] else ""
         )
         stale = " [STALE]" if "stale" in e["tags"] else ""
-        print(f"[{e['file']}] {e['id']} {e['text']}{verified}{stale}")
+        chain = (
+            f" → {e['replaced_by']}" if e.get("replaced_by") else ""
+        )
+        print(f"[{e['file']}] {e['id']} {e['text']}{verified}{stale}{chain}")
 
 
 if __name__ == "__main__":

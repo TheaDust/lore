@@ -24,7 +24,7 @@ This document defines how `lore` evolves without breaking existing user projects
 ```
 
 - IDs (`LAYER-DATE-HASH`) are stable as long as the entry text is unchanged. Editing an entry produces a new ID; old ID stays in history (via git) for `history` queries.
-- Tag set is a closed set today: `#added`, `#verified`, `#stale`, `#archived`. Adding a new tag is allowed; old skills' tag parsers (which match `(added|verified|stale|archived)`) silently ignore unknown tags.
+- Tag set is a closed set today: `#added`, `#verified`, `#stale`, `#archived`, `#superseded-by`. Adding a new tag is allowed; old skills' tag parsers (which match `(added|verified|stale|archived|superseded-by)`) silently ignore unknown tags.
 - **Never make a tag required.** Required tags break every old entry in every old `.lore/`.
 
 ### Layer 3: `.lore/` directory structure

@@ -109,7 +109,7 @@ lore history --json                 # 机器可读
 <!-- LORE:START -->
 ## Lore (auto-managed)
 
-Project memory. Read deeper on demand.
+Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md`; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.
 
 **Structure**:
 - Digest: `.lore/SUMMARY.md` (top-level overview)
@@ -128,6 +128,8 @@ Project memory. Read deeper on demand.
 
 - 你在这里写的内容每次 sync 都原样保留。
 ```
+
+镜像文件以一句祈使句开头（例如："Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md`; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory."），让消费侧 agent 有明确的触发条件去加载 memory。该行位于 `## Lore (auto-managed)` 段落内，每次 `compress` 或 `lore mirror` 重新生成时会被覆写。
 
 ### 用 `lore history` 追 git 溯源
 
@@ -180,6 +182,8 @@ Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `gi
 - [DEC-2026-02-03-7c19] Chose Zustand over Redux; reason: 60% less boilerplate. #added:2026-02-03 #verified:2026-06-15
 - [CONV-2026-01-20-b1e8] Never commit secrets; use `dotenv` + `.env.local`. #added:2026-01-20
 ```
+
+条目还可以携带 `#superseded-by:LAYER-YYYY-MM-DD-xxxx`，指向取代本条目的新条目——让 `find_stale`、`history`、`compress` 能沿替换链追溯，而不是从叙述中推断。
 
 完整格式规范（ID 生成、tag、拆分规则）见 [`references/entry-format.md`](references/entry-format.md)。
 
@@ -252,7 +256,7 @@ lore 的 token 模型有 5 个组件；只有 mirror 文件是 per-session，其
 
 | 组件 | 何时加载 | 典型大小 | per-session？ |
 |---|---|---|---|
-| **Mirror 文件**（CLAUDE.md / AGENTS.md 等） | 每次会话启动 | ~500 字节（index mode） | 是 |
+| **Mirror 文件**（CLAUDE.md / AGENTS.md 等） | 每次会话启动 | ~600 字节（index mode，worst case） | 是 |
 | **SKILL.md**（lore 自身规范） | 每次用户说 `lore <cmd>` | ~10 KB | 否，per-invocation |
 | **`.lore/SUMMARY.md`** | agent 按需读，作为目录 | 1–30 KB | 否，on demand |
 | **`scopes/<scope>/{ARCH,DEC,CON}.md`** | agent 只读相关 scope | 1–5 KB each | 否，on demand |
@@ -260,18 +264,20 @@ lore 的 token 模型有 5 个组件；只有 mirror 文件是 per-session，其
 
 ### Mirror 是 constant-cost
 
-`CLAUDE.md` 等平台文件 agent 每次会话都自动加载。lore 通过只输出索引（~500 字节）而不是项目摘要来保持这个成本稳定。这是唯一随会话数线性增长的项。
+`CLAUDE.md` 等平台文件 agent 每次会话都自动加载。lore 通过只输出索引（~600 字节 worst case）而不是项目摘要来保持这个成本稳定。这是唯一随会话数线性增长的项。
 
-| 项目规模 | Mirror 大小 | 每次会话成本 |
+| 项目形态 | Mirror 大小 | 每次会话成本 |
 |---|---|---|
-| 空 / 新项目 | ~200 字节 | 可忽略 |
-| 小（~30 entries） | ~500 字节 | 可忽略 |
-| 中（~120 entries） | ~500 字节 | 可忽略 |
-| 大（~250 entries） | ~500 字节 | 可忽略 |
+| 空 / 新项目 | ~250 字节 | 可忽略 |
+| 单 scope | ~400 字节 | 可忽略 |
+| 少量 scope（3+） | ~550 字节 | 可忽略 |
+| 多 scope 含 description | ~600 字节 | 可忽略 |
+
+Mirror 大小由 **scope 数量与每个 scope 的 description** 决定，跟 entry 数量无关。同样 scope 形态的 30-entry 项目和 250-entry 项目，mirror 文件大小相同。
 
 ### `.lore/` 是 on-demand
 
-`.lore/*.md` 文件**不会**预加载。agent 读 `SUMMARY.md` 作为目录，再按需深入具体 scope 或 entry（`cat [file#ID]`）。一个 250-entry 的项目，agent 每次会话启动成本 ~500 字节，按需读取另算。
+`.lore/*.md` 文件**不会**预加载。agent 读 `SUMMARY.md` 作为目录，再按需深入具体 scope 或 entry（`cat [file#ID]`）。一个 250-entry 的项目，agent 每次会话启动成本 ~600 字节（worst-case mirror），按需读取另算。
 
 ### SKILL.md 是 per-invocation
 
@@ -300,6 +306,7 @@ python scripts/list_entries.py --scope=frontend --json    # 过滤的 JSON
 python scripts/find_duplicates.py                          # 找可能的重复
 python scripts/find_stale.py --days=90                    # 找过期的 entry
 python scripts/history.py DEC-2026-02-03-7c19             # 展示某 entry 的 git 历史
+python scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # 沿替换链追溯
 ```
 
 所有脚本都是跨平台 Python 3.6+，无第三方依赖。详见 [`scripts/README.md`](scripts/README.md)（英文）或 [`scripts/README.zh-CN.md`](scripts/README.zh-CN.md)（中文）。

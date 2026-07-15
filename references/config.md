@@ -83,7 +83,7 @@ When auto-detection is in effect, `lore init` populates this field with the user
 
 Default: `"index"`.
 
-Only `"index"` is accepted. The mirror renders a small index structure pointing into `.lore/` (see `references/platform-mirrors.md` for the template and adaptive rendering rules). Per-session token cost stays flat (~500 B) regardless of project size.
+Only `"index"` is accepted. The mirror renders a small index structure pointing into `.lore/` (see `references/platform-mirrors.md` for the template and adaptive rendering rules). Per-session token cost stays flat (~600 B worst case, including a one-line operational opening and per-scope descriptions) regardless of entry count.
 
 Any other value (e.g., the historical `"summary"` or `"full"`) is rejected at config-load time with an error. Remove the field, or set it to `"index"`.
 
