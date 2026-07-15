@@ -68,9 +68,29 @@ def main():
     stale = []
     pending_arch = []
 
+    # Build a quick lookup for chain validation.
+    by_id = {e["id"]: e for e in entries}
+
+    broken_chains = []
+    pending_arch_by_chain = {}  # replaced_by -> [entry, ...]
+
     for e in entries:
-        # Already marked stale → pending archive
+        # Already marked stale → pending archive (and maybe broken chain)
         if "stale" in e["tags"]:
+            target = e.get("replaced_by")
+            if target and target not in by_id:
+                broken_chains.append({
+                    "id": e["id"],
+                    "file": e["file"],
+                    "text": e["text"],
+                    "missing_target": target,
+                })
+            if target:
+                pending_arch_by_chain.setdefault(target, []).append(e)
+            else:
+                # No chain info — keep under a sentinel so the existing
+                # output still includes it.
+                pending_arch_by_chain.setdefault(None, []).append(e)
             pending_arch.append(e)
             continue
 
@@ -91,6 +111,12 @@ def main():
             "as_of": today.isoformat(),
             "stale": stale,
             "pending_archive": pending_arch,
+            "chains": {
+                target: [e["id"] for e in entries_]
+                for target, entries_ in pending_arch_by_chain.items()
+                if target is not None
+            },
+            "broken_chains": broken_chains,
         }
         print(json.dumps(out, indent=2, ensure_ascii=False))
         return
@@ -104,12 +130,28 @@ def main():
         print(f"    ref date: {ref}")
 
     print()
-    print("=== Pending archive (tagged #stale) ===")
-    if not pending_arch:
+    print("=== Pending archive (tagged #stale, grouped by replacement) ===")
+    if not pending_arch_by_chain:
         print("  (none)")
-    for e in pending_arch:
-        print(f"  [{e['file']}] {e['id']} {e['text']}")
-        print(f"    marked stale: {e['tags']['stale']}")
+    for target, entries_ in sorted(
+        pending_arch_by_chain.items(), key=lambda kv: (kv[0] is None, kv[0] or "")
+    ):
+        if target is None:
+            print("  (no #superseded-by chain):")
+        else:
+            print(f"  → superseded-by {target}:")
+        for e in entries_:
+            chain = (
+                f" → {e['replaced_by']}" if e.get("replaced_by") else ""
+            )
+            print(f"    [{e['file']}] {e['id']} {e['text']}{chain}")
+
+    if broken_chains:
+        print()
+        print("=== Broken chains (#superseded-by target not found) ===")
+        for b in broken_chains:
+            print(f"  [{b['file']}] {b['id']} {b['text']}")
+            print(f"    missing: {b['missing_target']}")
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ lore history <entry-id>
 lore history <file-path>
 lore history --scope=<name>
 lore history --since=<YYYY-MM-DD>
+lore history --follow-superseded
 lore history --json
 ```
 
@@ -21,6 +22,33 @@ lore history --json
 | Entry | `[A-Z]+-\d{4}-\d{2}-\d{2}-[a-f0-9]{4}` | `lore history DEC-2026-02-03-7c19` | Locate entry in `.lore/`, derive its `#added` date and code file, then `git log` since that date. |
 | File  | contains `/` or starts with `.` | `lore history frontend/src/store/index.ts` | Run `git log --since=1970-01-01` on the given path. |
 | Scope | `--scope=<name>` only | `lore history --scope=frontend` | For each `*.md` in `.lore/scopes/<name>/`, run file form on the lore file path itself. |
+
+### `--follow-superseded`
+
+When set on the entry form, prints not just the requested entry's git history, but the history of every entry in its `#superseded-by` chain (newest successor first). Stops when an entry has no `#superseded-by` tag or the chain reaches a non-existent ID. Output prepends a `## Chain` section listing each entry's ID and file path before the per-entry `git log` blocks.
+
+Example:
+
+```
+$ lore history --follow-superseded DEC-2026-07-10-ee31
+
+# history: [DEC-2026-07-10-ee31] --follow-superseded
+
+## Chain
+1. [DEC-2026-07-10-ee31] (scopes/backend/DECISIONS.md) — SHA-256 + salt
+   → superseded-by → DEC-2026-07-10-e45d
+2. [DEC-2026-07-10-e45d] (scopes/backend/DECISIONS.md) — bcrypt (rounds=12)
+   → no successor
+
+# history: [DEC-2026-07-10-ee31]
+
+> Entry: scopes/backend/DECISIONS.md
+> Since: 2026-07-10
+> File: backend/app/auth.py
+> Commits: 3 (showing all)
+
+...
+```
 
 ## Code-file resolution (entry form)
 
@@ -59,6 +87,7 @@ appears only when at least one commit is found.
   "code_file": "frontend/src/store/index.ts",
   "since": "2026-02-03",
   "since_source": "entry_added",
+  "chain": null,
   "commits": [
     {
       "hash": "...",
@@ -72,6 +101,8 @@ appears only when at least one commit is found.
   ]
 }
 ```
+
+When `--follow-superseded` is set, `chain` is an array of `{entry_id, lore_file, code_file, since}` for each successor; otherwise `null`.
 
 ## Error handling
 

@@ -109,7 +109,7 @@ Every answer cites the exact `[file#ID]` so you can `cat` the entry or run `lore
 <!-- LORE:START -->
 ## Lore (auto-managed)
 
-Project memory. Read deeper on demand.
+Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md`; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.
 
 **Structure**:
 - Digest: `.lore/SUMMARY.md` (top-level overview)
@@ -128,6 +128,8 @@ Project memory. Read deeper on demand.
 
 - Anything you write here is preserved verbatim across every sync.
 ```
+
+The mirror file opens with an imperative sentence (e.g. "Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md`; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.") so the consuming agent has a clear trigger to load memory. The line lives in `## Lore (auto-managed)` and is rewritten on every `compress` or `lore mirror` regeneration.
 
 ### Git traceability with `lore history`
 
@@ -180,6 +182,8 @@ Each entry is a single Markdown bullet (≤ 2 lines) with a deterministic ID and
 - [DEC-2026-02-03-7c19] Chose Zustand over Redux; reason: 60% less boilerplate. #added:2026-02-03 #verified:2026-06-15
 - [CONV-2026-01-20-b1e8] Never commit secrets; use `dotenv` + `.env.local` (gitignored). #added:2026-01-20
 ```
+
+Entries can also carry `#superseded-by:LAYER-YYYY-MM-DD-xxxx`, which points to the entry that replaced this one — letting `find_stale`, `history`, and `compress` walk the replacement chain instead of inferring it from prose.
 
 For the full format spec (ID generation, tags, splitting rules), see [`references/entry-format.md`](references/entry-format.md).
 
@@ -252,7 +256,7 @@ lore's token model has five components. Only the mirror file is per-session; eve
 
 | Component | Loaded when | Typical size | Per-session? |
 |---|---|---|---|
-| **Mirror file** (CLAUDE.md, AGENTS.md, etc.) | Every session start | ~500 bytes (index mode) | yes |
+| **Mirror file** (CLAUDE.md, AGENTS.md, etc.) | Every session start | ~600 bytes (index mode, worst case) | yes |
 | **SKILL.md** (the lore spec itself) | Every `lore <cmd>` invocation | ~10 KB | no, per-invocation |
 | **`.lore/SUMMARY.md`** | Agent reads on demand as the table of contents | 1–30 KB | no, on demand |
 | **`scopes/<scope>/{ARCH,DEC,CON}.md`** | Agent reads only the relevant scope | 1–5 KB each | no, on demand |
@@ -260,18 +264,20 @@ lore's token model has five components. Only the mirror file is per-session; eve
 
 ### The mirror is constant-cost
 
-`CLAUDE.md` and equivalent platform files are loaded by your agent on **every session**. lore keeps this cost flat by emitting an index (~500 bytes) rather than the project digest content. This is the only line item that scales with session count.
+`CLAUDE.md` and equivalent platform files are loaded by your agent on **every session**. lore keeps this cost flat by emitting an index (~600 bytes worst case) rather than the project digest content. This is the only line item that scales with session count.
 
-| Project size | Mirror size | Per-session context cost |
+| Project shape | Mirror size | Per-session context cost |
 |---|---|---|
-| Empty / new | ~200 bytes | negligible |
-| Small (~30 entries) | ~500 bytes | negligible |
-| Medium (~120 entries) | ~500 bytes | negligible |
-| Large (~250 entries) | ~500 bytes | negligible |
+| Empty / new | ~250 bytes | negligible |
+| Single scope | ~400 bytes | negligible |
+| Few scopes (3+) | ~550 bytes | negligible |
+| Many scopes with descriptions | ~600 bytes | negligible |
+
+Mirror size scales with **scope count and per-scope descriptions**, not with entry count. A 30-entry project and a 250-entry project with the same scope shape have mirror files of the same size.
 
 ### Memory is on-demand
 
-`.lore/*.md` files are **not** pre-loaded. The agent reads `SUMMARY.md` as a table of contents, then drills into the specific scope or entry it needs (`cat [file#ID]`). A 250-entry project costs the agent ~500 bytes at session start, plus only the entries it actively reads.
+`.lore/*.md` files are **not** pre-loaded. The agent reads `SUMMARY.md` as a table of contents, then drills into the specific scope or entry it needs (`cat [file#ID]`). A 250-entry project costs the agent ~600 bytes at session start (the worst-case mirror), plus only the entries it actively reads.
 
 ### SKILL.md is per-invocation
 
@@ -300,6 +306,7 @@ python scripts/list_entries.py --scope=frontend --json    # Filtered JSON
 python scripts/find_duplicates.py                          # Find potential duplicates
 python scripts/find_stale.py --days=90                    # Find stale entries
 python scripts/history.py DEC-2026-02-03-7c19             # Show git history for an entry
+python scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # Walk the replacement chain
 ```
 
 All scripts are cross-platform Python 3.6+ with no third-party dependencies. See [`scripts/README.md`](scripts/README.md) (English) or [`scripts/README.zh-CN.md`](scripts/README.zh-CN.md) (Chinese) for details.

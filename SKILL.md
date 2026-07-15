@@ -212,7 +212,8 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
    - "We picked X over Y because Z" → `DECISIONS.md`
    - New lint rule, new naming pattern, new "we never do X" → `CONVENTIONS.md`
 4. **For each candidate entry**:
-   - **Contradicts an existing entry** in the same scope/layer → mark the old one `#stale:<today>`. Emit an `ALERT`.
+   - **Contradicts an existing entry** in the same scope/layer → mark the old one `#stale:<today>` and `#superseded-by:<new-id>` (where `<new-id>` is the entry in this proposal that replaces it). Emit an `ALERT`.
+   - **No replacement entry exists yet** (user is removing a fact without substituting) → mark the old one `#stale:<today>` only; the chain can be backfilled later.
    - **Refines an existing entry** → update the text in place, bump `#verified:<today>`.
    - **Genuinely new** → append with `#added:<today>` and a new hash ID.
 5. **De-duplicate**: before appending, run `python scripts/find_duplicates.py --json` to identify any candidate entry that overlaps with existing entries (same hash, or Jaccard ≥ `--threshold`). For each match, skip the new entry and bump `#verified` on the existing one. If the new entry is genuinely different in meaning (the script flags but doesn't decide), keep both.

@@ -10,7 +10,7 @@ The script list and quick-reference command examples live in the project root `R
 
 **JSON-friendly output.** Every script supports `--json` for machine consumption. Agent callers parse the output; humans pipe to `less` or `jq` (if available).
 
-**Composition.** `find_duplicates.py` and `find_stale.py` shell out to `list_entries.py --json` rather than re-implementing the parser. One source of truth for entry format — if the format ever changes, only `list_entries.py` needs updating.
+**Composition.** `find_duplicates.py`, `find_stale.py`, and `history.py` shell out to `list_entries.py --json` rather than re-implementing the parser. One source of truth for entry format — if the format ever changes, only `list_entries.py` needs updating.
 
 **Read-only by default.** None of these scripts write to `.lore/`. They observe; the agent decides what to do with findings.
 
@@ -20,11 +20,11 @@ The script list and quick-reference command examples live in the project root `R
 
 | Script | Call site | Purpose |
 |---|---|---|
-| `history.py` | lore history | List git commits related to a memory entry / file / scope |
+| `history.py` | lore history | List git commits related to a memory entry / file / scope; with `--follow-superseded`, walks the `#superseded-by` chain forward |
 | `id_hash.py` | Any time a new entry is written (init / sync) | Compute the 4-char content hash for the entry ID |
-| `list_entries.py` | Pre-step of query / audit / compress | Enumerate all entries as JSON for downstream processing |
+| `list_entries.py` | Pre-step of query / audit / compress / history | Enumerate all entries as JSON for downstream processing; emits `replaced_by` per entry when `#superseded-by` is present |
 | `find_duplicates.py` | sync step 5 (de-duplication) | Identify candidate duplicate entries before writing |
-| `find_stale.py` | audit step 2; compress step 2; lore mirror (optional) | Identify entries past the verified-date threshold or already marked `#stale` |
+| `find_stale.py` | audit step 2; compress step 2; lore mirror (optional) | Identify entries past the verified-date threshold or already marked `#stale`; groups pending-archive entries by their `#superseded-by` target and reports `BROKEN_CHAIN` orphans |
 
 ## Output channels
 
