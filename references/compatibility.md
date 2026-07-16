@@ -107,7 +107,7 @@ There is no deprecation registry in v1. A capability slated for removal ships in
 
 ## CI enforcement
 
-There is no compatibility CI in v1. Verification is the author's responsibility before each release: run `list_entries.py`, `history.py`, `find_stale.py` against `sandbox/mock-todo-app/.lore/` and confirm the E2E output matches `sandbox/RUN_LOG.md`.
+There is no compatibility CI in v1. Verification is the author's responsibility before each release: run `list_entries.py`, `history.py`, `find_stale.py` against a `.lore/` populated by the author's own work, and confirm the output is sensible.
 
 ## Examples
 
