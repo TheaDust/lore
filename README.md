@@ -331,7 +331,7 @@ Field semantics: see [`references/config.md`](references/config.md). New configs
 
 ## Upgrading
 
-`git pull` (or re-clone) is the normal upgrade path; your `.lore/` is preserved verbatim across upgrades. If a release ships a breaking change, the release notes (and `CHANGELOG.md`) name what changed and what you need to edit by hand. The current schema is `schema_version: 1`; no migration tool has shipped, so today there is nothing to run after pulling. See [`references/compatibility.md`](references/compatibility.md) for the versioning policy.
+`git pull` (or re-clone) is the normal upgrade path; your `.lore/` is preserved verbatim across upgrades. If a commit ships a breaking change, the commit message is prefixed `BREAKING:` and names what you need to edit by hand. Run `git log --grep=^BREAKING` after pulling to see any since your last sync. The current schema is `schema_version: 1`; no migration tool has shipped, so today there is nothing to run after pulling. See [`references/compatibility.md`](references/compatibility.md) for the versioning policy.
 
 ## When NOT to use lore
 

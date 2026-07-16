@@ -115,4 +115,4 @@ Edit `.lore/.config.json` directly. After editing:
 
 - `sync` and `compress` re-read the config on every run; no restart needed.
 - Invalid JSON → fall back to defaults + warn the user.
-- For breaking-config changes, see `references/compatibility.md` and the `CHANGELOG.md` entry for the release.
+- For breaking-config changes, see `references/compatibility.md` and look for the `BREAKING:` commit in the project's git history.
