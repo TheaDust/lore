@@ -48,12 +48,15 @@ lore 有七个工作流。本文用平实语言解释每个什么时候用。Age
 **怎么用**：`lore sync` —— 提交完 feature / refactor / 依赖变更后。
 
 **agent 做什么**：
-1. 跑 `git diff --stat HEAD` 看变更
-2. 变更显著时（≥50 行 / 跨 ≥2 目录，或新 module/dir/dep），agent 主动提议
-3. 每个变更分类成 `[NEW]` / `[STALE]` / `[REFINED]`
-4. 输出 marker 提案
-5. 你按 marker 接受 / 拒绝
-6. 接受的 marker 落到 `.lore/*.md`
+1. 从两个来源检测 delta，合并去重：
+   - **上次 sync 以来的 commits** —— `git diff <last_sync_sha>..HEAD`（前提是 config 里有可达的 `last_sync_sha`；缺失或不可达则降级为 working-tree diff 单独跑，stderr 打 `[WARN]`）
+   - **未提交改动** —— `git diff`（working tree vs. `HEAD`），始终包含
+   - **新文件** —— 重扫任何之前没见过的文件
+2. 变更显著时（≥50 行 / 跨 ≥2 目录，或新 module/dir/dep，或对话里讨论了新约定），agent 主动提议
+3. 每个候选 entry 分类成 `[NEW]` / `[STALE]` / `[REFINED]` **并且**与同 scope/layer 的已有 entry 做矛盾检查 —— 矛盾打 `[ALERT]`。这是 sync 自带的矛盾检测；完整的 `lore audit` 是独立命令，遍历**所有** entry 对比代码
+4. 跑 `find_duplicates.py` 跳过与已有 entry 重叠的候选
+5. 输出 `[NEW]/[STALE]/[REFINED]/[ALERT]` marker 提案。默认 trust level `medium`：dedup 命中与等价 REFINED 静默自动 apply，NEW/STALE/ALERT 需要确认
+6. 你按 marker 接受 / 拒绝；接受的 marker 落到 `.lore/*.md`。然后 `last_sync_sha` 推进到当前 `HEAD`，下次 sync 覆盖正确的 commit 区间
 
 **真实场景**：
 - 「我刚加了新依赖 —— 更新 lore」 → `lore sync`
