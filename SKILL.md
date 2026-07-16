@@ -230,7 +230,7 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
 7. **Generate the proposed diff** (for any confirmation-required changes) using the `[NEW]/[STALE]/[REFINED]/[ALERT]/[COMPRESS NOTICE]` markers. See `references/stale-new-markers.md` for the full convention and user reply semantics.
 8. **Stop and wait for user confirmation** for any pending changes. Auto-applied changes need no confirmation.
 9. After the user accepts, write to `.lore/*` only. **Do not** regenerate platform mirrors from `sync` — this is intentional. See "Mirror update triggers" below for the rationale and the dedicated `lore mirror` command.
-10. **Update `.lore/.config.json#last_sync_sha`** to the current `git rev-parse HEAD`. Idempotent: re-running sync without new commits writes the same SHA. If HEAD does not exist (empty repo), set to `null`. The bump from v1 → v2 added this field; v1 configs without it keep working through the fallback in step 1.
+10. **Update `.lore/.config.json#last_sync_sha`** to the current `git rev-parse HEAD`. Idempotent: re-running sync without new commits writes the same SHA. If HEAD does not exist (empty repo), set to `null`. The field is optional and additive; older configs without it keep working through the fallback in step 1.
 
 **Source priority** (when sources disagree):
 

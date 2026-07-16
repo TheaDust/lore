@@ -8,13 +8,13 @@ Usage:
 
 Reports two categories:
 
-  Stale        : entry has not been `#verified` within the threshold
-                 (or has no #verified at all, and was added > threshold
-                 days ago).
-  Pending arch : entry already carries a `#stale:` tag. (The skill does
-                 not auto-archive; this category is a heads-up that the
-                 entry is no longer accurate and should be reviewed or
-                 left as historical record.)
+  Stale           : entry has not been `#verified` within the threshold
+                    (or has no #verified at all, and was added > threshold
+                    days ago).
+  Pending review  : entry already carries a `#stale:` tag. (The skill does
+                    not auto-archive; this category is a heads-up that the
+                    entry is no longer accurate and should be reviewed or
+                    left as historical record.)
 
 Output is plain text by default, JSON with --json.
 

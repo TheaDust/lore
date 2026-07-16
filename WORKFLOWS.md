@@ -101,28 +101,35 @@ The `[file#ID]` reference lets the agent `cat` the file for full text.
 **When you say it**: "lore audit" — quarterly review, or before a big refactor.
 
 **What happens**:
-1. Runs `find_stale.py` to find entries with `#added` > 90 days ago and no `#verified`
-2. Runs `find_duplicates.py` to find entries that contradict each other
-3. Cross-checks entry-referenced code paths against current filesystem
-4. Emits an `[ALERT]` report
+1. Runs `find_stale.py` to find entries with `#added` > 90 days ago and no `#verified`, plus broken `#superseded-by` chains.
+2. For each entry, walks the referenced code path against the current filesystem and checks for contradictions (memory says `react@18`, `package.json` says `16`).
+3. Writes a structured report to `.lore/audit/audit-<date>.md` grouped by severity (`CONFLICT`, `STALE`, `UNVERIFIED`, `BROKEN_CHAIN`).
 
 **Real scenarios**:
 - "Are there any lore entries that contradict the current code?" → `lore audit`
 - Quarterly hygiene check → `lore audit`
 - Before onboarding a new contributor → `lore audit` to clean up stale entries
 
-**Output**: A report grouped by issue type:
+**Output**: A dated report file under `.lore/audit/`:
 
+```markdown
+# Memory Audit Report
+
+> Date: 2026-07-09
+> Findings: 2 CONFLICT, 1 STALE, 5 UNVERIFIED
+
+## Scope: backend
+
+### CONFLICT
+- [CONV-2026-03-01-1f8c] says "use webpack"
+  Evidence: `package.json` declares `"vite"`
+
+### STALE
+- [ARCH-2026-01-15-d7a3] references `nx.json`
+  Evidence: file no longer exists at repo root
 ```
-[ALERT] 5 entries may be stale (no #verified in >90 days):
-  - ARCH-2026-01-15-d7a3  last verified 2026-04-12
-  ...
 
-[ALERT] 2 entries contradict current code:
-  - CONV-2026-03-01-1f8c  says "use webpack"; project now uses Vite
-```
-
-**Note**: `audit` does NOT modify files. To act on findings, run `sync` with proposal-driven updates.
+**Note**: `audit` does NOT modify any `.lore/*.md` file and does NOT emit ALERT blocks (ALERT is reserved for `sync` and `query`). To act on findings, run `sync` with proposal-driven updates.
 
 ---
 

@@ -34,7 +34,7 @@ from pathlib import Path
 
 # Schema version this skill understands. Bumped only on breaking
 # config changes; see references/compatibility.md.
-KNOWN_SCHEMA_VERSION = 2
+KNOWN_SCHEMA_VERSION = 1
 
 
 def check_schema_version(lore_root: Path) -> None:
