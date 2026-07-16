@@ -50,7 +50,7 @@ lore init
 
 # 2. After a non-trivial change
 lore sync
-# Detects code diffs, proposes [NEW]/[STALE]/[REFINED] entries, waits for your call
+# Spans commits + uncommitted changes; flags contradictions as ALERT; proposes [NEW]/[STALE]/[REFINED]; waits for your call
 
 # 3. After many changes, refresh the agent-facing summary
 lore compress

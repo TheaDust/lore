@@ -50,7 +50,7 @@ lore init
 
 # 2. 完成一个非平凡的改动后
 lore sync
-# 检测代码 diff，提议 [NEW]/[STALE]/[REFINED] entry，等用户裁决
+# 覆盖 commits 与未提交改动；矛盾打 ALERT；提议 [NEW]/[STALE]/[REFINED]；等用户裁决
 
 # 3. 大量改动后，刷新 agent 可见的摘要
 lore compress

@@ -48,12 +48,15 @@ lore has seven workflows. This document explains when to use each one, in plain 
 **When you say it**: "lore sync" — after committing a feature, refactor, or new dependency.
 
 **What happens**:
-1. Agent runs `git diff --stat HEAD` to see what changed
-2. If changes are significant (≥50 lines / ≥2 dirs, or new module/dir/dep), agent proactively proposes
-3. For each change, agent classifies it as `[NEW]` / `[STALE]` / `[REFINED]`
-4. Emits a proposal with markers
-5. You accept or reject per marker
-6. Accepted markers get applied to `.lore/*.md`
+1. Agent detects the delta from two sources, combined and de-duplicated:
+   - **Commits since last sync** — `git diff <last_sync_sha>..HEAD` (when the config has a reachable `last_sync_sha`; falls back to working-tree diff alone if it's absent or unreachable, with a `[WARN]` to stderr).
+   - **Uncommitted changes** — `git diff` (working tree vs. `HEAD`), always included.
+   - **New files** — re-scan any files not seen before.
+2. If the change is significant (≥50 lines / ≥2 dirs, or new module/dir/dep, or a new convention was discussed), the agent proactively proposes.
+3. For each candidate entry, the agent classifies it as `[NEW]` / `[STALE]` / `[REFINED]` **and** checks for contradictions against existing entries in the same scope/layer — contradictions are flagged as `[ALERT]`. This is sync's own contradiction-detection step; a full `lore audit` is a separate command that walks every entry.
+4. Runs `find_duplicates.py` to skip candidates that overlap with existing entries.
+5. Emits a proposal with `[NEW]/[STALE]/[REFINED]/[ALERT]` markers. Default trust level is `medium`; de-duplicate hits and equivalent REFINEDs auto-apply silently, NEW/STALE/ALERT require confirmation.
+6. You accept or reject per marker; accepted markers get applied to `.lore/*.md`. Then `last_sync_sha` advances to the current `HEAD` so the next sync spans the right commit range.
 
 **Real scenarios**:
 - "I just added a new dependency — update lore" → `lore sync`
