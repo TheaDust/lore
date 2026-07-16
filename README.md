@@ -331,7 +331,7 @@ Field semantics: see [`references/config.md`](references/config.md). New configs
 
 ## Upgrading
 
-`git pull` (or re-clone) is the normal upgrade path; your `.lore/` is preserved verbatim across upgrades. If a future release ships a breaking config change, that release will include `scripts/migrate.py`; run it once after pulling. The current schema is `schema_version: 1`; no migration has shipped yet, so you don't need to run anything today. See [`references/compatibility.md`](references/compatibility.md) for the versioning policy and deprecation workflow.
+`git pull` (or re-clone) is the normal upgrade path; your `.lore/` is preserved verbatim across upgrades. If a release ships a breaking change, the release notes (and `CHANGELOG.md`) name what changed and what you need to edit by hand. The current schema is `schema_version: 1`; no migration tool has shipped, so today there is nothing to run after pulling. See [`references/compatibility.md`](references/compatibility.md) for the versioning policy.
 
 ## When NOT to use lore
 

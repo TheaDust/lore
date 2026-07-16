@@ -6,7 +6,7 @@
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "auto_mirror": true | false,
   "sync_updates_mirror": true | false,
   "sync_trust": "high" | "medium" | "low",
@@ -30,10 +30,9 @@
 
 - **Missing** → treated as `schema_version: 1`. A `[WARN]` notice is printed to stderr by `list_entries.py`; add the field manually to silence it.
 - **Equal to skill's expected version** → use as-is.
-- **Lower than expected** → refuse to write; ask the user to run the migration script shipped with that future release.
 - **Higher than expected** → refuse to read with an error; the user's skill is older than their `.lore/`. They need to upgrade lore (pull latest from upstream) before continuing.
 
-For the full compatibility policy (migration tools, deprecation cycle, reader/writer contracts), see `references/compatibility.md`.
+For the full compatibility policy, see `references/compatibility.md`.
 
 ## Field semantics
 
@@ -101,16 +100,14 @@ Defaults: `{"min_lines_changed": 50, "min_directories_changed": 2}`.
 
 ### `last_sync_sha`
 
-Default: absent (treated as `null`). Added in `schema_version: 2`.
+Default: absent (treated as `null`).
 
-The git commit SHA from which the next `sync` will compute its delta. Written automatically by `sync` after every successful `.lore/*` update. Bumps the published skill to v2 the first time it is set on a config that did not have it.
+The git commit SHA from which the next `sync` will compute its delta. Written automatically by `sync` after every successful `.lore/*` update. Optional and additive — old configs without it keep working.
 
-- **Absent or `null`** — `sync` falls back to working-tree diff alone (`git diff`, working tree vs. `HEAD`). Already-committed changes between two syncs are invisible. This is the pre-v2 behavior.
+- **Absent or `null`** — `sync` falls back to working-tree diff alone (`git diff`, working tree vs. `HEAD`). Already-committed changes between two syncs are invisible.
 - **Set to a reachable SHA** — `sync` uses `git diff <last_sync_sha>..HEAD` for committed changes plus working-tree diff for uncommitted changes. This is the recommended state and lets batched commits be captured by a single later sync.
 - **Set to an unreachable SHA** (e.g., after `git rebase` or a force-push that orphaned the SHA) — `sync` prints a `[WARN]` to stderr and falls back to the working-tree diff alone. The next successful sync resets the baseline.
 - **Empty repo** (no commits yet) — the field is `null`; only the working-tree diff applies.
-
-Old v1 configs without this field keep working: `sync` simply operates in fallback mode on every run. No `scripts/migrate.py` is needed because the field is optional and additive.
 
 ## Editing the config
 
@@ -118,16 +115,4 @@ Edit `.lore/.config.json` directly. After editing:
 
 - `sync` and `compress` re-read the config on every run; no restart needed.
 - Invalid JSON → fall back to defaults + warn the user.
-- After editing, verify with `python scripts/list_entries.py --config-check` (added in a future migration).
-- For schema version changes, see `references/compatibility.md`.
-
-## Upgrade path
-
-When a future lore release introduces the first `schema_version` bump:
-
-1. That release ships `scripts/migrate.py` for the specific version bump.
-2. The skill prompts: "Your `.lore/.config.json` is v1; lore now expects v2. Run `python scripts/migrate.py` to upgrade."
-3. `migrate.py` is idempotent — running it twice is a no-op.
-4. After migration, the file is updated in place; no manual editing needed.
-
-In v1, no migration has shipped and `scripts/migrate.py` does not exist. Add `"schema_version": 1` manually to old configs to silence the warning.
+- For breaking-config changes, see `references/compatibility.md` and the `CHANGELOG.md` entry for the release.
