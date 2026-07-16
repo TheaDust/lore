@@ -54,7 +54,7 @@ lore sync
 
 # 3. After many changes, refresh the agent-facing summary
 lore compress
-# Regenerates SUMMARY.md and updates CLAUDE.md / .cursorrules / etc.
+# Regenerates SUMMARY.md; mirror update depends on `auto_mirror` (default: asks per target)
 
 # 4. Force a mirror refresh (e.g. after hand-editing .lore/)
 lore mirror

@@ -54,7 +54,7 @@ lore sync
 
 # 3. 大量改动后，刷新 agent 可见的摘要
 lore compress
-# 重新生成 SUMMARY.md，更新 CLAUDE.md / .cursorrules 等
+# 重新生成 SUMMARY.md；mirror 是否更新取决于 `auto_mirror`（默认：逐个询问）
 
 # 4. 强制刷新 mirror（比如手动编辑了 .lore/ 之后）
 lore mirror
