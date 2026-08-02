@@ -120,7 +120,7 @@ Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMA
   - `.lore/scopes/shared/` (TypeScript types mirrored as Python dataclasses)
 
 **Query**: `lore query <term>` or `lore query <scope>:<term>`
-**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror)
+**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror / history)
 <!-- LORE:END -->
 
 ---
@@ -138,7 +138,7 @@ Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMA
 ```
 # history: [DEC-2026-07-10-e45d]
 
-> Entry: scopes\backend\DECISIONS.md
+> Entry: scopes/backend/DECISIONS.md
 > Since: 2026-07-10 (entry #added date)
 > File: backend
 > Commits: 2 (showing all)
@@ -161,6 +161,7 @@ Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `gi
 ```
 .lore/
 ├── SUMMARY.md                    # 顶层摘要；新 agent 先读这个
+├── .config.json                  # 可选配置（auto_mirror、sync_trust、...）
 ├── _global/                      # 跨 scope 的事实
 │   ├── ARCHITECTURE.md
 │   ├── DECISIONS.md
@@ -299,7 +300,7 @@ lore 的 mirror 文件（`CLAUDE.md`、`AGENTS.md` 等）是 ambient —— agen
 `scripts/` 里的辅助脚本减少重复的机械工作：
 
 ```bash
-python scripts/id_hash.py "Use Next.js App Router"        # → a3f2（4 字符 ID hash）
+python scripts/id_hash.py "Use Next.js App Router"        # → 409a（4 字符 ID hash）
 python scripts/list_entries.py                            # 列出所有 entry（文本）
 python scripts/list_entries.py --scope=frontend --json    # 过滤的 JSON
 python scripts/find_duplicates.py                          # 找可能的重复

@@ -22,7 +22,7 @@ entry with these fields:
     replaced_by     value of #superseded-by tag (replacement entry ID), or None
 
 Used by:
-    - query / audit / compress workflows (pre-step enumeration)
+    - query / audit / compress / history workflows (pre-step enumeration)
     - find_duplicates.py
     - find_stale.py
 """

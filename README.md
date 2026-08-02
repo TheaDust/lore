@@ -120,7 +120,7 @@ Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMA
   - `.lore/scopes/shared/` (TypeScript types mirrored as Python dataclasses)
 
 **Query**: `lore query <term>` or `lore query <scope>:<term>`
-**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror)
+**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror / history)
 <!-- LORE:END -->
 
 ---
@@ -138,7 +138,7 @@ The mirror file opens with an imperative sentence (e.g. "Project memory at `.lor
 ```
 # history: [DEC-2026-07-10-e45d]
 
-> Entry: scopes\backend\DECISIONS.md
+> Entry: scopes/backend/DECISIONS.md
 > Since: 2026-07-10 (entry #added date)
 > File: backend
 > Commits: 2 (showing all)
@@ -161,6 +161,7 @@ The agent reads the commit messages and tells you *why* — without you having t
 ```
 .lore/
 ├── SUMMARY.md                    # Top-level digest; new agents read this first
+├── .config.json                  # Optional config (auto_mirror, sync_trust, ...)
 ├── _global/                      # Cross-scope facts
 │   ├── ARCHITECTURE.md
 │   ├── DECISIONS.md
@@ -299,7 +300,7 @@ Default is on-demand. If you'd rather dump the full `SUMMARY.md` into `CLAUDE.md
 Helper scripts in `scripts/` reduce repetitive mechanical work:
 
 ```bash
-python scripts/id_hash.py "Use Next.js App Router"        # → a3f2 (4-char ID hash)
+python scripts/id_hash.py "Use Next.js App Router"        # → 409a (4-char ID hash)
 python scripts/list_entries.py                            # List all entries (text)
 python scripts/list_entries.py --scope=frontend --json    # Filtered JSON
 python scripts/find_duplicates.py                          # Find potential duplicates

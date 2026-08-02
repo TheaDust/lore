@@ -1,6 +1,6 @@
 ---
 name: lore
-description: Long-term Markdown project memory for AI coding agents. Use when the user wants to record, recall, audit, sync, or compress project decisions, architecture, conventions, monorepo scopes, or `.lore/` entries, including natural-language requests like "remember this decision" or explicit `lore init/sync/query/audit/compress/mirror`. Do not trigger on native `/init` or `/compact`, or generic init/compress/audit/query tasks unless the object is clearly project memory, `.lore/`, decisions, or conventions. Stores `.lore/` Markdown and can mirror to CLAUDE.md / .cursorrules / AGENTS.md.
+description: Long-term Markdown project memory for AI coding agents. Use when the user wants to record, recall, audit, sync, or compress project decisions, architecture, conventions, monorepo scopes, or `.lore/` entries, including natural-language requests like "remember this decision" or explicit `lore init/sync/query/audit/compress/mirror/history`. Do not trigger on native `/init` or `/compact`, or generic init/compress/audit/query tasks unless the object is clearly project memory, `.lore/`, decisions, or conventions. Stores `.lore/` Markdown and can mirror to CLAUDE.md / .cursorrules / AGENTS.md.
 ---
 
 # lore — Framework-agnostic Memory Management
@@ -29,6 +29,7 @@ The skill uses a **two-tier trigger model**:
 | "lore audit" / "check lore" / "is memory still accurate" | `audit` |
 | "lore compress" / "compress lore" / "summarize lore" | `compress` |
 | "lore mirror" / "update CLAUDE.md" / "refresh mirror" | `mirror` |
+| "lore history" / "show the git history of this entry" / "show me the commits behind this" | `history` |
 
 **Tier 2 — Internal proposals (after the skill is loaded).** Once the skill is loaded for this session, certain commands may proactively propose themselves based on internal thresholds. These proposals still require user acceptance — the skill never mutates files silently.
 
@@ -63,6 +64,7 @@ Detailed specifications live in `references/`. Load these on demand.
 ```
 .lore/
 ├── SUMMARY.md              # Top-level digest. New agents read this first.
+├── .config.json            # Optional config: auto_mirror, sync_trust, mirror_targets, etc.
 ├── _global/                # Cross-scope facts (whole-project architecture, global decisions)
 │   ├── ARCHITECTURE.md
 │   ├── DECISIONS.md
@@ -124,7 +126,7 @@ The canonical store is `.lore/*`. Agents that expect a single config file at the
 - **Init**: targets are auto-detected (existing platform files in repo root) — see `references/platform-mirrors.md`. If none detected, ask the user via multi-select which agents they use. For each detected file lacking a `## Lore` section, ask take over / preserve / abort per file. Auto-create missing files with the full two-section template; refresh existing lore mirrors; preserve My notes verbatim.
 - **Sync / Compress**: controlled by `.lore/.config.json#auto_mirror`. Default is `false` (ask per target). When `true`, mirrors update automatically. My notes section is **always** preserved.
 
-By default the Lore section is an **index** into `.lore/` — paths plus a per-scope one-line description, ~500 bytes total. The agent reads `.lore/SUMMARY.md` (or calls `lore query <term>`) on demand. See `references/platform-mirrors.md` for the template and adaptive rendering rules.
+By default the Lore section is an **index** into `.lore/` — paths plus a per-scope one-line description, ~600 bytes worst case. The agent reads `.lore/SUMMARY.md` (or calls `lore query <term>`) on demand. See `references/platform-mirrors.md` for the template and adaptive rendering rules.
 
 See `references/platform-mirrors.md` for the per-platform file mapping and the full two-section structure rules, and `references/config.md` for `.config.json` schema.
 
@@ -327,7 +329,7 @@ dispatch rules, output format, and error table.
 Read-only with respect to canonical memory. It reports drift without changing entries or `SUMMARY.md`, but it does write the dated report described below.
 
 1. For each entry in `_global/*` and `scopes/*/*`, find the code/config it claims to describe (scoped to the relevant scope's source tree) and compare against current state.
-2. Also flag: entries with `#verified` older than 90 days. Run `python scripts/find_stale.py --days=90 --json` to enumerate them mechanically.
+2. Also flag: entries whose reference date — `#verified` if present, else `#added` — is older than 90 days. Run `python scripts/find_stale.py --days=90 --json` to enumerate them mechanically.
 3. Write the report to `.lore/audit/audit-YYYY-MM-DD.md`, organized by scope. **Do not** mark anything as stale in the main files. **Do not** emit ALERT blocks. See `references/audit-template.md` for the full report format and severity definitions.
 4. **Stop.** User reviews the report and decides what to do. To act on findings, the user runs `sync`.
 
@@ -357,7 +359,6 @@ When the agent's current understanding contradicts a memory entry, **memory wins
 
 **Do NOT trigger ALERT for**:
 - Temporary debug code or one-off experiments (unless the user asks to keep them)
-- Code in `archive/` examples
 - `audit` findings (those go in the audit report, not as ALERT)
 - Files that look like they violate memory but are gitignored, in `node_modules/`, or in a different scope
 
@@ -379,10 +380,12 @@ The user then either: (a) confirms memory is wrong and runs `sync` to update it,
 
 | File | Written by |
 |---|---|
-| `.lore/SUMMARY.md` | `compress` |
-| `.lore/{_global,scopes/<scope>}/<LAYER>.md` | `sync`, manual edits |
+| `.lore/SUMMARY.md` | `compress` (and by `init`, via its initial compress) |
+| `.lore/{_global,scopes/<scope>}/<LAYER>.md` | `init`, `sync`, manual edits |
 | `.lore/.config.json` | `init`, manual edits |
-| `<project-root>/<platform files>` | `init`, `mirror`, `compress` (if `auto_mirror: true`) |
+| `.lore/audit/audit-<date>.md` | `audit` |
+| `.lore/draft/` | `init` (proposals; moved into `.lore/` on confirm, removed on reject) |
+| `<project-root>/<platform files>` | `init`, `mirror`, `compress` (if `auto_mirror: true`), `sync` (if `sync_updates_mirror: true`) |
 
 **What never happens silently:** file mutation (sync proposes; user accepts/rejects); platform mirror rewrite on every sync (separate command); `compress` deleting entries (only writes SUMMARY.md); entry marked as `[STALE]` without proposal; `init` overwriting user-written platform files without explicit takeover.
 

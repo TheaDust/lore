@@ -1,6 +1,6 @@
 # lore scripts
 
-Cross-platform Python 3.6+ helpers that reduce repetitive mechanical work. No third-party dependencies. Called by `init` / `sync` / `audit` / `compress` / `lore mirror`; can also be run standalone for ad-hoc inspection.
+Cross-platform Python 3.6+ helpers that reduce repetitive mechanical work. No third-party dependencies. Called by `init` / `sync` / `query` / `audit` / `compress` / `history`; can also be run standalone for ad-hoc inspection.
 
 The script list and quick-reference command examples live in the project root `README.md` "Scripts" section. This file covers the things that don't fit there: design intent, integration points, and limits.
 
@@ -24,7 +24,7 @@ The script list and quick-reference command examples live in the project root `R
 | `id_hash.py` | Any time a new entry is written (init / sync) | Compute the 4-char content hash for the entry ID |
 | `list_entries.py` | Pre-step of query / audit / compress / history | Enumerate all entries as JSON for downstream processing; emits `replaced_by` per entry when `#superseded-by` is present |
 | `find_duplicates.py` | sync step 5 (de-duplication) | Identify candidate duplicate entries before writing |
-| `find_stale.py` | audit step 2; compress step 2; lore mirror (optional) | Identify entries past the verified-date threshold or already marked `#stale`; groups pending-review entries by their `#superseded-by` target and reports `BROKEN_CHAIN` orphans |
+| `find_stale.py` | audit step 2; compress step 2 | Identify entries past the reference-date threshold (`#verified` if present, else `#added`) or already marked `#stale`; groups pending-review entries by their `#superseded-by` target and reports `BROKEN_CHAIN` orphans |
 
 ## Output channels
 

@@ -40,10 +40,10 @@ For the full compatibility policy, see `references/compatibility.md`.
 
 Default: `false`.
 
-Controls whether `compress` and `lore mirror` regenerate platform mirrors automatically after the canonical change is accepted.
+Controls whether `compress` regenerates platform mirrors automatically after it writes `SUMMARY.md`. It does **not** gate the explicit `lore mirror` command — `lore mirror` always regenerates (with content-based dedup) once `mirror_targets` is resolved.
 
-- `true` — regenerate mirrors automatically
-- `false` — ask per target before writing
+- `true` — `compress` regenerates mirrors automatically
+- `false` — `compress` asks per target before writing
 
 Note: this flag does **not** affect `sync`. By default `sync` does not touch mirrors at all (see `sync_updates_mirror`).
 

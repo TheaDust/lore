@@ -226,7 +226,7 @@ For each generated mirror file, the section template is:
 
 ## What gets mirrored
 
-The mirror's Lore section is an **index** into `.lore/` — not a copy of its content. This keeps per-session token cost flat (~500 B regardless of project size) and aligns with how platform instruction files (`CLAUDE.md`, `.cursorrules`, etc.) are designed to be used: as small pointers that tell the agent where to find detail on demand.
+The mirror's Lore section is an **index** into `.lore/` — not a copy of its content. This keeps per-session token cost flat (~600 B worst case, regardless of project size) and aligns with how platform instruction files (`CLAUDE.md`, `.cursorrules`, etc.) are designed to be used: as small pointers that tell the agent where to find detail on demand.
 
 The agent generating the mirror walks `.lore/` and emits the structure below. Sections appear only when their content exists (adaptive rendering).
 
@@ -247,7 +247,7 @@ Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMA
   ...
 
 **Query**: `lore query <term>` or `lore query <scope>:<term>`
-**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror)
+**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror / history)
 <!-- LORE:END -->
 
 ---

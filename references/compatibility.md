@@ -34,6 +34,7 @@ Current canonical layout:
 ```
 .lore/
 ├── SUMMARY.md
+├── .config.json
 ├── _global/
 ├── scopes/
 ├── draft/        (init only — temporary)

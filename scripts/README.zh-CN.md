@@ -1,6 +1,6 @@
 # lore 脚本
 
-跨平台 Python 3.6+ 辅助脚本，减少重复的机械工作。无第三方依赖。被 `init` / `sync` / `audit` / `compress` / `lore mirror` 调用，也可独立运行做临时检查。
+跨平台 Python 3.6+ 辅助脚本，减少重复的机械工作。无第三方依赖。被 `init` / `sync` / `query` / `audit` / `compress` / `history` 调用，也可独立运行做临时检查。
 
 脚本清单和命令速查在仓库根 `README.md` 的"Scripts"章节里。本文件覆盖根 README 不适合放的内容：设计意图、集成点、局限。
 
@@ -24,7 +24,7 @@
 | `id_hash.py` | 写新 entry 时（init / sync）| 计算 entry ID 的 4 字符内容 hash |
 | `list_entries.py` | query / audit / compress / history 的预步骤 | 把所有 entry 枚举为 JSON 供后续处理；当 entry 含 `#superseded-by` 时额外输出 `replaced_by` 字段 |
 | `find_duplicates.py` | sync 步骤 5（去重）| 写之前找出可能的重复 entry |
-| `find_stale.py` | audit 步骤 2；compress 步骤 2；lore mirror（可选）| 找出过期 entry 或已标记 `#stale` 的 entry；按 `#superseded-by` 目标对 pending-review 分组，并报告 `BROKEN_CHAIN` 孤儿 |
+| `find_stale.py` | audit 步骤 2；compress 步骤 2 | 找出参考日期（有 `#verified` 用 `#verified`，否则用 `#added`）过期的 entry 或已标记 `#stale` 的 entry；按 `#superseded-by` 目标对 pending-review 分组，并报告 `BROKEN_CHAIN` 孤儿 |
 
 ## 输出通道
 

@@ -48,7 +48,7 @@ Audit itself does not modify any entry.
 |---|---|
 | `CONFLICT` | Code/config directly contradicts the entry content (e.g. memory says `react@18`, `package.json` says `16`). If the entry is in a `#superseded-by` chain, check whether the chain resolves the conflict before reporting. |
 | `STALE` | Entry references a resource (file, API, version) that no longer exists |
-| `UNVERIFIED` | Entry's `#verified` date is >90 days; needs re-confirmation |
+| `UNVERIFIED` | Entry's reference date — `#verified` if present, else `#added` — is >90 days; needs re-confirmation |
 | `BROKEN_CHAIN` | Entry carries `#superseded-by:<id>` but `<id>` is not present in `.lore/` |
 
 ## Broken chains

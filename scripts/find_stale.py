@@ -21,7 +21,6 @@ Output is plain text by default, JSON with --json.
 Used by:
     - `audit` workflow (read-only)
     - `compress` workflow (advisory)
-    - `lore mirror` (sanity check before regenerating)
 """
 import json
 import subprocess

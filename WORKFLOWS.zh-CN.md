@@ -104,28 +104,35 @@ lore 有七个工作流。本文用平实语言解释每个什么时候用。Age
 **怎么用**：`lore audit` —— 季度 review，或大重构前。
 
 **agent 做什么**：
-1. 跑 `find_stale.py` 找 `#added` > 90 天且无 `#verified` 的 entry
-2. 跑 `find_duplicates.py` 找互相矛盾的 entry
-3. 交叉检查 entry 引用的代码路径
-4. 输出 `[ALERT]` 报告
+1. 跑 `find_stale.py` 找参考日期（有 `#verified` 用 `#verified`，否则用 `#added`）超过 90 天的 entry，以及坏的 `#superseded-by` 链
+2. 对每条 entry 引用的代码路径与当前文件系统交叉检查，看是否有矛盾（memory 说 `react@18`，`package.json` 是 `16`）
+3. 把结构化报告写到 `.lore/audit/audit-<date>.md`，按严重度（`CONFLICT`、`STALE`、`UNVERIFIED`、`BROKEN_CHAIN`）分组
 
 **真实场景**：
 - 「有没有跟现状矛盾的 lore entry？」 → `lore audit`
 - 季度体检 → `lore audit`
 - onboarding 新贡献者前 → `lore audit` 清 stale
 
-**输出**：按问题类型分组的报告：
+**输出**：`.lore/audit/` 下的带日期报告：
 
+```markdown
+# Memory Audit Report
+
+> Date: 2026-07-09
+> Findings: 2 CONFLICT, 1 STALE, 5 UNVERIFIED
+
+## Scope: backend
+
+### CONFLICT
+- [CONV-2026-03-01-1f8c] says "use webpack"
+  Evidence: `package.json` 声明 `"vite"`
+
+### STALE
+- [ARCH-2026-01-15-d7a3] references `nx.json`
+  Evidence: 文件在 repo 根已不存在
 ```
-[ALERT] 5 entries may be stale (no #verified in >90 days):
-  - ARCH-2026-01-15-d7a3  last verified 2026-04-12
-  ...
 
-[ALERT] 2 entries contradict current code:
-  - CONV-2026-03-01-1f8c  says "use webpack"; project now uses Vite
-```
-
-**注意**：`audit` 不改文件。要落地整改，跑 `sync` 走提案流程。
+**注意**：`audit` 不改任何 `.lore/*.md` 文件，也不输出 `[ALERT]` 块（ALERT 保留给 `sync` 和 `query`）。要落地整改，跑 `sync` 走提案流程。
 
 ---
 

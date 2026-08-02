@@ -104,7 +104,7 @@ The `[file#ID]` reference lets the agent `cat` the file for full text.
 **When you say it**: "lore audit" — quarterly review, or before a big refactor.
 
 **What happens**:
-1. Runs `find_stale.py` to find entries with `#added` > 90 days ago and no `#verified`, plus broken `#superseded-by` chains.
+1. Runs `find_stale.py` to find entries whose reference date (`#verified` if present, else `#added`) is older than 90 days, plus broken `#superseded-by` chains.
 2. For each entry, walks the referenced code path against the current filesystem and checks for contradictions (memory says `react@18`, `package.json` says `16`).
 3. Writes a structured report to `.lore/audit/audit-<date>.md` grouped by severity (`CONFLICT`, `STALE`, `UNVERIFIED`, `BROKEN_CHAIN`).
 
