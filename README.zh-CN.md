@@ -257,7 +257,7 @@ lore 的 token 模型有 5 个组件；只有 mirror 文件是 per-session，其
 | 组件 | 何时加载 | 典型大小 | per-session？ |
 |---|---|---|---|
 | **Mirror 文件**（CLAUDE.md / AGENTS.md 等） | 每次会话启动 | ~600 字节（index mode，worst case） | 是 |
-| **SKILL.md**（lore 自身规范） | 每次用户说 `lore <cmd>` | ~10 KB | 否，per-invocation |
+| **SKILL.md**（lore 自身规范） | 每次用户说 `lore <cmd>` | ~34 KB | 否，per-invocation |
 | **`.lore/SUMMARY.md`** | agent 按需读，作为目录 | 1–30 KB | 否，on demand |
 | **`scopes/<scope>/{ARCH,DEC,CON}.md`** | agent 只读相关 scope | 1–5 KB each | 否，on demand |
 | **`lore query <term>`** 结果 | agent 跑 query 时 | 按命中条数 bound | 否，per query |
@@ -281,7 +281,7 @@ Mirror 大小由 **scope 数量与每个 scope 的 description** 决定，跟 en
 
 ### SKILL.md 是 per-invocation
 
-每次你说 `lore sync` 或 `lore query`，agent 加载 `SKILL.md`（~10 KB）来执行 workflow。不在 lore 调用期间，agent 上下文里没有任何 lore 内容。
+每次你说 `lore sync` 或 `lore query`，agent 加载 `SKILL.md`（~34 KB）来执行 workflow。不在 lore 调用期间，agent 上下文里没有任何 lore 内容。
 
 ### Query 有界
 

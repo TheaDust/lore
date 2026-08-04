@@ -257,7 +257,7 @@ lore's token model has five components. Only the mirror file is per-session; eve
 | Component | Loaded when | Typical size | Per-session? |
 |---|---|---|---|
 | **Mirror file** (CLAUDE.md, AGENTS.md, etc.) | Every session start | ~600 bytes (index mode, worst case) | yes |
-| **SKILL.md** (the lore spec itself) | Every `lore <cmd>` invocation | ~10 KB | no, per-invocation |
+| **SKILL.md** (the lore spec itself) | Every `lore <cmd>` invocation | ~34 KB | no, per-invocation |
 | **`.lore/SUMMARY.md`** | Agent reads on demand as the table of contents | 1–30 KB | no, on demand |
 | **`scopes/<scope>/{ARCH,DEC,CON}.md`** | Agent reads only the relevant scope | 1–5 KB each | no, on demand |
 | **`lore query <term>`** result | Agent runs a query | bounded by matches | no, per query |
@@ -281,7 +281,7 @@ Mirror size scales with **scope count and per-scope descriptions**, not with ent
 
 ### SKILL.md is per-invocation
 
-Every time you say `lore sync` or `lore query`, the agent loads `SKILL.md` (~10 KB) to follow the workflow. Outside of lore invocations, no lore content sits in the agent's context.
+Every time you say `lore sync` or `lore query`, the agent loads `SKILL.md` (~34 KB) to follow the workflow. Outside of lore invocations, no lore content sits in the agent's context.
 
 ### Queries are bounded
 
