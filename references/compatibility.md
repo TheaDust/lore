@@ -87,7 +87,7 @@ Rules:
 
 ### Layer 6: reference docs
 
-Current docs: `entry-format.md`, `summary-template.md`, `audit-template.md`, `monorepo-detection.md`, `stale-new-markers.md`, `platform-mirrors.md`, `config.md`, `history-command.md`, `compatibility.md` (this file).
+Current docs: `workflows.md`, `entry-format.md`, `summary-template.md`, `audit-template.md`, `monorepo-detection.md`, `stale-new-markers.md`, `platform-mirrors.md`, `config.md`, `history-command.md`, `compatibility.md` (this file).
 
 Rules:
 

@@ -41,7 +41,7 @@ lore maintains a single source of truth (`.lore/`) and projects it into whatever
 
 ## Quick start
 
-The commands below are **phrases you say to your agent** — there is no `lore` binary. With this skill loaded, your agent runs each phrase through the workflow defined in [`SKILL.md`](SKILL.md). Anything you'd normally type into a terminal goes to the agent instead.
+The commands below are **phrases you say to your agent** — there is no `lore` binary. With this skill loaded, your agent runs each phrase through the workflows defined in [`SKILL.md`](SKILL.md) and [`references/workflows.md`](references/workflows.md). Anything you'd normally type into a terminal goes to the agent instead.
 
 ```bash
 # 1. Initialize (run once per project)
@@ -191,13 +191,13 @@ For the full format spec (ID generation, tags, splitting rules), see [`reference
 
 | Command | What it does | Writes | Reference |
 |---|---|---|---|
-| `init` | First-time project scan; drafts entries; user confirms | `.lore/*` + platform mirrors | [SKILL.md](SKILL.md#init--initialize-the-memory-bank) |
-| `sync` | Detects code changes; proposes updates; user approves | `.lore/*` only (not mirrors) | [SKILL.md](SKILL.md#sync--update-after-a-change) |
-| `query` | Read-only; answers from memory with entry IDs | nothing | [SKILL.md](SKILL.md#query--answer-from-memory) |
-| `audit` | Read-only; checks memory vs. current code; writes report | `.lore/audit/*` only | [`references/audit-template.md`](references/audit-template.md) |
-| `compress` | Generates `SUMMARY.md` from current entries | `SUMMARY.md` + platform mirrors | [`references/summary-template.md`](references/summary-template.md) |
-| `mirror` | Force-regenerate platform mirrors (with content dedup) | `CLAUDE.md`, `.cursorrules`, etc. | [`references/platform-mirrors.md`](references/platform-mirrors.md) |
-| `history` | Read-only; lists git commits related to an entry / file / scope | nothing | [`references/history-command.md`](references/history-command.md) |
+| `init` | First-time project scan; drafts entries; user confirms | `.lore/*` + platform mirrors | [workflows](references/workflows.md#init--initialize-the-memory-bank) |
+| `sync` | Detects code changes; proposes updates; user approves | `.lore/*` only (not mirrors) | [workflows](references/workflows.md#sync--update-after-a-change) |
+| `query` | Read-only; answers from memory with entry IDs | nothing | [workflows](references/workflows.md#query--answer-from-memory) |
+| `audit` | Read-only; checks memory vs. current code; writes report | `.lore/audit/*` only | [workflows](references/workflows.md#audit--check-memory-vs-reality) |
+| `compress` | Generates `SUMMARY.md` from current entries | `SUMMARY.md` + platform mirrors | [workflows](references/workflows.md#compress--build-the-top-level-summary) |
+| `mirror` | Force-regenerate platform mirrors (with content dedup) | `CLAUDE.md`, `.cursorrules`, etc. | [workflows](references/workflows.md#mirror--regenerate-platform-mirrors) |
+| `history` | Read-only; lists git commits related to an entry / file / scope | nothing | [workflows](references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
 
 For a plain-language explanation of each workflow (when you'd actually use each one, with real scenarios), see [`WORKFLOWS.md`](WORKFLOWS.md) (中文版: [`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)).
 
@@ -252,12 +252,13 @@ The Skill only writes inside the `## Lore` section. Everything under `## My note
 
 ## Token cost
 
-lore's token model has five components. Only the mirror file is per-session; everything else is on-demand or per-invocation.
+lore's token model has six components. Only the mirror file is per-session; everything else is on-demand or per-invocation.
 
 | Component | Loaded when | Typical size | Per-session? |
 |---|---|---|---|
 | **Mirror file** (CLAUDE.md, AGENTS.md, etc.) | Every session start | ~600 bytes (index mode, worst case) | yes |
-| **SKILL.md** (the lore spec itself) | Every `lore <cmd>` invocation | ~34 KB | no, per-invocation |
+| **SKILL.md** (the lore spec itself) | Every `lore <cmd>` invocation | ~19 KB | no, per-invocation |
+| **`references/workflows.md`** (the seven procedures) | Every `lore <cmd>` invocation (only the routed section) | ~17 KB | no, per-invocation |
 | **`.lore/SUMMARY.md`** | Agent reads on demand as the table of contents | 1–30 KB | no, on demand |
 | **`scopes/<scope>/{ARCH,DEC,CON}.md`** | Agent reads only the relevant scope | 1–5 KB each | no, on demand |
 | **`lore query <term>`** result | Agent runs a query | bounded by matches | no, per query |
@@ -281,7 +282,7 @@ Mirror size scales with **scope count and per-scope descriptions**, not with ent
 
 ### SKILL.md is per-invocation
 
-Every time you say `lore sync` or `lore query`, the agent loads `SKILL.md` (~34 KB) to follow the workflow. Outside of lore invocations, no lore content sits in the agent's context.
+Every time you say `lore sync` or `lore query`, the agent loads `SKILL.md` (~19 KB) plus the routed section of `references/workflows.md` to follow the workflow. Outside of lore invocations, no lore content sits in the agent's context.
 
 ### Queries are bounded
 
@@ -347,7 +348,7 @@ lore is built for long-term projects. It's overkill for:
 ## FAQ
 
 **Q: Does lore work without git?**
-A: Partially. Most of lore is **agent workflow** described in `SKILL.md` — the agent reads your files, drafts entries, edits `.lore/*.md`, and (when asked) regenerates mirrors. Without git, the agent can still do `init` / `query` / `audit` / `compress` / `mirror` by reading files directly. What you lose: `sync` uses `git diff` to detect changes (no diff → the agent asks you what changed), and `lore history` requires a git repo (it runs `git log`). The helper scripts (`list_entries.py`, `find_stale.py`, etc.) work either way.
+A: Partially. Most of lore is **agent workflow** described in [`references/workflows.md`](references/workflows.md) (routed from `SKILL.md`) — the agent reads your files, drafts entries, edits `.lore/*.md`, and (when asked) regenerates mirrors. Without git, the agent can still do `init` / `query` / `audit` / `compress` / `mirror` by reading files directly. What you lose: `sync` uses `git diff` to detect changes (no diff → the agent asks you what changed), and `lore history` requires a git repo (it runs `git log`). The helper scripts (`list_entries.py`, `find_stale.py`, etc.) work either way.
 
 **Q: Can I hand-edit `.lore/*.md` directly?**
 A: Yes. The files are plain Markdown. Use `id_hash.py` if you're adding new entries (to keep IDs deterministic). After hand-editing, run `lore mirror` to update agent-facing files.
@@ -384,6 +385,7 @@ A: Git is the recommended transport (`.lore/` is plain text in your repo; `git p
 
 <p align="center">
   <a href="SKILL.md">SKILL.md</a> ·
+  <a href="references/workflows.md">workflows</a> ·
   <a href="references/entry-format.md">entry-format</a> ·
   <a href="references/summary-template.md">summary-template</a> ·
   <a href="references/audit-template.md">audit-template</a> ·

@@ -1,6 +1,6 @@
 # Workflows
 
-lore has seven workflows. This document explains when to use each one, in plain language. For the operational specification the agent follows when running them, see [`SKILL.md`](SKILL.md).
+lore has seven workflows. This document explains when to use each one, in plain language. For the operational specification the agent follows when running them, see [`references/workflows.md`](references/workflows.md).
 
 > [中文版](./WORKFLOWS.zh-CN.md)
 
@@ -223,4 +223,4 @@ The `[file#ID]` reference lets the agent `cat` the file for full text.
 | Update agent-facing files | `mirror` |
 | Trace why something exists | `history` |
 
-For the operational specification (what the agent actually does step-by-step), see [`SKILL.md`](SKILL.md). For per-platform file mapping (which platforms read which files), see [`references/platform-mirrors.md`](references/platform-mirrors.md).
+For the operational specification (what the agent actually does step-by-step), see [`references/workflows.md`](references/workflows.md). For per-platform file mapping (which platforms read which files), see [`references/platform-mirrors.md`](references/platform-mirrors.md).

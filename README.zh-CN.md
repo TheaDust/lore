@@ -41,7 +41,7 @@ lore 维护一个单一事实源（`.lore/`），并把它投影到你的 agent 
 
 ## 快速上手
 
-下面的命令是**你对 agent 说的短语**——没有 `lore` 这个二进制。Agent 加载本 skill 后，会按 [`SKILL.md`](SKILL.md) 里定义的工作流执行每个短语。原来要在终端敲的活，交给 agent 就行。
+下面的命令是**你对 agent 说的短语**——没有 `lore` 这个二进制。Agent 加载本 skill 后，会按 [`SKILL.md`](SKILL.md) 与 [`references/workflows.md`](references/workflows.md) 里定义的工作流执行每个短语。原来要在终端敲的活，交给 agent 就行。
 
 ```bash
 # 1. 初始化（每个项目运行一次）
@@ -191,13 +191,13 @@ Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `gi
 
 | 命令 | 作用 | 写什么 | 参考 |
 |---|---|---|---|
-| `init` | 首次扫描项目；生成 entry 草案；用户确认 | `.lore/*` + 平台 mirror | [SKILL.md](SKILL.md#init--initialize-the-memory-bank) |
-| `sync` | 检测代码变更；提议更新；用户裁决 | 只写 `.lore/*`（不写 mirror）| [SKILL.md](SKILL.md#sync--update-after-a-change) |
-| `query` | 只读；从记忆回答问题并引用 entry ID | 不写任何东西 | [SKILL.md](SKILL.md#query--answer-from-memory) |
-| `audit` | 只读；检查记忆与现实；写报告 | 只写 `.lore/audit/*` | [`references/audit-template.md`](references/audit-template.md) |
-| `compress` | 从当前 entry 生成 `SUMMARY.md` | `SUMMARY.md` + 平台 mirror | [`references/summary-template.md`](references/summary-template.md) |
-| `mirror` | 强制重新生成平台 mirror（带内容去重）| `CLAUDE.md`、`.cursorrules` 等 | [`references/platform-mirrors.md`](references/platform-mirrors.md) |
-| `history` | 只读；列出与 entry / 文件 / scope 相关的 git commits | 不写任何东西 | [`references/history-command.md`](references/history-command.md) |
+| `init` | 首次扫描项目；生成 entry 草案；用户确认 | `.lore/*` + 平台 mirror | [workflows](references/workflows.md#init--initialize-the-memory-bank) |
+| `sync` | 检测代码变更；提议更新；用户裁决 | 只写 `.lore/*`（不写 mirror）| [workflows](references/workflows.md#sync--update-after-a-change) |
+| `query` | 只读；从记忆回答问题并引用 entry ID | 不写任何东西 | [workflows](references/workflows.md#query--answer-from-memory) |
+| `audit` | 只读；检查记忆与现实；写报告 | 只写 `.lore/audit/*` | [workflows](references/workflows.md#audit--check-memory-vs-reality) |
+| `compress` | 从当前 entry 生成 `SUMMARY.md` | `SUMMARY.md` + 平台 mirror | [workflows](references/workflows.md#compress--build-the-top-level-summary) |
+| `mirror` | 强制重新生成平台 mirror（带内容去重）| `CLAUDE.md`、`.cursorrules` 等 | [workflows](references/workflows.md#mirror--regenerate-platform-mirrors) |
+| `history` | 只读；列出与 entry / 文件 / scope 相关的 git commits | 不写任何东西 | [workflows](references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
 
 想看每个工作流什么时候用、用在哪里的平实解释，见 [`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)（English: [`WORKFLOWS.md`](WORKFLOWS.md)）。
 
@@ -252,12 +252,13 @@ Skill 只写 `## Lore` 段。`## My notes` 段以下都是你自由编辑的区�
 
 ## Token 成本
 
-lore 的 token 模型有 5 个组件；只有 mirror 文件是 per-session，其余都是 on-demand 或 per-invocation。
+lore 的 token 模型有 6 个组件；只有 mirror 文件是 per-session，其余都是 on-demand 或 per-invocation。
 
 | 组件 | 何时加载 | 典型大小 | per-session？ |
 |---|---|---|---|
 | **Mirror 文件**（CLAUDE.md / AGENTS.md 等） | 每次会话启动 | ~600 字节（index mode，worst case） | 是 |
-| **SKILL.md**（lore 自身规范） | 每次用户说 `lore <cmd>` | ~34 KB | 否，per-invocation |
+| **SKILL.md**（lore 自身规范） | 每次用户说 `lore <cmd>` | ~19 KB | 否，per-invocation |
+| **`references/workflows.md`**（七个工作流的步骤） | 每次用户说 `lore <cmd>`（只读被路由的那一节） | ~17 KB | 否，per-invocation |
 | **`.lore/SUMMARY.md`** | agent 按需读，作为目录 | 1–30 KB | 否，on demand |
 | **`scopes/<scope>/{ARCH,DEC,CON}.md`** | agent 只读相关 scope | 1–5 KB each | 否，on demand |
 | **`lore query <term>`** 结果 | agent 跑 query 时 | 按命中条数 bound | 否，per query |
@@ -281,7 +282,7 @@ Mirror 大小由 **scope 数量与每个 scope 的 description** 决定，跟 en
 
 ### SKILL.md 是 per-invocation
 
-每次你说 `lore sync` 或 `lore query`，agent 加载 `SKILL.md`（~34 KB）来执行 workflow。不在 lore 调用期间，agent 上下文里没有任何 lore 内容。
+每次你说 `lore sync` 或 `lore query`，agent 加载 `SKILL.md`（~19 KB）以及 `references/workflows.md` 中被路由的那一节来执行 workflow。不在 lore 调用期间，agent 上下文里没有任何 lore 内容。
 
 ### Query 有界
 
@@ -347,7 +348,7 @@ lore 为长期项目设计。下列场景过度：
 ## FAQ
 
 **Q: 不在 git 仓库里能用 lore 吗？**
-A: 部分能。lore **大部分是 agent 工作流**（写在 `SKILL.md` 里）—— agent 读你的文件、起草 entry、编辑 `.lore/*.md`，按需重生成 mirror。没有 git，agent 仍能跑 `init` / `query` / `audit` / `compress` / `mirror`（直接读文件）。失去的：`sync` 用 `git diff` 检变化（没 diff → agent 得问你改了什么）；`lore history` 需要 git 仓库（内部跑 `git log`）。helper scripts（`list_entries.py`、`find_stale.py` 等）两种情况都能跑。
+A: 部分能。lore **大部分是 agent 工作流**（写在 [`references/workflows.md`](references/workflows.md) 里，由 `SKILL.md` 路由）—— agent 读你的文件、起草 entry、编辑 `.lore/*.md`，按需重生成 mirror。没有 git，agent 仍能跑 `init` / `query` / `audit` / `compress` / `mirror`（直接读文件）。失去的：`sync` 用 `git diff` 检变化（没 diff → agent 得问你改了什么）；`lore history` 需要 git 仓库（内部跑 `git log`）。helper scripts（`list_entries.py`、`find_stale.py` 等）两种情况都能跑。
 
 **Q: 我能直接手动编辑 `.lore/*.md` 吗？**
 A: 可以。文件就是纯 Markdown。加新 entry 时用 `id_hash.py` 算 ID（保持确定性）。手动编辑后跑 `lore mirror` 同步 agent 端。
@@ -384,6 +385,7 @@ A: 推荐 git（`.lore/` 就是仓库里的纯文本；`git push` / `git pull` �
 
 <p align="center">
   <a href="SKILL.md">SKILL.md</a> ·
+  <a href="references/workflows.md">workflows</a> ·
   <a href="references/entry-format.md">entry-format</a> ·
   <a href="references/summary-template.md">summary-template</a> ·
   <a href="references/audit-template.md">audit-template</a> ·
