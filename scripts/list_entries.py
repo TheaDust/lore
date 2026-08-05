@@ -27,6 +27,7 @@ Used by:
     - find_stale.py
 """
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -115,6 +116,17 @@ def parse_entry(line: str):
                     file=sys.stderr,
                 )
     text = tag_re.sub("", rest).strip()
+    # Any #superseded-by still present after the valid-tag strip is
+    # malformed (value is not LAYER-YYYY-MM-DD-xxxx). Warn instead of
+    # dropping it silently: the entry stays intact in the file, but the
+    # chain cannot be resolved and replaced_by stays None.
+    for m in re.finditer(r"#superseded-by:(\S+)", text):
+        print(
+            f"[WARN] entry {eid} has a malformed #superseded-by value "
+            f"'{m.group(1)}' (expected LAYER-YYYY-MM-DD-xxxx); chain not "
+            "resolved.",
+            file=sys.stderr,
+        )
 
     return {
         "id": eid,
@@ -176,7 +188,9 @@ def collect_entries(root: Path):
                         continue
                     e["scope"] = scope
                     e["layer_file"] = layer_file
-                    e["file"] = str(md_file.relative_to(root))
+                    e["file"] = str(md_file.relative_to(root)).replace(
+                        os.sep, "/"
+                    )
                     entries.append(e)
                     i = j
             except OSError as exc:
@@ -186,6 +200,10 @@ def collect_entries(root: Path):
 
 def main():
     args = sys.argv[1:]
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except AttributeError:  # Python < 3.7
+        pass
 
     scope_filter = None
     layer_filter = None

@@ -24,6 +24,7 @@ Used by:
     - `compress` workflow (advisory)
 """
 import json
+import os
 import subprocess
 import sys
 from datetime import date, datetime, timedelta
@@ -56,6 +57,11 @@ def parse_date(s: str):
 
 
 def main():
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except AttributeError:  # Python < 3.7
+        pass
+
     days = 90
     json_output = "--json" in sys.argv[1:]
 

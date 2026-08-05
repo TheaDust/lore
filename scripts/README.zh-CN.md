@@ -28,23 +28,24 @@
 
 ## 输出通道
 
-**stdout 是数据通道；stderr 是警告通道。** 所有脚本遵循这个分离，这样 `--json` 消费者就不必从解析结果里过滤噪音。当前只有 `list_entries.py` 会发警告：
+**stdout 是数据通道；stderr 是警告通道。** 所有脚本遵循这个分离，这样 `--json` 消费者就不必从解析结果里过滤噪音。只有 `list_entries.py` 会发警告，全部走 stderr：
 
 - `[WARN] .lore/.config.json has no schema_version field.` —— 配置文件存在但缺 `schema_version` 字段时，每个调用触发一次。加 `"schema_version": 1` 即可消除。
 - `[WARN] .lore/.config.json#schema_version=N is newer than this lore skill expects (max: 1).` —— 配置版本超过本 skill 能理解的范围时触发。从上游 pull 最新 lore。
+- `[WARN] entry <id> carries multiple #superseded-by tags; keeping the first only.` —— 一个 entry 上出现多个合法的 `#superseded-by` 标签时触发。
+- `[WARN] entry <id> has a malformed #superseded-by value '<value>' (expected LAYER-YYYY-MM-DD-xxxx); chain not resolved.` —— `#superseded-by` 的值不是合法 entry ID 时触发；标签保留在文本里，`replaced_by` 保持 `None`。
 
-两条警告都是告知性质；`list_entries.py` 不管配置状态如何，stdout 输出始终一致。完整 schema 版本策略见 `references/compatibility.md`。
+所有警告都是告知性质；`list_entries.py` 不管配置状态如何，stdout 输出始终一致。完整 schema 版本策略见 `references/compatibility.md`。
 
 ## 测试
 
-没有真实 `.lore/` 时，可以快速验证 import 和参数解析是否正常：
+回归测试在 `tests/`（纯 stdlib `unittest`，以子进程黑盒方式调用真实脚本）。在仓库根目录运行：
 
 ```bash
-python scripts/id_hash.py "test entry"
-python scripts/list_entries.py   # 应输出 "(no entries)" 或清晰报错
+python -m unittest discover -s tests -v
 ```
 
-`list_entries.py`、`find_duplicates.py`、`find_stale.py` 需要有内容的 `.lore/` 才能产出有意义的输出。先用 `lore init` 建一个。
+套件会在临时目录里搭建独立的 `.lore/` 夹具；`history.py` 的用例会创建一次性 git 仓库（PATH 上没有 git 时自动跳过）。
 
 ## 局限
 

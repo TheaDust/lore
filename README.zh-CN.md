@@ -310,7 +310,7 @@ python scripts/history.py DEC-2026-02-03-7c19             # 展示某 entry 的 
 python scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # 沿替换链追溯
 ```
 
-所有脚本都是跨平台 Python 3.6+，无第三方依赖。详见 [`scripts/README.md`](scripts/README.md)（英文）或 [`scripts/README.zh-CN.md`](scripts/README.zh-CN.md)（中文）。
+所有脚本都是跨平台 Python 3.6+，无第三方依赖。回归测试在 `tests/`，在仓库根目录用 `python -m unittest discover -s tests -v` 运行。详见 [`scripts/README.md`](scripts/README.md)（英文）或 [`scripts/README.zh-CN.md`](scripts/README.zh-CN.md)（中文）。
 
 ## 配置
 

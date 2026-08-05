@@ -14,6 +14,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+import os as _os
 import json as _json  # standard library; aliased to avoid clashing with future vars
 
 
@@ -476,6 +477,10 @@ def walk_supersede_chain(entries_by_id, start_id, max_depth=20):
 
 def main():
     args = sys.argv[1:]
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except AttributeError:  # Python < 3.7
+        pass
     json_mode = "--json" in args
     follow_superseded = "--follow-superseded" in args
     since_override = None
@@ -587,7 +592,9 @@ def main():
             # For scope form we treat each .md file as a "code file" stand-in:
             # we git log the md file's project-relative path to find commits
             # that touched that lore file. (Useful for tracking lore edits.)
-            rel = str(md_path.relative_to(project_root))
+            rel = str(md_path.relative_to(project_root)).replace(
+                _os.sep, "/"
+            )
             try:
                 commits = run_git_log(project_root, scope_since, rel)
             except RuntimeError as exc:

@@ -28,23 +28,24 @@ The script list and quick-reference command examples live in the project root `R
 
 ## Output channels
 
-**stdout is the data channel; stderr is the warning channel.** All scripts follow this split so `--json` consumers never have to filter noise out of their parsers. Currently `list_entries.py` is the only script that emits a warning:
+**stdout is the data channel; stderr is the warning channel.** All scripts follow this split so `--json` consumers never have to filter noise out of their parsers. `list_entries.py` is the only script that emits warnings, all on stderr:
 
 - `[WARN] .lore/.config.json has no schema_version field.` — fires once per invocation when the config file exists but lacks the version field. Add `"schema_version": 1` to silence it.
 - `[WARN] .lore/.config.json#schema_version=N is newer than this lore skill expects (max: 1).` — fires when the config version exceeds what this skill understands. Pull the latest lore from upstream.
+- `[WARN] entry <id> carries multiple #superseded-by tags; keeping the first only.` — fires when one entry has more than one valid `#superseded-by` tag.
+- `[WARN] entry <id> has a malformed #superseded-by value '<value>' (expected LAYER-YYYY-MM-DD-xxxx); chain not resolved.` — fires when a `#superseded-by` value is not a valid entry ID. The tag stays in the entry text and `replaced_by` stays `None`.
 
-Both warnings are informational; `list_entries.py` always produces the same stdout regardless of config state. See `references/compatibility.md` for the full schema versioning policy.
+All warnings are informational; `list_entries.py` always produces the same stdout regardless of config state. See `references/compatibility.md` for the full schema versioning policy.
 
 ## Testing
 
-Without a real `.lore/`, you can sanity-check that imports and argument parsing work:
+Regression tests live in `tests/` (stdlib-only `unittest`, black-box subprocess runs of the real scripts). Run from the repo root:
 
 ```bash
-python scripts/id_hash.py "test entry"
-python scripts/list_entries.py   # should print "(no entries)" or exit with a clear error
+python -m unittest discover -s tests -v
 ```
 
-`list_entries.py`, `find_duplicates.py`, and `find_stale.py` require a populated `.lore/` to produce meaningful output. Set one up via `lore init` first.
+The suite builds isolated `.lore/` fixtures in temp directories; the `history.py` cases create throwaway git repos and skip automatically when git is not on PATH.
 
 ## Limitations
 

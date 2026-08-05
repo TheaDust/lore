@@ -310,7 +310,7 @@ python scripts/history.py DEC-2026-02-03-7c19             # Show git history for
 python scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # Walk the replacement chain
 ```
 
-All scripts are cross-platform Python 3.6+ with no third-party dependencies. See [`scripts/README.md`](scripts/README.md) (English) or [`scripts/README.zh-CN.md`](scripts/README.zh-CN.md) (Chinese) for details.
+All scripts are cross-platform Python 3.6+ with no third-party dependencies. Regression tests live in `tests/` and run with `python -m unittest discover -s tests -v` from the repo root. See [`scripts/README.md`](scripts/README.md) (English) or [`scripts/README.zh-CN.md`](scripts/README.zh-CN.md) (Chinese) for details.
 
 ## Configuration
 

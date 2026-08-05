@@ -128,6 +128,11 @@ def hash_suffix(eid: str):
 
 
 def main():
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except AttributeError:  # Python < 3.7
+        pass
+
     args = sys.argv[1:]
     threshold = 0.7
     json_output = "--json" in args

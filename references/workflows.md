@@ -56,7 +56,7 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
    - **Re-scan any new files**.
    - **Fallback** when `last_sync_sha` is absent (older config) or no longer reachable (e.g. after `git rebase` or a force-push that orphaned the SHA): use `git diff HEAD` alone and emit a one-line `[WARN]` to stderr noting that incremental sync is degraded. Working tree alone will not pick up commits made before the next sync ran — the user should re-run `sync` after `git pull --rebase` to re-establish the baseline.
    - **Empty repo** (no commits yet): `last_sync_sha` is `null`; only the working tree diff applies.
-2. **Determine target scope(s)** for each change. Use `git diff --name-only` paths (over the combined commit + working-tree diff) to map files -> scopes (e.g. `frontend/src/...` -> `scopes/frontend/`). Cross-scope changes (root config files) -> `_global/`.
+2. **Determine target scope(s)** for each change. Use `git diff --name-only` paths (over the combined commit + working-tree diff) to map files -> scopes (e.g. `frontend/src/...` -> `scopes/frontend/`). Cross-scope changes (root config files) -> `_global/`. If a change introduces a scope with no directory under `.lore/scopes/` yet, create `scopes/<name>/ARCHITECTURE.md`, `DECISIONS.md`, and `CONVENTIONS.md` (same layout as `init`) and route the entries there.
 3. **Classify each change** into one layer:
    - New module, new dependency, new file structure -> `ARCHITECTURE.md`
    - "We picked X over Y because Z" -> `DECISIONS.md`
