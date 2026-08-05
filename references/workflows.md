@@ -39,7 +39,7 @@ Runs after the user completes a feature, refactor, or bug fix.
 - A new convention was explicitly discussed (e.g. user said "from now on we use X")
 - The user explicitly invokes `sync` regardless of diff size
 
-Pure typo fixes, lockfile-only changes, README rewording, or sub-30-line tweaks do **not** warrant `sync`.
+Pure typo fixes, lockfile-only changes, README rewording, or tweaks below the 50-line / 2-directory threshold do **not** warrant `sync`.
 
 **Compress threshold check (silent, runs before sync proposal):**
 - Total entry count across all files > 500, **or**

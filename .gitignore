@@ -36,9 +36,13 @@ dist/
 
 # Internal workflow artifacts (superpowers specs/plans)
 .superpowers/
+docs/superpowers/
 
 # Local agent session instructions
 AGENTS.md
 
 # Mock test projects (sandbox for E2E testing)
 sandbox/
+
+# Playwright tooling state (do not commit)
+.playwright-mcp/

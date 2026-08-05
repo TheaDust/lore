@@ -154,14 +154,17 @@ def main():
     # existing-vs-existing pairs (unchanged behavior)
     for i, a in enumerate(entries):
         for b in entries[i + 1:]:
-            if a["layer"] != b["layer"]:
-                continue
+            # Exact-hash matches are reported across layers (same text is
+            # a duplicate no matter which layer it landed in); fuzzy
+            # Jaccard comparisons stay within the same layer.
             if hash_suffix(a["id"]) == hash_suffix(b["id"]):
                 pairs.append((a, b, 1.0, "identical hash"))
                 continue
+            if a["layer"] != b["layer"]:
+                continue
             sim = jaccard(tokenize(a["text"]), tokenize(b["text"]))
             if sim >= threshold:
-                pairs.append((a, b, sim, f"similar text (≥{threshold})"))
+                pairs.append((a, b, sim, f"similar text (>= {threshold})"))
 
     # candidate-vs-existing pairs
     if candidates:
@@ -176,7 +179,7 @@ def main():
             )
             if sim >= threshold:
                 pairs.append((candidates[0], a, sim,
-                              f"candidate similar to existing (≥{threshold})"))
+                              f"candidate similar to existing (>= {threshold})"))
 
     pairs.sort(key=lambda x: -x[2])
 

@@ -108,8 +108,12 @@ def parse_entry(line: str):
         elif m.group(3):
             if replaced_by is None:
                 replaced_by = m.group(3)
-            # else: multiple #superseded-by tags — keep the first only.
-            # (Documented as permitted in references/entry-format.md.)
+            else:
+                print(
+                    f"[WARN] entry {eid} carries multiple #superseded-by "
+                    "tags; keeping the first only.",
+                    file=sys.stderr,
+                )
     text = tag_re.sub("", rest).strip()
 
     return {
@@ -140,14 +144,41 @@ def collect_entries(root: Path):
             layer_file = md_file.stem
             try:
                 with open(md_file, encoding="utf-8") as f:
-                    for line in f:
-                        e = parse_entry(line)
-                        if e is None:
-                            continue
-                        e["scope"] = scope
-                        e["layer_file"] = layer_file
-                        e["file"] = str(md_file.relative_to(root))
-                        entries.append(e)
+                    lines = f.readlines()
+                if lines:
+                    # Strip a UTF-8 BOM (Windows editors / PowerShell
+                    # Set-Content add one); otherwise the first entry of
+                    # the file would fail to parse and be silently skipped.
+                    lines[0] = lines[0].lstrip("\ufeff")
+                i = 0
+                while i < len(lines):
+                    # Join wrapped continuation lines into one logical
+                    # bullet before parsing. A continuation is a non-blank
+                    # line starting with 2+ spaces (or a tab) that is not
+                    # itself a new entry bullet. This matches the documented
+                    # "2 lines or fewer" bullet format without silently
+                    # truncating the entry text.
+                    joined = lines[i].rstrip("\n")
+                    j = i + 1
+                    while j < len(lines):
+                        nxt = lines[j].rstrip("\n")
+                        if nxt.strip() == "":
+                            break
+                        if not re.match(r"^\s{2,}", nxt):
+                            break
+                        if re.match(r"^\s*-\s*\[", nxt):
+                            break
+                        joined += " " + nxt.strip()
+                        j += 1
+                    e = parse_entry(joined)
+                    if e is None:
+                        i += 1
+                        continue
+                    e["scope"] = scope
+                    e["layer_file"] = layer_file
+                    e["file"] = str(md_file.relative_to(root))
+                    entries.append(e)
+                    i = j
             except OSError as exc:
                 print(f"warning: cannot read {md_file}: {exc}", file=sys.stderr)
     return entries
@@ -194,7 +225,7 @@ def main():
         )
         stale = " [STALE]" if "stale" in e["tags"] else ""
         chain = (
-            f" → {e['replaced_by']}" if e.get("replaced_by") else ""
+            f" -> {e['replaced_by']}" if e.get("replaced_by") else ""
         )
         print(f"[{e['file']}] {e['id']} {e['text']}{verified}{stale}{chain}")
 

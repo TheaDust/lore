@@ -314,11 +314,11 @@ def render_markdown(meta, commits):
         lines.append("## Chain")
         for idx, e in enumerate(chain_entries, start=1):
             next_link = (
-                f"\n   → superseded-by → {e.get('replaced_by')}"
-                if e.get("replaced_by") else "\n   → no successor"
+                f"\n   -> superseded-by -> {e.get('replaced_by')}"
+                if e.get("replaced_by") else "\n   -> no successor"
             )
             lines.append(
-                f"{idx}. [{e['id']}] ({e['file']}) — {e['text']}{next_link}"
+                f"{idx}. [{e['id']}] ({e['file']}) - {e['text']}{next_link}"
             )
         lines.append("")
 
@@ -501,6 +501,10 @@ def main():
     if parsed is None:
         die(ERR_USAGE, f"unrecognized argument: {positional[0]}")
 
+    if follow_superseded and parsed["form"] != "entry":
+        print("[WARN] --follow-superseded only applies to the entry form; ignored.",
+              file=sys.stderr)
+
     project_root = _find_lore_root_or_die()
 
     if not _is_git_repo(project_root):
@@ -535,7 +539,8 @@ def main():
         except RuntimeError as exc:
             die(ERR_GIT_FAIL, str(exc))
         _enrich_commits_with_body_and_refs(project_root, commits)
-        meta = _build_meta_entry(entry, code_file, since, "entry_added")
+        since_source = "user_arg" if since_override else "entry_added"
+        meta = _build_meta_entry(entry, code_file, since, since_source)
         if follow_superseded:
             meta["chain"] = [
                 {
@@ -577,13 +582,14 @@ def main():
     if parsed["form"] == "scope":
         layer_files = _resolve_scope_to_md_files(project_root, parsed["value"])
         scope_payloads = []  # only used when json_mode is True
+        scope_since = normalize_since("1970-01-01")
         for layer_name, md_path in layer_files:
             # For scope form we treat each .md file as a "code file" stand-in:
             # we git log the md file's project-relative path to find commits
             # that touched that lore file. (Useful for tracking lore edits.)
             rel = str(md_path.relative_to(project_root))
             try:
-                commits = run_git_log(project_root, "1970-01-01", rel)
+                commits = run_git_log(project_root, scope_since, rel)
             except RuntimeError as exc:
                 die(ERR_GIT_FAIL, str(exc))
             _enrich_commits_with_body_and_refs(project_root, commits)
@@ -592,7 +598,7 @@ def main():
                     "entry_id": f"<scope:{parsed['value']}/{layer_name}>",
                     "lore_file": rel,
                     "code_file": rel,
-                    "since": "1970-01-01",
+                    "since": scope_since,
                     "since_source": "scope_form",
                 }
                 scope_payloads.append({

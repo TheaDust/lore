@@ -30,7 +30,7 @@
 
 - **Missing** → treated as `schema_version: 1`. A `[WARN]` notice is printed to stderr by `list_entries.py`; add the field manually to silence it.
 - **Equal to skill's expected version** → use as-is.
-- **Higher than expected** → refuse to read with an error; the user's skill is older than their `.lore/`. They need to upgrade lore (pull latest from upstream) before continuing.
+- **Higher than expected** → warn and continue: `list_entries.py` prints a `[WARN]` to stderr and proceeds with best-effort reads (readers are forward-compatible — see `references/compatibility.md`). The user's skill is older than their `.lore/`; recommend pulling the latest lore from upstream.
 
 For the full compatibility policy, see `references/compatibility.md`.
 

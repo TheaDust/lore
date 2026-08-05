@@ -7,12 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 `lore` is a **Markdown skill** — a spec read by AI coding agents (Claude Code, Cursor, OpenCode, Cline, Aider, Copilot, LangGraph, DeepAgents) to give them long-term project memory. It is not an application: there is **no build, test runner, linter, type checker, or CI**. Do not look for `package.json` / `pyproject.toml` / `Cargo.toml` — none exist.
 
 The load-bearing "code" is:
-- `SKILL.md` — the loadable skill body agents consume (the operational spec)
-- `references/*.md` — detailed specs agents load on demand, one per workflow/concern
+- `SKILL.md` — the loadable skill body agents consume (routing, triggers, invariants)
+- `references/*.md` — detailed specs agents load on demand; `references/workflows.md` holds the step-by-step procedures for all seven commands
 - `scripts/*.py` — stdlib-only Python 3.6+ helpers that the spec calls
 - `README.md` + `README.zh-CN.md`, `WORKFLOWS.md` + `WORKFLOWS.zh-CN.md` — bilingual user-facing docs
 
-`lore` is a skill, not a CLI: the seven commands (`init` / `sync` / `query` / `audit` / `compress` / `mirror` / `history`) are phrases a user says to an agent, which the agent runs by following `SKILL.md`. `WORKFLOWS.md` explains in plain language when each is used; `SKILL.md` is the step-by-step spec.
+`lore` is a skill, not a CLI: the seven commands (`init` / `sync` / `query` / `audit` / `compress` / `mirror` / `history`) are phrases a user says to an agent, which the agent runs by following `SKILL.md` and `references/workflows.md`. `WORKFLOWS.md` explains in plain language when each is used; `SKILL.md` routes each command to its step-by-step procedure in `references/workflows.md`.
 
 ## The compatibility contract is the central invariant
 
@@ -41,7 +41,7 @@ python scripts/history.py ARCH-2026-07-10-a3f2  # git history for an entry
 ## Repo conventions
 
 - **Bilingual docs.** User-facing changes update both `README.md` and `README.zh-CN.md`, and both `scripts/README.md` and `scripts/README.zh-CN.md`.
-- **Edit spec + reference together.** Each `references/*.md` backs a workflow step in `SKILL.md`; change both in the same commit, and update the reference index in `SKILL.md` when adding/removing a reference doc.
+- **Edit spec + reference together.** The step-by-step procedures live in `references/workflows.md`; each other `references/*.md` backs one of those workflows. Change them and the `SKILL.md` pointers / reference index in the same commit.
 - **Trigger phrase discipline.** The frontmatter `description` in `SKILL.md` governs when the skill fires. Don't tighten it so far it stops firing on legit user intent, and don't loosen it so it hijacks agent-native commands (`/init`, `/compact`).
 - **Entry ID stability.** IDs are `LAYER-YYYY-MM-DD-XXXX`, `XXXX` = first 4 hex of `sha256(entry text)`. Editing the text produces a new ID; the old one survives in git history only. Compute via `python scripts/id_hash.py "<text>"` (pass the body without inline tags).
 - **Mirror contract.** Every platform mirror file has `## Lore (auto-managed)` above a `---` separator and `## My notes (free edit)` below. The skill only rewrites the Lore section; My notes is preserved verbatim across every regeneration.

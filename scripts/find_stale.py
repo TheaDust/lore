@@ -11,10 +11,11 @@ Reports two categories:
   Stale           : entry has not been `#verified` within the threshold
                     (or has no #verified at all, and was added > threshold
                     days ago).
-  Pending review  : entry already carries a `#stale:` tag. (The skill does
-                    not auto-archive; this category is a heads-up that the
-                    entry is no longer accurate and should be reviewed or
-                    left as historical record.)
+  Pending review  : entry is superseded (carries `#stale`, or carries
+                    `#superseded-by` which implies staleness). (The skill
+                    does not auto-archive; this category is a heads-up that
+                    the entry is no longer accurate and should be reviewed
+                    or left as historical record.)
 
 Output is plain text by default, JSON with --json.
 
@@ -76,8 +77,10 @@ def main():
     pending_by_chain = {}  # replaced_by -> [entry, ...]
 
     for e in entries:
-        # Already marked stale → pending review (and maybe broken chain)
-        if "stale" in e["tags"]:
+        # Superseded (tagged #stale, or carrying #superseded-by which
+        # implies staleness per references/entry-format.md) -> pending
+        # review (and maybe broken chain)
+        if "stale" in e["tags"] or e.get("replaced_by"):
             target = e.get("replaced_by")
             if target and target not in by_id:
                 broken_chains.append({
@@ -138,10 +141,10 @@ def main():
         if target is None:
             print("  (no #superseded-by chain):")
         else:
-            print(f"  → superseded-by {target}:")
+            print(f"  -> superseded-by {target}:")
         for e in entries_:
             chain = (
-                f" → {e['replaced_by']}" if e.get("replaced_by") else ""
+                f" -> {e['replaced_by']}" if e.get("replaced_by") else ""
             )
             print(f"    [{e['file']}] {e['id']} {e['text']}{chain}")
 
