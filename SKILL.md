@@ -102,9 +102,19 @@ Detailed specifications live in `references/`. Load these on demand.
 
 **Scope detection during init:** see `references/monorepo-detection.md` for marker detection across pnpm / Yarn / npm / Lerna / Nx / Rush / Cargo / Go / Bazel. Single-package projects fall back to `_global/` only.
 
-**Decisions placement:**
-- Affects 2+ scopes (e.g. "use pnpm workspaces", "TypeScript strict") -> `_global/DECISIONS.md`
-- Affects exactly one scope -> that scope's `DECISIONS.md`
+### Layer semantics
+
+Each layer answers one kind of question. The boundary that trips people up most is *fact vs. reason*: the choice itself is ARCH, the reasoning behind it is DEC.
+
+| Layer | Answers | File | Example |
+|---|---|---|---|
+| ARCH | What the project / module is and how it is shaped (structure, stack, layout) | `ARCHITECTURE.md` | "Use Next.js App Router" |
+| DEC | Why a choice was made over alternatives (reasoning, tradeoffs) | `DECISIONS.md` | "Chose Zustand over Redux; reason: 60% less boilerplate" |
+| CONV | How code should be written and what to avoid (rules) | `CONVENTIONS.md` | "Never commit secrets" |
+
+**Boundary rule:** "we use X" -> ARCH; "why X over Y" -> DEC. A short inline reason (e.g. `reason: streaming + RSC`) may stay on an ARCH entry when it fits; anything with alternatives or tradeoffs ("why X over Y") is a DEC entry that references the ARCH ID (see `references/entry-format.md` for the atomicity rule and splitting examples).
+
+**Placement (all three layers):** affects 2+ scopes (e.g. "use pnpm workspaces", "TypeScript strict") -> the `_global/` file; affects exactly one scope -> that scope's file.
 
 There is no separate metadata file. Every status lives as inline tags on entries themselves.
 

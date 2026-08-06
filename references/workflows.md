@@ -61,6 +61,7 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
    - New module, new dependency, new file structure -> `ARCHITECTURE.md`
    - "We picked X over Y because Z" -> `DECISIONS.md`
    - New lint rule, new naming pattern, new "we never do X" -> `CONVENTIONS.md`
+   - Boundary: the choice itself ("we use X") -> `ARCHITECTURE.md`; the reasoning ("why X over Y") -> `DECISIONS.md`. If both apply, write two entries and cross-reference them by ID.
 4. **For each candidate entry**:
    - **Contradicts an existing entry** in the same scope/layer -> mark the old one `#stale:<today>` and `#superseded-by:<new-id>` (where `<new-id>` is the entry in this proposal that replaces it). Emit an `ALERT`.
    - **No replacement entry exists yet** (user is removing a fact without substituting) -> mark the old one `#stale:<today>` only; the chain can be backfilled later.
