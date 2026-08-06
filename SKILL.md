@@ -57,6 +57,8 @@ Other commands (`init`, `query`, `history`) are always explicit — they need us
 | "Why does this decision exist?" / "show the commits behind this" | `history` | [`references/workflows.md#history`](references/workflows.md#history--show-git-commits-related-to-a-memory-entry), then `references/history-command.md` |
 | Agent-native `/init` or `/compact` | do **not** trigger lore | Relationship to agent native commands |
 
+**Already have `.lore/`?** Adding a new scope is still `sync` — `init` is only for first-time setup or an explicit start-over. A change that introduces a new scope does not reinitialize the memory bank; `sync` creates the scope directories directly (see `references/workflows.md` sync step 2).
+
 **Start minimal.** lore does not require a monorepo or mirrors. Single-package projects get `_global/` only (no scopes). Single-host setups can set `mirror_targets: []` in `.lore/.config.json` to disable mirror generation and read `.lore/SUMMARY.md` directly.
 
 **Happy path.** `init` once -> then the recurring cadence is `sync` (record) / `query` (recall) / `audit` (check) -> `compress` when SUMMARY grows stale (or a `[COMPRESS NOTICE]` appears) -> `mirror` to publish structural changes.
@@ -71,7 +73,7 @@ Detailed specifications live in `references/`. Load these on demand.
 | `references/entry-format.md` | Writing entries, computing IDs, cross-file references |
 | `references/summary-template.md` | Running `compress` — SUMMARY.md schema and selection rules |
 | `references/audit-template.md` | Running `audit` — report format and severity definitions |
-| `references/monorepo-detection.md` | During `init` — detecting scope boundaries from workspace config |
+| `references/monorepo-detection.md` | During `init` — detecting scope boundaries from workspace config (`sync` creates newly-introduced scopes directly, see `references/workflows.md`) |
 | `references/stale-new-markers.md` | During `sync` — full marking convention and user reply semantics |
 | `references/platform-mirrors.md` | Platform file mapping (CLAUDE.md / .cursorrules / etc.), two-section file structure |
 | `references/config.md` | `.lore/.config.json` schema and field semantics |
@@ -100,7 +102,7 @@ Detailed specifications live in `references/`. Load these on demand.
 `-- audit/            # Used only by `audit`. Reports; never mutates main files.
 ```
 
-**Scope detection during init:** see `references/monorepo-detection.md` for marker detection across pnpm / Yarn / npm / Lerna / Nx / Rush / Cargo / Go / Bazel. Single-package projects fall back to `_global/` only.
+**Scope detection and creation:** `init` detects scope boundaries once (see `references/monorepo-detection.md` for marker detection across pnpm / Yarn / npm / Lerna / Nx / Rush / Cargo / Go / Bazel); `sync` creates the scope directories when a change introduces a new scope (see `references/workflows.md` sync step 2). Single-package projects fall back to `_global/` only.
 
 ### Layer semantics
 

@@ -42,6 +42,8 @@ def get_entries():
         [sys.executable, str(script), "--json"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if r.returncode != 0:
         print(r.stderr, file=sys.stderr)

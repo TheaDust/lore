@@ -351,6 +351,20 @@ class TestFindStale(unittest.TestCase):
         self.assertIn("=== Broken chains", r.stdout)
         self.assertTrue(r.stdout.isascii(), r.stdout)
 
+    def test_non_ascii_text_round_trips(self):
+        # list_entries.py emits UTF-8; find_stale must decode it as UTF-8
+        # regardless of the host locale (regression: GBK hosts got mojibake).
+        write(
+            self.lore / "_global" / "CONVENTIONS.md",
+            "- [CONV-2026-01-20-b1e8] \u6c38\u4e0d\u63d0\u4ea4\u79d8\u5bc6; "
+            "reason: safe. #added:%s\n" % days_ago(200),
+        )
+        out = self._run()
+        self.assertIn(
+            "\u6c38\u4e0d\u63d0\u4ea4\u79d8\u5bc6",
+            json.dumps(out, ensure_ascii=False),
+        )
+
 
 class TestFindDuplicates(unittest.TestCase):
     def setUp(self):
@@ -429,6 +443,17 @@ class TestFindDuplicates(unittest.TestCase):
         self.assertEqual(out, [])
         r = run_script("find_duplicates.py", [], cwd=self.root)
         self.assertIn("No potential duplicates found.", r.stdout)
+
+    def test_non_ascii_text_round_trips(self):
+        # Same regression as find_stale: decode list_entries' UTF-8 output
+        # explicitly instead of relying on the host locale.
+        text = "\u6c38\u4e0d\u63d0\u4ea4\u79d8\u5bc6; reason: safe."
+        write(
+            self.lore / "_global" / "CONVENTIONS.md",
+            "- [CONV-2026-07-09-ab12] %s #added:2026-07-09\n" % text,
+        )
+        out = self._run(["--candidate=%s" % text])
+        self.assertIn(text, json.dumps(out, ensure_ascii=False))
 
 
 class TestHistory(unittest.TestCase):
