@@ -63,8 +63,8 @@ Default: `"medium"`.
 Controls how much confirmation `sync` requires for individual change types.
 
 - `"high"` — auto-apply everything, including `NEW` and `STALE`. Only `ALERT` blocks interrupt.
-- `"medium"` — auto-apply low-risk changes (de-duplicate hits, equivalent REFINEDs). `NEW`, `STALE`, and `ALERT` require confirmation.
-- `"low"` — every change requires confirmation, including de-duplicate hits and equivalent REFINEDs.
+- `"medium"` — auto-apply low-risk changes (de-duplicate hits, tags-only REFINEDs). Body-changing REFINEDs, `NEW`, `STALE`, and `ALERT` require confirmation.
+- `"low"` — every change requires confirmation, including de-duplicate hits and tags-only REFINEDs.
 
 ### `mirror_targets`
 

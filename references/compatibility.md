@@ -23,7 +23,7 @@ This document defines how `lore` evolves without breaking existing user projects
 - [ARCH-2026-07-10-a3f2] Entry text; reason. #added:2026-07-10 #verified:2026-07-15
 ```
 
-- IDs (`LAYER-DATE-HASH`) are stable as long as the entry text is unchanged. Editing an entry produces a new ID; old ID stays in history (via git) for `history` queries.
+- IDs (`LAYER-DATE-HASH`) are stable as long as the entry text is unchanged. Editing an entry produces a new ID; old ID stays in history (via git) for `history` queries. `sync`'s `[REFINED]` respects this: tags-only updates keep the ID, body rewrites create a new ID and link the old entry via `#superseded-by`.
 - Tag set is a closed set today: `#added`, `#verified`, `#stale`, `#superseded-by`. Adding a new tag is allowed; old skills' tag parsers (which match `(added|verified|stale|superseded-by)`) silently ignore unknown tags. The previous `#archived` tag is no longer part of the vocabulary; old entries carrying it are treated as unknown tags (still parse, semantic meaning is lost — use `#superseded-by` going forward).
 - **Never make a tag required.** Required tags break every old entry in every old `.lore/`.
 

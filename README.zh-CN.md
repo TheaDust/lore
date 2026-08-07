@@ -139,7 +139,7 @@ Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMA
 # history: [DEC-2026-07-10-e45d]
 
 > Entry: scopes/backend/DECISIONS.md
-> Since: 2026-07-10 (entry #added date)
+> Since: 2026-07-10T00:00:00 (entry #added date)
 > File: backend
 > Commits: 2 (showing all)
 
@@ -212,7 +212,8 @@ Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `gi
 | 变更类型 | `high` | `medium`（默认）| `low` |
 |---|---|---|---|
 | 去重命中 | 自动 | 自动 | 确认 |
-| 等价 REFINED | 自动 | 自动 | 确认 |
+| REFINED，只动 tag（正文不变） | 自动 | 自动 | 确认 |
+| REFINED，改正文（新 ID + 取代链） | 自动 | 确认 | 确认 |
 | `NEW` entry | 自动 | 确认 | 确认 |
 | `STALE` 标记 | 自动 | 确认 | 确认 |
 | `ALERT` | 确认 | 确认 | 确认 |
@@ -260,7 +261,7 @@ lore 的 token 模型有 6 个组件；只有 mirror 文件是 per-session，其
 | **SKILL.md**（lore 自身规范） | 每次用户说 `lore <cmd>` | ~19 KB | 否，per-invocation |
 | **`references/workflows.md`**（七个工作流的步骤） | 每次用户说 `lore <cmd>`（只读被路由的那一节） | ~17 KB | 否，per-invocation |
 | **`.lore/SUMMARY.md`** | agent 按需读，作为目录 | 1–30 KB | 否，on demand |
-| **`scopes/<scope>/{ARCH,DEC,CON}.md`** | agent 只读相关 scope | 1–5 KB each | 否，on demand |
+| **`scopes/<scope>/{ARCH,DEC,CONV}.md`** | agent 只读相关 scope | 1–5 KB each | 否，on demand |
 | **`lore query <term>`** 结果 | agent 跑 query 时 | 按命中条数 bound | 否，per query |
 
 ### Mirror 是 constant-cost
@@ -369,7 +370,7 @@ A: 它们用途不同。`/init` 是一次性项目扫描 → `CLAUDE.md`。`/com
 A: `sync` 根据代码改动更新 `.lore/`（feature / refactor 后）；`mirror` 把当前 `.lore/` 重新生成到 agent 端文件（`CLAUDE.md`、`.cursorrules` 等）。`sync` **故意不**更新 mirror —— mirror 文件该是人工合并的，不该每次 commit 都重生成，否则 `git log` 会变难读。需要 agent 视图跟上时，显式跑 `mirror`（或 `compress`）。
 
 **Q: 跟 ADR（Architecture Decision Records）有什么区别？**
-A: ADR 是文档（每个决策一个 markdown 文件）。lore 是结构化项目记忆 —— 一条事实一个 entry，带稳定 ID 和 `#added` / `#verified` / `#stale` 标记。lore 的 `DEC` 层能替代 `docs/adr/`（一条 DEC entry 对应一个决策），但 lore 还覆盖 `ARCH`（架构）和 `CON`（约定）同仓库存储，并能用 `compress` / `mirror` 生成 agent 视图。可以**替代** ADR，也可以**共存**（一条 DEC entry 指向已有 ADR 文档）。
+A: ADR 是文档（每个决策一个 markdown 文件）。lore 是结构化项目记忆 —— 一条事实一个 entry，带稳定 ID 和 `#added` / `#verified` / `#stale` 标记。lore 的 `DEC` 层能替代 `docs/adr/`（一条 DEC entry 对应一个决策），但 lore 还覆盖 `ARCH`（架构）和 `CONV`（约定）同仓库存储，并能用 `compress` / `mirror` 生成 agent 视图。可以**替代** ADR，也可以**共存**（一条 DEC entry 指向已有 ADR 文档）。
 
 **Q: agent 写的 entry 我不同意怎么办？**
 A: 直接编辑 `.lore/*.md` —— 就是纯 Markdown。下次 `mirror` / `compress` 会反映你的改动；helper scripts 对稳定 ID 跳过重算（只要文本没变，ID 就不变）。想回到 agent 改之前的状态，`git checkout .lore/` 即可。

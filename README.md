@@ -139,7 +139,7 @@ The mirror file opens with an imperative sentence (e.g. "Project memory at `.lor
 # history: [DEC-2026-07-10-e45d]
 
 > Entry: scopes/backend/DECISIONS.md
-> Since: 2026-07-10 (entry #added date)
+> Since: 2026-07-10T00:00:00 (entry #added date)
 > File: backend
 > Commits: 2 (showing all)
 
@@ -212,7 +212,8 @@ To restore old behavior (mirror updates on every `sync`), set `"sync_updates_mir
 | Change type | `high` | `medium` (default) | `low` |
 |---|---|---|---|
 | De-duplicate hit | auto | auto | confirm |
-| Equivalent REFINED | auto | auto | confirm |
+| REFINED, tags only (body unchanged) | auto | auto | confirm |
+| REFINED, body changed (new ID + supersede link) | auto | confirm | confirm |
 | `NEW` entry | auto | confirm | confirm |
 | `STALE` mark | auto | confirm | confirm |
 | `ALERT` | confirm | confirm | confirm |
@@ -260,7 +261,7 @@ lore's token model has six components. Only the mirror file is per-session; ever
 | **SKILL.md** (the lore spec itself) | Every `lore <cmd>` invocation | ~19 KB | no, per-invocation |
 | **`references/workflows.md`** (the seven procedures) | Every `lore <cmd>` invocation (only the routed section) | ~17 KB | no, per-invocation |
 | **`.lore/SUMMARY.md`** | Agent reads on demand as the table of contents | 1–30 KB | no, on demand |
-| **`scopes/<scope>/{ARCH,DEC,CON}.md`** | Agent reads only the relevant scope | 1–5 KB each | no, on demand |
+| **`scopes/<scope>/{ARCH,DEC,CONV}.md`** | Agent reads only the relevant scope | 1–5 KB each | no, on demand |
 | **`lore query <term>`** result | Agent runs a query | bounded by matches | no, per query |
 
 ### The mirror is constant-cost
@@ -369,7 +370,7 @@ A: They serve different purposes. `/init` is a one-shot project scan → `CLAUDE
 A: `sync` updates `.lore/` from code changes (run after a feature or refactor). `mirror` updates agent-facing files (`CLAUDE.md`, `.cursorrules`, etc.) from current `.lore/`. `sync` deliberately does **not** update mirrors — mirror files should be human-merged, not regenerated on every commit, so `git log` stays readable. Run `mirror` (or `compress`) explicitly when you want agent-facing files to catch up.
 
 **Q: How is lore different from ADRs (Architecture Decision Records)?**
-A: ADRs are documents — one markdown file per decision. lore is structured project memory: one fact per entry, with a stable ID and `#added` / `#verified` / `#stale` markers. The `DEC` layer can replace `docs/adr/` (one DEC entry per decision), but lore also covers `ARCH` (architecture) and `CON` (conventions) in the same store, plus generates agent-facing summaries via `compress` / `mirror`. Use lore **instead of** ADRs, or **alongside** them (one DEC entry pointing to the existing ADR document).
+A: ADRs are documents — one markdown file per decision. lore is structured project memory: one fact per entry, with a stable ID and `#added` / `#verified` / `#stale` markers. The `DEC` layer can replace `docs/adr/` (one DEC entry per decision), but lore also covers `ARCH` (architecture) and `CONV` (conventions) in the same store, plus generates agent-facing summaries via `compress` / `mirror`. Use lore **instead of** ADRs, or **alongside** them (one DEC entry pointing to the existing ADR document).
 
 **Q: What if I disagree with an entry the agent wrote?**
 A: Edit `.lore/*.md` directly — it's plain Markdown. The next `mirror` / `compress` will reflect your edit, and the helper scripts keep the ID stable as long as the entry text is unchanged. To revert to pre-AI state, `git checkout .lore/` like any tracked file.

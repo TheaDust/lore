@@ -6,7 +6,7 @@ The step-by-step procedures for all seven lore commands. Load this file when exe
 
 Runs once per project (or to start over).
 
-0. **Resolve targets and takeover check.** Targets are determined by the resolution algorithm — see `references/platform-mirrors.md`. Default behavior: scan repo root for existing platform files; if none found, ask the user via multi-select which agents they use. Explicit `mirror_targets` in `.lore/.config.json` overrides auto-detect (Replace semantics). For each resolved target:
+0. **Resolve targets and takeover check.** Targets are determined by the resolution algorithm — see `references/platform-mirrors.md`. `init` **always** asks the user via multi-select which agents they use (pre-selected: agents whose platform files already exist or are already lore mirrors), so additional agents can be added even when files were detected; the resolution algorithm's silent return-on-detect applies to `mirror` / `compress`, not `init`. Explicit `mirror_targets` in `.lore/.config.json` overrides auto-detect (Replace semantics). For each resolved target:
    - If the file does not exist -> no action; it will be created later in step 7.
    - If the file exists AND contains a `## Lore` section -> it's already a lore mirror; note it and continue (its My notes will be processed as seed in step 5).
    - If the file exists AND does NOT contain a `## Lore` section -> it's likely from the agent's native `/init` or hand-written. Show the user:
@@ -67,7 +67,7 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
 4. **For each candidate entry**:
    - **Contradicts an existing entry** in the same scope/layer -> mark the old one `#stale:<today>` and `#superseded-by:<new-id>` (where `<new-id>` is the entry in this proposal that replaces it). Emit an `ALERT`.
    - **No replacement entry exists yet** (user is removing a fact without substituting) -> mark the old one `#stale:<today>` only; the chain can be backfilled later.
-   - **Refines an existing entry** -> update the text in place, bump `#verified:<today>`.
+   - **Refines an existing entry** -> if the body is unchanged, update tags only (bump `#verified:<today>`) and keep the ID. If the body changes, write a new entry with a freshly hashed ID and mark the old one `#stale:<today>` + `#superseded-by:<new-id>` — the ID hashes the body, so a body rewrite always produces a new ID (see `references/entry-format.md`).
    - **Genuinely new** -> append with `#added:<today>` and a new hash ID.
 5. **De-duplicate**: before appending, run `python scripts/find_duplicates.py --json` to identify any candidate entry that overlaps with existing entries (same hash, or Jaccard >= `--threshold`). For each match, skip the new entry and bump `#verified` on the existing one. If the new entry is genuinely different in meaning (the script flags but doesn't decide), keep both.
 6. **Apply trust level** (controlled by `.lore/.config.json#sync_trust`, default `"medium"`):
@@ -75,7 +75,8 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
    | Change type | `high` | `medium` (default) | `low` |
    |---|---|---|---|
    | De-duplicate hit (same fact already present) | auto-apply | auto-apply | confirm |
-   | Equivalent REFINED (text rewrite, same meaning) | auto-apply | auto-apply | confirm |
+   | REFINED, tags only (body unchanged) | auto-apply | auto-apply | confirm |
+   | REFINED, body changed (new ID + supersede link) | auto-apply | confirm | confirm |
    | `NEW` entry | auto-apply | confirm | confirm |
    | `STALE` mark | auto-apply | confirm | confirm |
    | `ALERT` | confirm | confirm | confirm |
@@ -83,7 +84,7 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
    Auto-applied changes are written silently and reported at the end. Confirmation-required changes are bundled into a single diff proposal and shown together.
 7. **Generate the proposed diff** (for any confirmation-required changes) using the `[NEW]/[STALE]/[REFINED]/[ALERT]/[COMPRESS NOTICE]` markers. See `references/stale-new-markers.md` for the full convention and user reply semantics.
 8. **Stop and wait for user confirmation** for any pending changes. Auto-applied changes need no confirmation.
-9. After the user accepts, write to `.lore/*` only. **Do not** regenerate platform mirrors from `sync` — this is intentional. See "Mirror update triggers" in `SKILL.md` and the dedicated `lore mirror` command.
+9. After the user accepts, write to `.lore/*` only. **Do not** regenerate platform mirrors from `sync` (unless `sync_updates_mirror: true` is set in `.lore/.config.json`) — this is intentional. See "Mirror update triggers" in `SKILL.md` and the dedicated `lore mirror` command.
 10. **Update `.lore/.config.json#last_sync_sha`** to the current `git rev-parse HEAD`. Idempotent: re-running sync without new commits writes the same SHA. If HEAD does not exist (empty repo), set to `null`. The field is optional and additive; older configs without it keep working through the fallback in step 1.
 
 **Source priority** (when sources disagree):
@@ -136,7 +137,7 @@ Long-term compression. Generates `SUMMARY.md` and, when `auto_mirror: true` (or 
 
 ### `mirror` — Regenerate platform mirrors
 
-Force-regenerate all configured platform mirrors from the current state of `.lore/*`.
+Regenerate all configured platform mirrors from the current state of `.lore/*`. Content-based dedup skips targets whose Lore section is unchanged.
 
 1. Read current `.lore/SUMMARY.md` and the scope-tagged index.
 2. For each configured mirror target (per `references/platform-mirrors.md`), read the existing file and detect the section boundary.

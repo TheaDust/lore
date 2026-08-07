@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-`lore` is a **Markdown skill** — a spec read by AI coding agents (Claude Code, Cursor, OpenCode, Cline, Aider, Copilot, LangGraph, DeepAgents) to give them long-term project memory. It is not an application: there is **no build, test runner, linter, type checker, or CI**. Do not look for `package.json` / `pyproject.toml` / `Cargo.toml` — none exist.
+`lore` is a **Markdown skill** — a spec read by AI coding agents (Claude Code, Cursor, OpenCode, Cline, Aider, Copilot, LangGraph, DeepAgents) to give them long-term project memory. It is not an application: there is **no build system, no linter, no type checker, no CI**. Do not look for `package.json` / `pyproject.toml` / `Cargo.toml` — none exist.
 
 The load-bearing "code" is:
 - `SKILL.md` — the loadable skill body agents consume (routing, triggers, invariants)
@@ -25,9 +25,10 @@ Read `references/compatibility.md` before any edit. Rules that are easy to break
 
 ## Editing the spec (what "done" looks like)
 
-There is no automated test suite; verification is script-driven and structural:
+There **is** a stdlib-only `unittest` regression suite in `tests/` — run it with `python -m unittest discover -s tests -v` from the repo root. Verification is script-driven and structural:
 
 ```bash
+python -m unittest discover -s tests -v   # regression suite
 python scripts/id_hash.py "test entry"        # compute an entry ID hash
 python scripts/list_entries.py --json         # enumerate entries (query/audit/compress input)
 python scripts/find_duplicates.py --json      # sync step 5: candidate overlap

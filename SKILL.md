@@ -139,7 +139,8 @@ The canonical store is `.lore/*`. Agents that expect a single config file at the
 **Default behavior:**
 
 - **Init**: targets are auto-detected (existing platform files in repo root). If none detected, ask the user via multi-select which agents they use. For each detected file lacking a `## Lore` section, ask take over / preserve / abort per file. Auto-create missing files with the full two-section template; refresh existing lore mirrors; preserve My notes verbatim.
-- **Sync / Compress**: controlled by `.lore/.config.json#auto_mirror`. Default is `false` (ask per target). When `true`, mirrors update automatically. My notes section is **always** preserved.
+- **Compress**: controlled by `.lore/.config.json#auto_mirror`. Default is `false` (ask per target). When `true`, mirrors update automatically. My notes section is **always** preserved.
+- **Sync**: never touches mirrors by default. To restore mirror updates on every `sync`, set `sync_updates_mirror: true` in `.lore/.config.json` (see `references/config.md`).
 
 By default the Lore section is an **index** into `.lore/` — paths plus a per-scope one-line description, ~600 bytes worst case. The agent reads `.lore/SUMMARY.md` (or calls `lore query <term>`) on demand.
 
@@ -242,10 +243,10 @@ lore sync      # After a non-trivial change, update .lore/*.md. Does NOT touch p
 lore query     # Read-only. Answer from memory, cite entry IDs with file paths.
 lore audit     # Read-only. Write .lore/audit/audit-<date>.md. No entry file is modified.
 lore compress  # Generate/refresh SUMMARY.md from existing entries, then update platform mirrors.
-lore mirror    # Force-regenerate all platform mirrors from current .lore/* state. Skips targets whose content is unchanged.
+lore mirror    # Regenerate all platform mirrors from current .lore/* state. Content-based dedup: skips unchanged targets.
 lore history   # Read-only. List git commits related to an entry / file / scope. Pure stdout.
 ```
 
 Mirror subcommands: `lore mirror show <file>` (read), `lore mirror check` (read), `lore mirror reset <file>` (archives My notes, then rewrites a clean mirror; requires confirmation). Full step-by-step procedures: [`references/workflows.md`](references/workflows.md).
 
-Of the seven, `init`, `sync`, `compress`, `mirror`, and `audit` write files. `init` and `sync` mutate canonical `.lore/*.md`; `compress` writes `SUMMARY.md`; `mirror` writes platform mirror files (with content-based dedup); and `audit` writes only a dated report under `.lore/audit/`. Canonical or mirror mutations require explicit user confirmation unless `auto_mirror: true` is set in `.lore/.config.json`. `query` and `history` are pure read.
+Of the seven, `init`, `sync`, `compress`, `mirror`, and `audit` write files. `init` and `sync` mutate canonical `.lore/*.md`; `compress` writes `SUMMARY.md`; `mirror` writes platform mirror files (with content-based dedup); and `audit` writes only a dated report under `.lore/audit/`. Canonical mutations require user confirmation per `sync_trust`; mirror mutations require user confirmation unless the owning trigger opts out — `auto_mirror: true` (compress only) or `sync_updates_mirror: true` (sync only) — in `.lore/.config.json`. `query` and `history` are pure read.

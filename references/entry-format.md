@@ -27,6 +27,10 @@ The 4-char `xxxx` is the first 4 hex chars of `sha256(entry text)`. This makes I
 
 If two entries have identical content (hash collision, statistically rare), add a distinguishing word to one and recompute.
 
+### Updating an entry (REFINED)
+
+Because the ID hashes the body, **any body change produces a new ID**. `sync`'s `[REFINED]` proposal follows this rule: tags-only updates (body unchanged) keep the ID; body rewrites create a new entry with a freshly hashed ID and link the old one via `#superseded-by:<new-id>` (see `references/stale-new-markers.md`).
+
 ## Tag specification
 
 | Tag | Meaning |
@@ -83,7 +87,7 @@ Consumers:
 Constraints:
 
 - The tag is **optional**. Old entries without it continue to work; old skills ignore it.
-- Multiple `#superseded-by` tags on one entry are permitted (rare; means the entry was replaced more than once).
+- **At most one `#superseded-by` tag per entry.** Successive replacements form a chain (A → B → C), never a fork: an entry is replaced by one successor at a time. If an entry carries more than one tag, `list_entries.py` warns and keeps the first.
 - Cross-file references: the ID is sufficient because the LAYER prefix plus hash makes collisions across files vanishingly rare. If two files contain the same ID, prefer the one in the same scope as the entry being read.
 
 ## What counts as "atomic"

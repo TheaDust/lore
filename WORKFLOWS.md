@@ -55,7 +55,7 @@ lore has seven workflows. This document explains when to use each one, in plain 
 2. If the change is significant (≥50 lines / ≥2 dirs, or new module/dir/dep, or a new convention was discussed), the agent proactively proposes.
 3. For each candidate entry, the agent classifies it as `[NEW]` / `[STALE]` / `[REFINED]` **and** checks for contradictions against existing entries in the same scope/layer — contradictions are flagged as `[ALERT]`. This is sync's own contradiction-detection step; a full `lore audit` is a separate command that walks every entry.
 4. Runs `find_duplicates.py` to skip candidates that overlap with existing entries.
-5. Emits a proposal with `[NEW]/[STALE]/[REFINED]/[ALERT]` markers. Default trust level is `medium`; de-duplicate hits and equivalent REFINEDs auto-apply silently, NEW/STALE/ALERT require confirmation.
+5. Emits a proposal with `[NEW]/[STALE]/[REFINED]/[ALERT]` markers. Default trust level is `medium`; de-duplicate hits and tags-only REFINEDs auto-apply silently. Body-changing REFINEDs (new ID + supersede link), NEW, STALE, and ALERT require confirmation.
 6. You accept or reject per marker; accepted markers get applied to `.lore/*.md`. Then `last_sync_sha` advances to the current `HEAD` so the next sync spans the right commit range.
 
 **Real scenarios**:
@@ -205,8 +205,16 @@ The `[file#ID]` reference lets the agent `cat` the file for full text.
 ```markdown
 # history: [DEC-2026-02-03-7c19]
 
-  abc1234  2026-05-12  refactor: extract chat agent_loop (#87)
-  def5678  2026-03-08  feat: switch chat chain to chat_fast (#74)
+> Entry: scopes/backend/DECISIONS.md
+> Since: 2026-02-03T00:00:00 (entry #added date)
+> File: backend/app/auth.py
+> Commits: 2 (showing all)
+
+## 9f264f4 (2026-05-12, Alice)
+refactor: extract chat agent_loop (#87)
+
+## def5678 (2026-03-08, Bob)
+feat: switch chat chain to chat_fast (#74)
 ```
 
 ---

@@ -191,7 +191,7 @@ The `init` command extends the resolution algorithm above with classification an
 
    Class (a) files are auto-included in `mirror_targets`.
 
-4. **Multi-select question.** "Which agents do you use in this project?" Default pre-selection: every agent corresponding to a class (a) file. Empty selection is allowed — but class (a) files still get included via Step 5.
+4. **Multi-select question.** "Which agents do you use in this project?" Default pre-selection: every agent corresponding to a class (a) file. Empty selection is allowed — but class (a) files still get included via Step 5. Unlike `mirror` / `compress` (which follow the resolution algorithm's silent return-on-detect), `init` always asks — this is how the user adds agents whose files don't exist yet.
 
 5. **Compute final `mirror_targets`** by combining three sources and deduplicating:
    - All class (a) files from Step 3 (always included, regardless of Step 4 selection).
@@ -364,7 +364,7 @@ Index content changes require regeneration when:
 
 | Command | Effect |
 |---|---|
-| `lore mirror` | Force-regenerate all configured platform mirrors from current `.lore/*` state. Content-based dedup: skips targets whose new Lore section matches the existing one. |
+| `lore mirror` | Regenerate all configured platform mirrors from current `.lore/*` state. Content-based dedup: skips targets whose new Lore section matches the existing one. |
 | `lore mirror reset <file>` | Archive current My notes content to `.lore/.archive/<file>-<date>.md`, then write a clean mirror with only the Lore section. User must confirm. |
 | `lore mirror show <file>` | Print the file with the two sections clearly delimited in the output. Pure read. |
 | `lore mirror check` | For each configured target, verify it has a `---` separator and a `## My notes` section. Report any structural problems. Read-only. |
@@ -376,5 +376,5 @@ Index content changes require regeneration when:
 | `init` confirms draft | Auto-generate mirrors for all configured targets using the init-time rules above. |
 | `sync` proposal accepted | Writes to `.lore/*.md` only. Does **not** touch mirrors. User runs `lore mirror` separately to publish. (Override: set `sync_updates_mirror: true` in config to restore old behavior.) |
 | `compress` completes | If `auto_mirror: true`, regenerate mirrors (with content-based dedup). Otherwise ask per target. |
-| `lore mirror` | Force-regenerate all configured targets with content-based dedup. |
+| `lore mirror` | Regenerate all configured targets with content-based dedup. |
 | `query` / `audit` | Never touches mirrors. |

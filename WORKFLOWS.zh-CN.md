@@ -55,7 +55,7 @@ lore 有七个工作流。本文用平实语言解释每个什么时候用。Age
 2. 变更显著时（≥50 行 / 跨 ≥2 目录，或新 module/dir/dep，或对话里讨论了新约定），agent 主动提议
 3. 每个候选 entry 分类成 `[NEW]` / `[STALE]` / `[REFINED]` **并且**与同 scope/layer 的已有 entry 做矛盾检查 —— 矛盾打 `[ALERT]`。这是 sync 自带的矛盾检测；完整的 `lore audit` 是独立命令，遍历**所有** entry 对比代码
 4. 跑 `find_duplicates.py` 跳过与已有 entry 重叠的候选
-5. 输出 `[NEW]/[STALE]/[REFINED]/[ALERT]` marker 提案。默认 trust level `medium`：dedup 命中与等价 REFINED 静默自动 apply，NEW/STALE/ALERT 需要确认
+5. 输出 `[NEW]/[STALE]/[REFINED]/[ALERT]` marker 提案。默认 trust level `medium`：dedup 命中与只动 tag 的 REFINED 静默自动 apply；改正文的 REFINED（新 ID + 取代链）、NEW、STALE、ALERT 需要确认
 6. 你按 marker 接受 / 拒绝；接受的 marker 落到 `.lore/*.md`。然后 `last_sync_sha` 推进到当前 `HEAD`，下次 sync 覆盖正确的 commit 区间
 
 **真实场景**：
@@ -205,8 +205,16 @@ lore 有七个工作流。本文用平实语言解释每个什么时候用。Age
 ```markdown
 # history: [DEC-2026-02-03-7c19]
 
-  abc1234  2026-05-12  refactor: extract chat agent_loop (#87)
-  def5678  2026-03-08  feat: switch chat chain to chat_fast (#74)
+> Entry: scopes/backend/DECISIONS.md
+> Since: 2026-02-03T00:00:00 (entry #added date)
+> File: backend/app/auth.py
+> Commits: 2 (showing all)
+
+## 9f264f4 (2026-05-12, Alice)
+refactor: extract chat agent_loop (#87)
+
+## def5678 (2026-03-08, Bob)
+feat: switch chat chain to chat_fast (#74)
 ```
 
 ---
