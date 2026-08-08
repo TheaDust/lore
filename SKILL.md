@@ -158,11 +158,9 @@ Platform mirrors are regenerated on only three occasions, not on every `sync`:
 
 If a project needs old behavior (mirror updates on every `sync`), set `sync_updates_mirror: true` in `.lore/.config.json` (see `references/config.md`).
 
-### Mirror subcommands
+### Mirror structure validation
 
-- `lore mirror show <file>` — print the file with the two sections clearly delimited. Pure read.
-- `lore mirror check` — verify each configured target has a `---` separator and a `## My notes` section; report structural problems. Pure read.
-- `lore mirror reset <file>` — archive current My notes content to `.lore/.archive/<file>-<date>.md`, then write a clean mirror with only the Lore section. User must confirm.
+Regeneration is not a blind rewrite: each target's two-section structure is validated first (per the section detection rules in `references/platform-mirrors.md`). If a target lacks the `---` separator, lacks a `## My notes` section, or is a user-notes-only file without `## Lore`, report the anomaly and ask the user how to proceed — never overwrite an anomalous file silently. My notes is preserved verbatim across regenerations; if the user asks to wipe a target's My notes, archive the old content to `.lore/.archive/<file>-<date>.md` first, then write a clean mirror.
 
 LangGraph / DeepAgents typically don't need a mirror file — they read `.lore/*.md` directly or ingest into the system prompt at runtime (the user's responsibility).
 
@@ -233,6 +231,6 @@ lore mirror    # Regenerate platform mirrors; content-based dedup skips unchange
 lore history   # Read-only. Git commits behind an entry / file / scope.
 ```
 
-Mirror subcommands: `lore mirror show <file>` (read), `lore mirror check` (read), `lore mirror reset <file>` (archives My notes, then rewrites a clean mirror; requires confirmation). Full step-by-step procedures: [`references/workflows.md`](references/workflows.md).
+Mirror regenerations validate each target's two-section structure first and report anomalies instead of overwriting; My notes is preserved verbatim (a user-requested wipe archives it to `.lore/.archive/` first). Full step-by-step procedures: [`references/workflows.md`](references/workflows.md).
 
 Only `query` and `history` are pure read; the other five write files (`init`/`sync` → `.lore/*.md`, `compress` → `SUMMARY.md`, `mirror` → platform files, `audit` → `.lore/audit/audit-<date>.md`). Canonical writes follow `sync_trust`; mirror writes follow `auto_mirror` (compress) or `sync_updates_mirror` (sync), otherwise requiring confirmation.

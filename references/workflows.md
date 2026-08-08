@@ -141,11 +141,12 @@ Regenerate all configured platform mirrors from the current state of `.lore/*`. 
 
 1. Read current `.lore/SUMMARY.md` and the scope-tagged index.
 2. For each configured mirror target (per `references/platform-mirrors.md`), read the existing file and detect the section boundary.
-3. For each target, compare the new Lore section content against the existing one. **Skip writing if content is identical** (content-based dedup; avoids empty `git diff`).
-4. If different, replace the Lore section; preserve the My notes section verbatim.
-5. **Stop.** Report: "Mirror updated: `<file>`" or "No changes needed: `<file>`" per target.
+3. **Validate the two-section structure** for each target: if it lacks the `---` separator, lacks a `## My notes` section, or is a user-notes-only file without `## Lore`, stop for that target and ask the user how to proceed — never overwrite an anomalous file silently (section detection rules: `references/platform-mirrors.md`).
+4. For each target, compare the new Lore section content against the existing one. **Skip writing if content is identical** (content-based dedup; avoids empty `git diff`).
+5. If different, replace the Lore section; preserve the My notes section verbatim. If the user asked to wipe My notes, archive it to `.lore/.archive/<file>-<date>.md` first.
+6. **Stop.** Report: "Mirror updated: `<file>`" or "No changes needed: `<file>`" per target.
 
-This command exists because most users want `sync` to be fast and unobtrusive, but occasionally need the agent-facing files to reflect recent knowledge. `mirror` is that explicit "publish to agent view" step. Subcommands: `lore mirror show <file>`, `lore mirror check`, `lore mirror reset <file>` (see `SKILL.md` Platform mirror section).
+This command exists because most users want `sync` to be fast and unobtrusive, but occasionally need the agent-facing files to reflect recent knowledge. `mirror` is that explicit "publish to agent view" step. Structure validation happens automatically during each regeneration (step 3), and a user-requested My notes wipe is handled as a normal conversation request.
 
 ### `history` — Show git commits related to a memory entry
 

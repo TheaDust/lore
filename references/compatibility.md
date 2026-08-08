@@ -37,7 +37,7 @@ Current canonical layout:
 ├── .config.json
 ├── _global/
 ├── scopes/
-├── .archive/      (mirror reset only — My notes backups)
+├── .archive/      (My notes backups before a user-requested wipe)
 ├── draft/        (init only — temporary)
 └── audit/        (audit only)
 ```
@@ -45,7 +45,7 @@ Current canonical layout:
 Rules:
 - Adding a new top-level directory (e.g., `rejected/` for rejected entries) is non-breaking.
 - Renaming an existing directory is breaking — every reference in `references/*.md`, every script, and every user's project breaks.
-- Removing a directory is non-breaking if it was never actually written. The previous `archive/` directory fell into this category and has been removed from the layout. Note: `lore mirror reset` writes My notes backups to `.lore/.archive/` (see `references/platform-mirrors.md`); that directory is part of the layout above and is **not** an entries archive — it is a user-confirmed backup location only.
+- Removing a directory is non-breaking if it was never actually written. The previous `archive/` directory fell into this category and has been removed from the layout. Note: when the user asks to wipe a mirror's My notes, lore archives the old content to `.lore/.archive/` first (see `references/platform-mirrors.md`); that directory is part of the layout above and is **not** an entries archive — it is a user-confirmed backup location only.
 
 ### Layer 4: Python scripts
 

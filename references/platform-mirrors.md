@@ -362,12 +362,7 @@ Index content changes require regeneration when:
 
 ## Manual operations
 
-| Command | Effect |
-|---|---|
-| `lore mirror` | Regenerate all configured platform mirrors from current `.lore/*` state. Content-based dedup: skips targets whose new Lore section matches the existing one. |
-| `lore mirror reset <file>` | Archive current My notes content to `.lore/.archive/<file>-<date>.md`, then write a clean mirror with only the Lore section. User must confirm. |
-| `lore mirror show <file>` | Print the file with the two sections clearly delimited in the output. Pure read. |
-| `lore mirror check` | For each configured target, verify it has a `---` separator and a `## My notes` section. Report any structural problems. Read-only. |
+Regeneration is not a blind rewrite: each target's two-section structure is validated first, and anomalies are reported to the user instead of overwritten (see "Section detection rules" above). My notes is preserved verbatim across regenerations; if the user asks to wipe a target's My notes, archive the old content to `.lore/.archive/<file>-<date>.md` first, then write a clean mirror.
 
 ## Trigger rules
 
