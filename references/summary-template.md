@@ -9,7 +9,7 @@
 
 > Last compressed: <YYYY-MM-DD>
 > Total entries: <N> across <M> scopes
-> This is an index of key entries — open the referenced files under `_global/` and `scopes/` for the full text.
+> This digest highlights key entries — open the referenced files under `_global/` and `scopes/` for the full text.
 
 ## Global (`_global/`)
 
@@ -58,7 +58,7 @@ If a (scope, layer) is empty, omit the subsection entirely.
 
 > Last compressed: 2026-07-09
 > Total entries: 247 across 3 scopes
-> This is an index of key entries — open the referenced files under `_global/` and `scopes/` for the full text.
+> This digest highlights key entries — open the referenced files under `_global/` and `scopes/` for the full text.
 
 ## Global (`_global/`)
 

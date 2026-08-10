@@ -109,7 +109,7 @@ lore history --json                 # 机器可读
 <!-- LORE:START -->
 ## Lore (auto-managed)
 
-Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md` as the index, then open the referenced entries (`.lore/_global/`, `.lore/scopes/`) for the full text before answering or deciding; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.
+Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md` as the digest, then open the referenced entries (`.lore/_global/`, `.lore/scopes/`) for the full text before answering or deciding; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.
 
 **Structure**:
 - Digest: `.lore/SUMMARY.md` (top-level overview)
@@ -129,7 +129,7 @@ Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMA
 - 你在这里写的内容每次 sync 都原样保留。
 ```
 
-镜像文件以一句祈使句开头（例如："Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md` as the index, then open the referenced entries for the full text before answering or deciding."），让消费侧 agent 有明确的触发条件去加载 memory。该行位于 `## Lore (auto-managed)` 段落内，每次 `compress` 或 `lore mirror` 重新生成时会被覆写。
+镜像文件以一句祈使句开头（例如："Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md` as the digest, then open the referenced entries for the full text before answering or deciding."），让消费侧 agent 有明确的触发条件去加载 memory。该行位于 `## Lore (auto-managed)` 段落内，每次 `compress` 或 `lore mirror` 重新生成时会被覆写。
 
 ### 用 `lore history` 追 git 溯源
 
