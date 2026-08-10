@@ -109,7 +109,7 @@ Every answer cites the exact `[file#ID]` so you can `cat` the entry or run `lore
 <!-- LORE:START -->
 ## Lore (auto-managed)
 
-Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md`; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.
+Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md` as the index, then open the referenced entries (`.lore/_global/`, `.lore/scopes/`) for the full text before answering or deciding; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.
 
 **Structure**:
 - Digest: `.lore/SUMMARY.md` (top-level overview)
@@ -129,7 +129,7 @@ Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMA
 - Anything you write here is preserved verbatim across every sync.
 ```
 
-The mirror file opens with an imperative sentence (e.g. "Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md`; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.") so the consuming agent has a clear trigger to load memory. The line lives in `## Lore (auto-managed)` and is rewritten on every `compress` or `lore mirror` regeneration.
+The mirror file opens with an imperative sentence (e.g. "Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md` as the index, then open the referenced entries for the full text before answering or deciding.") so the consuming agent has a clear trigger to load memory. The line lives in `## Lore (auto-managed)` and is rewritten on every `compress` or `lore mirror` regeneration.
 
 ### Git traceability with `lore history`
 

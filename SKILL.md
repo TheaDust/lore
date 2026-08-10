@@ -89,7 +89,7 @@ Detailed specifications live in `references/`. Load these on demand.
 
 ```
 .lore/
-|-- SUMMARY.md        # Top-level digest. New agents read this first.
+|-- SUMMARY.md        # Top-level index. New agents read this first, then open referenced entries.
 |-- .config.json      # Optional config: auto_mirror, sync_trust, mirror_targets, etc.
 |-- _global/          # Cross-scope facts (whole-project architecture, global decisions)
 |   |-- ARCHITECTURE.md

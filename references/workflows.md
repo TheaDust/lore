@@ -107,6 +107,7 @@ Read-only.
    - If ambiguous, search SUMMARY.md for clues.
 2. Grep the target files for relevant entries. If multi-layer or multi-scope, check all relevant ones.
    - **Skip entries with `#superseded-by:<id>`.** The replacement is current; the superseded entry is historical. Same filter `compress` applies (see `references/summary-template.md` selection rule 0). If the user's question is about how something evolved ("why did we switch from X to Y?"), use the `history` workflow instead — `history --follow-superseded <id>` walks the chain.
+   - **SUMMARY is an index, not a source of truth for a claim.** A one-line summary is a locating hint; when citing a fact or making a decision, read the full referenced entry (including its tags) in `_global/` or `scopes/` first.
 3. If found: answer concisely, citing fully-qualified entry IDs (e.g. `[scopes/frontend/DECISIONS.md#DEC-2026-02-03-7c19]`). Mention `#verified` date.
 4. If not found but inferable from the code: say so explicitly ("Not in memory, but inferable from `frontend/src/store/index.ts`..."). Offer to add it.
 5. Never fabricate an entry. If memory doesn't have it, say it doesn't have it.
