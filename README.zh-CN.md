@@ -148,10 +148,6 @@ feat(backend): add alembic migrations and switch password hashing to bcrypt
 
 ## ed2b288 (2026-07-10, Lore Tester)
 feat(backend): password hashing and JWT-style auth tokens
-
-## Suggested next step
-Run `lore sync` to check whether any of these commits
-introduce a [REFINED] candidate for this entry.
 ```
 
 Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `git log`。
@@ -201,9 +197,7 @@ Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `gi
 
 想看每个工作流什么时候用、用在哪里的平实解释，见 [`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)（English: [`WORKFLOWS.md`](WORKFLOWS.md)）。
 
-`sync` **不会**更新平台 mirror。这是刻意的：mirror 文件是 agent 入口，不是变更日志。每次 sync 都重写会让 `git log` 变得很乱，稀释"人工合并"这个 mirror 应该提供的信号。当你需要 agent 视图跟上时，跑 `lore mirror`（或 `compress`）。
-
-要恢复老行为（每次 sync 都更新 mirror），在 `.lore/.config.json` 里设 `"sync_updates_mirror": true`。
+`sync` 从不更新 mirror —— 需要发布时跑 `lore mirror`（或 `compress`）。要恢复每次 sync 都更新 mirror 的老行为，在 `.lore/.config.json` 里设 `"sync_updates_mirror": true`。
 
 ## Sync 信任级别
 
@@ -235,21 +229,7 @@ lore 的事实源是 `.lore/*`，但它会投影到 agent 已经读取的配置�
 | Continue.dev | `.continue/rules/lore.md` | ✅ |
 | LangGraph / DeepAgents |（无文件 — 直接读 `.lore/*.md`）| n/a |
 
-每个 mirror 文件用 `---` 分隔符切成两段，自动管理区由 `<!-- LORE:START -->` 和 `<!-- LORE:END -->` HTML 注释框定：
-
-```markdown
-<!-- LORE:START -->
-## Lore (auto-managed)
-... Skill 从 .lore/ 写入的内容 ...
-<!-- LORE:END -->
-
----
-
-## My notes (free edit)
-... 你手写的笔记，sync 时原样保留 ...
-```
-
-Skill 只写 `## Lore` 段。`## My notes` 段以下都是你自由编辑的区域，Skill 在每次 sync 和 compress 时原样保留。
+每个 mirror 文件用 `---` 分隔成两段：`## Lore (auto-managed)`（由 `<!-- LORE:START -->` / `<!-- LORE:END -->` 框定）和 `## My notes (free edit)`。lore 只写 Lore 段；My notes 原样保留。（完整示例见上文「实际长什么样」。）
 
 ## Token 成本
 
@@ -264,38 +244,7 @@ lore 的 token 模型有 6 个组件；只有 mirror 文件是 per-session，其
 | **`scopes/<scope>/{ARCH,DEC,CONV}.md`** | agent 只读相关 scope | 1–5 KB each | 否，on demand |
 | **`lore query <term>`** 结果 | agent 跑 query 时 | 按命中条数 bound | 否，per query |
 
-### Mirror 是 constant-cost
-
-`CLAUDE.md` 等平台文件 agent 每次会话都自动加载。lore 通过只输出索引（~600 字节 worst case）而不是项目摘要来保持这个成本稳定。这是唯一随会话数线性增长的项。
-
-| 项目形态 | Mirror 大小 | 每次会话成本 |
-|---|---|---|
-| 空 / 新项目 | ~250 字节 | 可忽略 |
-| 单 scope | ~400 字节 | 可忽略 |
-| 少量 scope（3+） | ~550 字节 | 可忽略 |
-| 多 scope 含 description | ~600 字节 | 可忽略 |
-
-Mirror 大小由 **scope 数量与每个 scope 的 description** 决定，跟 entry 数量无关。同样 scope 形态的 30-entry 项目和 250-entry 项目，mirror 文件大小相同。
-
-### `.lore/` 是 on-demand
-
-`.lore/*.md` 文件**不会**预加载。agent 读 `SUMMARY.md` 作为目录，再按需深入具体 scope 或 entry（`cat [file#ID]`）。一个 250-entry 的项目，agent 每次会话启动成本 ~600 字节（worst-case mirror），按需读取另算。
-
-### SKILL.md 是 per-invocation
-
-每次你说 `lore sync` 或 `lore query`，agent 加载 `SKILL.md`（~19 KB）以及 `references/workflows.md` 中被路由的那一节来执行 workflow。不在 lore 调用期间，agent 上下文里没有任何 lore 内容。
-
-### Query 有界
-
-`lore query <term>` 返回命中 entry 的稳定 ID + 一句话摘要，不是整个 `.lore/` 内容。单次 query 的 token 量按命中条数 bound，跟项目总规模无关。
-
-### Ambient 与 on-demand 知识
-
-**Ambient** 知识 = agent 会话启动时已经在上下文里，无需 fetch。**On-demand** 知识 = agent 主动读时才有（`cat [file#ID]`、`lore query <term>`）。
-
-lore 的 mirror 文件（`CLAUDE.md`、`AGENTS.md` 等）是 ambient —— agent 每个 session 自动看到。`.lore/` 下所有内容是 on-demand：`SUMMARY.md` 当目录，entry 按需 fetch。
-
-默认是 on-demand。如果你倾向把整个 `SUMMARY.md` 倒进 `CLAUDE.md`（真 ambient），可行但**不推荐** —— 用「会话启动开销」换「零 fetch」。详见 [`references/platform-mirrors.md`](references/platform-mirrors.md)。
+mirror 是唯一的 ambient 部分 —— agent 每次会话自动看到 —— 且保持 ~600 字节，因为它是索引不是记忆。mirror 大小由 **scope 数量与 description** 决定，跟 entry 数量无关：同样 scope 形态的 30-entry 和 250-entry 项目，mirror 完全相同。`.lore/` 下所有内容都是 on-demand：agent 把 `SUMMARY.md` 当目录，只打开需要的 entry。`SKILL.md` 和被路由的 `workflows.md` 节只在你说 lore 命令时加载；`lore query` 只返回命中行。把整个 `SUMMARY.md` 倒进 `CLAUDE.md` 可行但**不推荐** —— 用「会话启动开销」换「零 fetch」。
 
 ## 脚本
 
@@ -364,7 +313,10 @@ A: 那些是扁平的规则列表。lore 是结构化的（架构 / 决策 / 约
 A: 不会。lore 是纯文件 I/O。调用 lore 的 agent 做语义工作（扫描代码、决定提取什么、分类变更）；lore 提供文件布局、ID 方案、标记规则和验证脚本。
 
 **Q: agent 原生的 `/init` 或 `/compact` 呢？**
-A: 它们用途不同。`/init` 是一次性项目扫描 → `CLAUDE.md`。`/compact` 压缩对话上下文。lore 的 `init` 和 `compress` 管长期项目知识，不是会话上下文。如果你在已经有非 lore `CLAUDE.md` 的项目上跑 `lore init`，接管检测（init step 0）会处理集成。
+A: 用途不同 —— `/init` 是一次性项目扫描，`/compact` 压缩对话上下文，lore 管长期项目知识。三者可以共存。
+
+**Q: 我已经用 `/init` 或 bootstrap 工具生成了根 `AGENTS.md`，还能用 lore 吗？**
+A: 可以 —— 这正是设计的流程。跑 `lore init`，检测到已有 `AGENTS.md` 时选 **take over（接管）**：文件会变成两段 mirror，你原来的内容原样保留为 `## My notes (free edit)`，lore 的 `## Lore (auto-managed)` 段加在上面。lore 只重写自己的段，bootstrap 生成的命令和约定不受影响。`CLAUDE.md`、`.cursorrules` 等同理。
 
 **Q: `sync` 和 `mirror` 有什么区别？**
 A: `sync` 根据代码改动更新 `.lore/`（feature / refactor 后）；`mirror` 把当前 `.lore/` 重新生成到 agent 端文件（`CLAUDE.md`、`.cursorrules` 等）。`sync` **故意不**更新 mirror —— mirror 文件该是人工合并的，不该每次 commit 都重生成，否则 `git log` 会变难读。需要 agent 视图跟上时，显式跑 `mirror`（或 `compress`）。

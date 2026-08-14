@@ -148,10 +148,6 @@ feat(backend): add alembic migrations and switch password hashing to bcrypt
 
 ## ed2b288 (2026-07-10, Lore Tester)
 feat(backend): password hashing and JWT-style auth tokens
-
-## Suggested next step
-Run `lore sync` to check whether any of these commits
-introduce a [REFINED] candidate for this entry.
 ```
 
 The agent reads the commit messages and tells you *why* — without you having to manually dig through `git log`.
@@ -201,9 +197,7 @@ For the full format spec (ID generation, tags, splitting rules), see [`reference
 
 For a plain-language explanation of each workflow (when you'd actually use each one, with real scenarios), see [`WORKFLOWS.md`](WORKFLOWS.md) (中文版: [`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)).
 
-`sync` deliberately does **not** update platform mirrors. Mirror files are agent-facing entry points, not per-change logs. Regenerating them on every `sync` would clutter `git log` and dilute the "human-merged" signal they're supposed to provide. Run `lore mirror` (or `compress`) when you want the agent-facing view to catch up.
-
-To restore old behavior (mirror updates on every `sync`), set `"sync_updates_mirror": true` in `.lore/.config.json`.
+`sync` never updates mirrors — run `lore mirror` (or `compress`) to publish changes. To restore mirror updates on every `sync`, set `"sync_updates_mirror": true` in `.lore/.config.json`.
 
 ## Sync trust levels
 
@@ -235,21 +229,7 @@ lore's canonical store is `.lore/*`, but it projects into the config files agent
 | Continue.dev | `.continue/rules/lore.md` | ✅ |
 | LangGraph / DeepAgents | (no file — read `.lore/*.md` directly) | n/a |
 
-Each mirror file is split into two sections by a `---` separator, with the auto-managed section bounded by `<!-- LORE:START -->` and `<!-- LORE:END -->` HTML comments:
-
-```markdown
-<!-- LORE:START -->
-## Lore (auto-managed)
-... Skill-managed content from .lore/ ...
-<!-- LORE:END -->
-
----
-
-## My notes (free edit)
-... your hand-written notes, preserved verbatim across syncs ...
-```
-
-The Skill only writes inside the `## Lore` section. Everything under `## My notes` is yours to edit freely. The Skill preserves it verbatim across every `sync` and `compress`.
+Each mirror file is split by a `---` separator into a `## Lore (auto-managed)` section (bounded by `<!-- LORE:START -->` / `<!-- LORE:END -->`) and a `## My notes (free edit)` section. Lore only writes inside the Lore section; My notes is preserved verbatim. (See the full example under "What `CLAUDE.md` looks like" above.)
 
 ## Token cost
 
@@ -264,38 +244,7 @@ lore's token model has six components. Only the mirror file is per-session; ever
 | **`scopes/<scope>/{ARCH,DEC,CONV}.md`** | Agent reads only the relevant scope | 1–5 KB each | no, on demand |
 | **`lore query <term>`** result | Agent runs a query | bounded by matches | no, per query |
 
-### The mirror is constant-cost
-
-`CLAUDE.md` and equivalent platform files are loaded by your agent on **every session**. lore keeps this cost flat by emitting an index (~600 bytes worst case) rather than the project digest content. This is the only line item that scales with session count.
-
-| Project shape | Mirror size | Per-session context cost |
-|---|---|---|
-| Empty / new | ~250 bytes | negligible |
-| Single scope | ~400 bytes | negligible |
-| Few scopes (3+) | ~550 bytes | negligible |
-| Many scopes with descriptions | ~600 bytes | negligible |
-
-Mirror size scales with **scope count and per-scope descriptions**, not with entry count. A 30-entry project and a 250-entry project with the same scope shape have mirror files of the same size.
-
-### Memory is on-demand
-
-`.lore/*.md` files are **not** pre-loaded. The agent reads `SUMMARY.md` as a table of contents, then drills into the specific scope or entry it needs (`cat [file#ID]`). A 250-entry project costs the agent ~600 bytes at session start (the worst-case mirror), plus only the entries it actively reads.
-
-### SKILL.md is per-invocation
-
-Every time you say `lore sync` or `lore query`, the agent loads `SKILL.md` (~19 KB) plus the routed section of `references/workflows.md` to follow the workflow. Outside of lore invocations, no lore content sits in the agent's context.
-
-### Queries are bounded
-
-`lore query <term>` returns matched entries with stable IDs and one-line summaries, not the full text of `.lore/`. A single query is bounded by the number of matches regardless of total project size.
-
-### Ambient vs on-demand knowledge
-
-**Ambient** knowledge is already in the agent's context at session start — no fetch needed. **On-demand** knowledge is read only when the agent asks (`cat [file#ID]`, `lore query <term>`).
-
-lore's mirror file (`CLAUDE.md`, `AGENTS.md`, etc.) is ambient — the agent sees it every session. Everything under `.lore/` is on-demand: `SUMMARY.md` is the table of contents, and entries are fetched when the agent actually needs them.
-
-Default is on-demand. If you'd rather dump the full `SUMMARY.md` into `CLAUDE.md` every session (true ambient), that works but isn't recommended — it trades session-start cost for zero fetch. See [`references/platform-mirrors.md`](references/platform-mirrors.md) for the index template.
+The mirror is the only ambient piece — the agent sees it every session — and it stays ~600 bytes because it's an index, not the memory. Mirror size scales with scope count and descriptions, not entry count: a 30-entry and a 250-entry project with the same scope shape have identical mirrors. Everything under `.lore/` is on-demand: the agent reads `SUMMARY.md` as a table of contents, then opens only the entries it needs. `SKILL.md` and the routed `workflows.md` section load only when you invoke a lore command, and `lore query` returns only matched lines. Dumping the full `SUMMARY.md` into `CLAUDE.md` works but trades session-start cost for zero fetch — not recommended.
 
 ## Scripts
 
@@ -364,7 +313,10 @@ A: Those are flat lists of rules. lore is structured (architecture / decisions /
 A: No. lore is pure file I/O. The agent invoking lore does the semantic work (scanning code, deciding what to extract, classifying changes); lore provides the file layout, the ID scheme, the markers, and the verification scripts.
 
 **Q: What about the agent's native `/init` or `/compact` commands?**
-A: They serve different purposes. `/init` is a one-shot project scan → `CLAUDE.md`. `/compact` compresses conversation context. lore `init` and `compress` manage long-term project knowledge, not session context. If you run `lore init` on a project that already has a non-lore `CLAUDE.md`, the takeover check (init step 0) handles integration.
+A: They serve different purposes — `/init` is a one-shot project scan, `/compact` compresses conversation context, and lore manages long-term project knowledge. All three coexist.
+
+**Q: I already generated a root `AGENTS.md` (via `/init` or a bootstrapping tool). Can I still use lore?**
+A: Yes — that's the designed flow. Run `lore init` and choose **take over** when it detects the existing `AGENTS.md`: the file becomes a two-section mirror, your original content is preserved verbatim as `## My notes (free edit)`, and lore's `## Lore (auto-managed)` section is added above it. Lore only rewrites its own section, so the bootstrapped commands and conventions stay untouched. The same applies to `CLAUDE.md`, `.cursorrules`, etc.
 
 **Q: What's the difference between `sync` and `mirror`?**
 A: `sync` updates `.lore/` from code changes (run after a feature or refactor). `mirror` updates agent-facing files (`CLAUDE.md`, `.cursorrules`, etc.) from current `.lore/`. `sync` deliberately does **not** update mirrors — mirror files should be human-merged, not regenerated on every commit, so `git log` stays readable. Run `mirror` (or `compress`) explicitly when you want agent-facing files to catch up.
