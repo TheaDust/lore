@@ -316,7 +316,10 @@ A: No. lore is pure file I/O. The agent invoking lore does the semantic work (sc
 A: They serve different purposes — `/init` is a one-shot project scan, `/compact` compresses conversation context, and lore manages long-term project knowledge. All three coexist.
 
 **Q: I already generated a root `AGENTS.md` (via `/init` or a bootstrapping tool). Can I still use lore?**
-A: Yes — that's the designed flow. Run `lore init` and choose **take over** when it detects the existing `AGENTS.md`: the file becomes a two-section mirror, your original content is preserved verbatim as `## My notes (free edit)`, and lore's `## Lore (auto-managed)` section is added above it. Lore only rewrites its own section, so the bootstrapped commands and conventions stay untouched. The same applies to `CLAUDE.md`, `.cursorrules`, etc.
+A: Yes — that's the designed flow. Run `lore init` and choose **take over** when it detects the existing `AGENTS.md`: the file becomes a two-section mirror, your original content is preserved verbatim as `## My notes (free edit)`, and lore's `## Lore (auto-managed)` section is added above it. Lore only rewrites its own section, so the bootstrapped commands and conventions stay untouched. The same applies to `CLAUDE.md`, `.cursorrules`, etc. In reverse — if lore created the file first — run the bootstrap tool and choose **skip**, then paste its generated content into `## My notes`.
+
+**Q: I added a new scope (e.g. a new package) after `lore init`. Do I re-run init?**
+A: No — run `lore sync`. It detects the new scope from the changed file paths, creates `scopes/<name>/` automatically, and routes entries there. Then run `lore mirror` so the new scope appears in the agent-facing files. `init` is only for first-time setup or an explicit start-over.
 
 **Q: What's the difference between `sync` and `mirror`?**
 A: `sync` updates `.lore/` from code changes (run after a feature or refactor). `mirror` updates agent-facing files (`CLAUDE.md`, `.cursorrules`, etc.) from current `.lore/`. `sync` deliberately does **not** update mirrors — mirror files should be human-merged, not regenerated on every commit, so `git log` stays readable. Run `mirror` (or `compress`) explicitly when you want agent-facing files to catch up.

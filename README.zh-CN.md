@@ -316,7 +316,10 @@ A: 不会。lore 是纯文件 I/O。调用 lore 的 agent 做语义工作（扫�
 A: 用途不同 —— `/init` 是一次性项目扫描，`/compact` 压缩对话上下文，lore 管长期项目知识。三者可以共存。
 
 **Q: 我已经用 `/init` 或 bootstrap 工具生成了根 `AGENTS.md`，还能用 lore 吗？**
-A: 可以 —— 这正是设计的流程。跑 `lore init`，检测到已有 `AGENTS.md` 时选 **take over（接管）**：文件会变成两段 mirror，你原来的内容原样保留为 `## My notes (free edit)`，lore 的 `## Lore (auto-managed)` 段加在上面。lore 只重写自己的段，bootstrap 生成的命令和约定不受影响。`CLAUDE.md`、`.cursorrules` 等同理。
+A: 可以 —— 这正是设计的流程。跑 `lore init`，检测到已有 `AGENTS.md` 时选 **take over（接管）**：文件会变成两段 mirror，你原来的内容原样保留为 `## My notes (free edit)`，lore 的 `## Lore (auto-managed)` 段加在上面。lore 只重写自己的段，bootstrap 生成的命令和约定不受影响。`CLAUDE.md`、`.cursorrules` 等同理。反过来如果 lore 先创建了文件，跑 bootstrap 工具时选 **skip（跳过）**，把生成的模板内容粘贴进 `## My notes` 段。
+
+**Q: 我在 `lore init` 之后新增了 scope（比如新 package），要重跑 init 吗？**
+A: 不用 —— 跑 `lore sync`。它会从变更文件路径里检测到新 scope，自动创建 `scopes/<name>/`，并把条目路由进去。然后跑 `lore mirror` 让新 scope 出现在 agent 端文件里。`init` 只用于首次设置或显式重来。
 
 **Q: `sync` 和 `mirror` 有什么区别？**
 A: `sync` 根据代码改动更新 `.lore/`（feature / refactor 后）；`mirror` 把当前 `.lore/` 重新生成到 agent 端文件（`CLAUDE.md`、`.cursorrules` 等）。`sync` **故意不**更新 mirror —— mirror 文件该是人工合并的，不该每次 commit 都重生成，否则 `git log` 会变难读。需要 agent 视图跟上时，显式跑 `mirror`（或 `compress`）。
