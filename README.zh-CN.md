@@ -1,22 +1,33 @@
 # lore
 
 <p align="center">
-  <img src="docs/lore-poster.svg" alt="lore" width="100%">
+  <img src="docs/lore-poster.svg" alt="lore" width="640">
+</p>
+
+<p align="center">
+  <a href="https://github.com/TheaDust/lore"><img src="https://img.shields.io/github/stars/TheaDust/lore?style=flat&label=stars" alt="stars"></a>
+  <a href="https://github.com/TheaDust/lore/commits/main"><img src="https://img.shields.io/github/last-commit/TheaDust/lore?style=flat&label=last%20commit" alt="last commit"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
+  <img src="https://img.shields.io/badge/python-3.6%2B-blue.svg" alt="python">
 </p>
 
 <p align="center"><em><strong>lore</strong>（名词）—— 某一主题的传统与知识，由人口口相传。</em></p>
 
-<p align="right">中文（当前页面）· <a href="https://github.com/TheaDust/lore/blob/main/README.md">English</a></p>
+<p align="right">中文 · <a href="README.md">English</a></p>
 
-> 框架无关的 AI 编程智能体项目记忆。
+> 框架无关的 AI 编程智能体项目记忆。长期保存架构、决策与约定为纯 Markdown，任何智能体都能读取。
 
-一个由 AI 智能体维护的软件项目长期知识库。它捕获那些通常只存在于原始开发者脑中的上下文——架构、决策、约定——并以纯 Markdown 文件形式持久化，任何智能体都能消费。
+> **lore 是 SKILL，不是 CLI。** 它是一份 Markdown 规范（[`skill/SKILL.md`](skill/SKILL.md)），供 Claude Code、Cursor、OpenCode、Cline、Aider、Copilot 等读取。没有 `lore` 二进制文件——`lore init` / `lore sync` 是对智能体说的话。
 
-> **lore 是一个 SKILL，不是 CLI 工具。** 它是一份 Markdown 规范（[`skill/SKILL.md`](skill/SKILL.md)），AI 编程 agent（Claude Code、Cursor、OpenCode、Cline、Aider、GitHub Copilot）读取后获得长期项目记忆。你不需要 `npm install` 或 `pip install` `lore`；把仓库 URL 给 agent，让它装上即可。之后 `lore init`、`lore sync` 这些**短语是你对 agent 说的话**，不是终端命令——你的 `PATH` 上没有 `lore` 这个二进制。
+| 结构化 | 可检索 | 可移植 |
+|---|---|---|
+| `.lore/` 内按 ARCH / DEC / CONV 分层，条目带稳定 ID 与生命周期标签 | `lore query` 以 `[file#ID]` 引用回答；`lore history` 追溯 git 提交 | 单一事实源 `.lore/` 投影到 `CLAUDE.md` / `.cursorrules` / `AGENTS.md` |
+
+> 目录：[安装](#安装) · [快速上手](#快速上手) · [实际效果](#实际效果) · [工作原理](#工作原理) · [七个工作流](#七个工作流) · [平台 Mirror](#平台-mirror) · [FAQ](#faq)
 
 ## 安装
 
-agent-facing skill 位于 `skill/` 目录——该目录是安装单元。
+安装单元是 `skill/`：
 
 ```bash
 git clone https://github.com/TheaDust/lore.git /tmp/lore
@@ -24,251 +35,197 @@ cp -r /tmp/lore/skill <你的-agent-skills-目录>/lore
 # 例如 cp -r /tmp/lore/skill ~/.claude/skills/lore
 ```
 
-或者，更简单——告诉你的 agent：
+或直接告诉智能体：
 
-> 从 https://github.com/TheaDust/lore 安装 skill（skill 位于 `skill/` 子目录）。
+> 从 https://github.com/TheaDust/lore 安装 skill（skill 在 `skill/` 子目录）。
 
-每个 agent host 从自己的目录加载 skill（Claude Code 是 `~/.claude/skills/`，项目级是 `<project>/.claude/skills/`，等等）。你的 agent 知道自己的 skills 目录在哪，能把 `skill/` 文件夹复制到正确的位置。
-
-> 找特定章节？跳到：[快速上手](#快速上手) · [实际长什么样](#实际长什么样) · [`.lore/` 目录结构](#lore-目录结构) · [七个工作流](#七个工作流) · [平台 Mirror](#平台-mirror) · [配置](#配置) · [升级](#升级) · [FAQ](#faq)。完整参考文档在 [`skill/references/`](skill/references/)。**想看每个工作流什么时候用的平实解释？** 见 [`WORKFLOWS.md`](WORKFLOWS.md) / [English](./WORKFLOWS.md)。
-
-## 解决什么问题
-
-当你在多个 AI 工具（Claude Code、Cursor、Cline、GitHub Copilot、Aider、LangGraph agent、DeepAgents）和多个会话之间切换工作时，上下文会丢失：
-
-- **每个新会话都要重新解释项目。** "我们用 Next.js App Router，不是 Pages。用 Zustand，不是 Redux。不要提交密钥。"
-- **决策被遗忘。** "为什么选 X 不选 Y？" → "我不记得了，问问团队吧。"
-- **智能体之间互相矛盾。** Cursor 读 `.cursorrules`，Claude Code 读 `CLAUDE.md`，两个文件逐渐漂移。
-- **新成员上手需要数周。** 新成员 / 新 agent 都得从零学项目约定。
-
-lore 维护一个单一事实源（`.lore/`），并把它投影到你的 agent 已经读取的配置文件里。它追踪**为什么**做某个决策，而不只是代码**做了什么**，并把这个历史跨 session、跨工具保留下来。
+完整参考文档：[`skill/references/`](skill/references/) · 工作流平实说明：[`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)
 
 ## 快速上手
 
-下面的命令是**你对 agent 说的短语**——没有 `lore` 这个二进制。Agent 加载本 skill 后，会按 [`skill/SKILL.md`](skill/SKILL.md) 与 [`skill/references/workflows.md`](skill/references/workflows.md) 里定义的工作流执行每个短语。原来要在终端敲的活，交给 agent 就行。
+对智能体说的话（无二进制）：
 
 ```bash
-# 1. 初始化（每个项目运行一次）
-lore init
-# 扫描项目，生成 entry 草案，请用户确认，创建 .lore/
-
-# 2. 完成一个非平凡的改动后
-lore sync
-# 覆盖 commits 与未提交改动；矛盾打 ALERT；提议 [NEW]/[STALE]/[REFINED]；等用户裁决
-
-# 3. 大量改动后，刷新 agent 可见的摘要
-lore compress
-# 重新生成 SUMMARY.md；mirror 是否更新取决于 `auto_mirror`（默认：逐个询问）
-
-# 4. 强制刷新 mirror（比如手动编辑了 .lore/ 之后）
-lore mirror
-# 用当前状态重写 CLAUDE.md 等平台文件
+lore init      # 一次性：扫描项目、起草条目、确认后创建 .lore/
+lore sync      # 功能或重构后：检测变更、提议 [NEW]/[STALE]/[REFINED]/[ALERT]
+lore compress  # 刷新 SUMMARY.md（按 auto_mirror 决定是否更新 mirror）
+lore mirror    # 强制用当前 .lore/ 重写 CLAUDE.md 等 mirror 文件
 ```
-
-另外三个只读命令：
 
 ```bash
-lore query                          # 从记忆库回答问题，引用 entry ID
-lore audit                          # 检查记忆与现实的偏差，报告写入 .lore/audit/
-lore history DEC-2026-02-03-7c19    # 展示某 entry 相关代码的 git commits
-lore history frontend/src/store.ts  # ...或某个文件
-lore history --scope=frontend       # ...或某个 scope 下的所有 lore 文件
-lore history --json                 # 机器可读
+lore query <关键词>                    # 从记忆回答并引用 ID
+lore audit                             # 检查记忆与现实偏差，报告写入 .lore/audit/
+lore history <entry-id|路径|--scope> [--json]  # 展示相关 git 提交
 ```
 
-## 实际长什么样
+## 实际效果
 
-### 查询 memory
+### 查询
 
-> 你：「这个项目怎么认证 API 请求？」
-> Agent（跑 `lore query auth`）：
+> 你："这个项目怎么认证 API 请求？" — 智能体执行 `lore query auth`：
 
 ```
-找到 6 个匹配 'auth' 的 entry：
-
-  [_global/DECISIONS.md#DEC-2026-07-10-6d9c]
-    用 base64 不透明 token 而非 JWT；理由：撤销更简单，没有库依赖。
-
-  [scopes/backend/ARCHITECTURE.md#ARCH-2026-07-10-59ac]
-    backend/app/auth.py 里的认证工具：
-    hash_password、issue_token、login_required 装饰器。
-
-  [scopes/backend/CONVENTIONS.md#CONV-2026-07-10-84e3]
-    缺失/无效 token 返回 401；资源不存在返回 404。
-
-  [scopes/frontend/ARCHITECTURE.md#ARCH-2026-07-10-6de2]
-    认证 token 存到 localStorage，key 是 todo.auth.token。
-
-  [scopes/frontend/DECISIONS.md#DEC-2026-07-10-c1ea]
-    用 Axios 而非原生 fetch；理由：拦截器自动注入认证 header。
+[_global/DECISIONS.md#DEC-2026-07-10-6d9c] 用 base64 不透明 token 而非 JWT；撤销更简单。
+[scopes/backend/ARCHITECTURE.md#ARCH-2026-07-10-59ac] 认证工具在 backend/app/auth.py
+[scopes/backend/CONVENTIONS.md#CONV-2026-07-10-84e3] 无效 token 返回 401；资源不存在返回 404。
+[scopes/frontend/ARCHITECTURE.md#ARCH-2026-07-10-6de2] Token 存于 localStorage todo.auth.token
 ```
 
-每个回答都精确引用 `[file#ID]`，你可以 `cat` 那个 entry，或跑 `lore history <ID>` 看决策为什么存在。
+每条回答带 `[file#ID]`，可 `cat` 原文或 `lore history <ID>` 追溯原因。
 
-### `CLAUDE.md` 长什么样
+### Mirror
 
-`lore` 每次会话成本保持平——发小索引而非完整 memory：
+每次会话成本保持在约 600 字节的索引：
+
+<details>
+<summary>示例 <code>CLAUDE.md</code> Lore 段</summary>
 
 ```markdown
 <!-- LORE:START -->
 ## Lore (auto-managed)
 
-Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md` as the digest, then open the referenced entries (`.lore/_global/`, `.lore/scopes/`) for the full text before answering or deciding; cite entry IDs (e.g. `_global/ARCHITECTURE.md#ARCH-2026-01-15-d7a3`) when using memory.
+Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md`
+as the digest, then open the referenced entries for the full text; cite entry IDs.
 
 **Structure**:
-- Digest: `.lore/SUMMARY.md` (top-level overview)
-- Global: `.lore/_global/` (architecture, decisions, conventions)
+- Digest: `.lore/SUMMARY.md`
+- Global: `.lore/_global/`
 - Scopes: `.lore/scopes/`
   - `.lore/scopes/backend/` (Flask 3 + SQLAlchemy 2 + pytest; Python 3.11+)
   - `.lore/scopes/frontend/` (React 18 + TypeScript + Vite + Zustand + Axios)
-  - `.lore/scopes/shared/` (TypeScript types mirrored as Python dataclasses)
 
-**Query**: `lore query <term>` or `lore query <scope>:<term>`
-**Update**: see the `lore` skill (init / sync / query / audit / compress / mirror / history)
+**Query**: `lore query <关键词>` 或 `lore query <scope>:<关键词>`
 <!-- LORE:END -->
-
 ---
 ## My notes (free edit)
-
-- 你在这里写的内容每次 sync 都原样保留。
+- 这里的内容每次同步都会原样保留。
 ```
 
-镜像文件以一句祈使句开头（例如："Project memory at `.lore/`. Before project-specific questions, read `.lore/SUMMARY.md` as the digest, then open the referenced entries for the full text before answering or deciding."），让消费侧 agent 有明确的触发条件去加载 memory。该行位于 `## Lore (auto-managed)` 段落内，每次 `compress` 或 `lore mirror` 重新生成时会被覆写。
+</details>
 
-### 用 `lore history` 追 git 溯源
-
-> `lore history DEC-2026-07-10-e45d`（问「为什么选 bcrypt？」）
+<details>
+<summary>示例 <code>lore history</code></summary>
 
 ```
 # history: [DEC-2026-07-10-e45d]
-
-> Entry: scopes/backend/DECISIONS.md
-> Since: 2026-07-10T00:00:00 (entry #added date)
-> File: backend
-> Commits: 2 (showing all)
-
-## 9f264f4 (2026-07-10, Lore Tester)
-feat(backend): add alembic migrations and switch password hashing to bcrypt
-
-## ed2b288 (2026-07-10, Lore Tester)
-feat(backend): password hashing and JWT-style auth tokens
+> Entry: scopes/backend/DECISIONS.md  Since: 2026-07-10T00:00:00  File: backend
+## 9f264f4 (2026-07-10, Lore Tester) feat(backend): switch password hashing to bcrypt
+## ed2b288 (2026-07-10, Lore Tester) feat(backend): password hashing and auth tokens
 ```
 
-Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `git log`。
+</details>
 
-## `.lore/` 目录结构
+## 工作原理
 
 ```
 .lore/
-├── SUMMARY.md                    # 顶层摘要；新 agent 先读这个
-├── .config.json                  # 可选配置（auto_mirror、sync_trust、...）
-├── _global/                      # 跨 scope 的事实
+├── SUMMARY.md              # 摘要，新智能体先读它
+├── .config.json            # 可选配置
+├── _global/
 │   ├── ARCHITECTURE.md
 │   ├── DECISIONS.md
 │   └── CONVENTIONS.md
-├── scopes/                       # 各 scope 自己的事实（frontend / backend / shared）
-│   └── <scope>/
-│       ├── ARCHITECTURE.md
-│       ├── DECISIONS.md
-│       └── CONVENTIONS.md
-├── draft/                        # init 阶段用，存待确认的草案
-└── audit/                        # audit 阶段用，存报告
+├── scopes/<scope>/
+│   ├── ARCHITECTURE.md
+│   ├── DECISIONS.md
+│   └── CONVENTIONS.md
+├── draft/                  # init 草案
+├── audit/                  # audit 报告
+└── .archive/               # mirror 清空时的 My notes 备份
 ```
 
-每条 entry 是一个 Markdown bullet（≤ 2 行），带确定性 ID 和内联状态 tag：
+每条 entry 为一条 bullet，最多两行，带确定性 ID：
 
 ```markdown
 - [ARCH-2026-07-09-a3f2] Use Next.js App Router; reason: streaming + RSC. #added:2026-07-09
 - [DEC-2026-02-03-7c19] Chose Zustand over Redux; reason: 60% less boilerplate. #added:2026-02-03 #verified:2026-06-15
-- [CONV-2026-01-20-b1e8] Never commit secrets; use `dotenv` + `.env.local`. #added:2026-01-20
+- [CONV-2026-01-20-b1e8] Never commit secrets; use dotenv + .env.local. #added:2026-01-20
 ```
 
-条目还可以携带 `#superseded-by:LAYER-YYYY-MM-DD-xxxx`，指向取代本条目的新条目——让 `find_stale`、`history`、`compress` 能沿替换链追溯，而不是从叙述中推断。
-
-完整格式规范（ID 生成、tag、拆分规则）见 [`skill/references/entry-format.md`](skill/references/entry-format.md)。
+`#superseded-by` 串联替换链，供 `compress` / `history` 追溯。规范见 [`skill/references/entry-format.md`](skill/references/entry-format.md)。
 
 ## 七个工作流
 
-| 命令 | 作用 | 写什么 | 参考 |
+| 命令 | 作用 | 写入 | 参考 |
 |---|---|---|---|
-| `init` | 首次扫描项目；生成 entry 草案；用户确认 | `.lore/*` + 平台 mirror | [workflows](skill/references/workflows.md#init--initialize-the-memory-bank) |
-| `sync` | 检测代码变更；提议更新；用户裁决 | 只写 `.lore/*`（不写 mirror）| [workflows](skill/references/workflows.md#sync--update-after-a-change) |
-| `query` | 只读；从记忆回答问题并引用 entry ID | 不写任何东西 | [workflows](skill/references/workflows.md#query--answer-from-memory) |
-| `audit` | 只读；检查记忆与现实；写报告 | 只写 `.lore/audit/*` | [workflows](skill/references/workflows.md#audit--check-memory-vs-reality) |
-| `compress` | 从当前 entry 生成 `SUMMARY.md` | `SUMMARY.md` + 平台 mirror | [workflows](skill/references/workflows.md#compress--build-the-top-level-summary) |
-| `mirror` | 强制重新生成平台 mirror（带内容去重）| `CLAUDE.md`、`.cursorrules` 等 | [workflows](skill/references/workflows.md#mirror--regenerate-platform-mirrors) |
-| `history` | 只读；列出与 entry / 文件 / scope 相关的 git commits | 不写任何东西 | [workflows](skill/references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
+| `init` | 扫描项目、起草条目、确认 | `.lore/*` + mirrors | [workflows#init](skill/references/workflows.md#init--initialize-the-memory-bank) |
+| `sync` | 检测变更、提议更新 | 仅 `.lore/*` | [workflows#sync](skill/references/workflows.md#sync--update-after-a-change) |
+| `query` | 从记忆回答并引用 ID | 无 | [workflows#query](skill/references/workflows.md#query--answer-from-memory) |
+| `audit` | 检查记忆与现实、写报告 | 仅 `.lore/audit/*` | [workflows#audit](skill/references/workflows.md#audit--check-memory-vs-reality) |
+| `compress` | 重建 `SUMMARY.md` | `SUMMARY.md` + mirrors | [workflows#compress](skill/references/workflows.md#compress--build-the-top-level-summary) |
+| `mirror` | 重生成 mirrors（去重） | `CLAUDE.md` 等 | [workflows#mirror](skill/references/workflows.md#mirror--regenerate-platform-mirrors) |
+| `history` | 展示相关 git 提交 | 无 | [workflows#history](skill/references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
 
-想看每个工作流什么时候用、用在哪里的平实解释，见 [`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)（English: [`WORKFLOWS.md`](WORKFLOWS.md)）。
+`sync` 不碰 mirrors — 需发布时跑 `lore mirror` 或 `compress`。设 `sync_updates_mirror: true` 可恢复每次同步都更新。
 
-`sync` 从不更新 mirror —— 需要发布时跑 `lore mirror`（或 `compress`）。要恢复每次 sync 都更新 mirror 的老行为，在 `.lore/.config.json` 里设 `"sync_updates_mirror": true`。
+<details>
+<summary>Sync 信任级别</summary>
 
-## Sync 信任级别
-
-`sync` 根据变更类型和配置的信任级别，决定自动应用还是要求确认：
-
-| 变更类型 | `high` | `medium`（默认）| `low` |
+| 变更类型 | `high` | `medium`（默认） | `low` |
 |---|---|---|---|
 | 去重命中 | 自动 | 自动 | 确认 |
-| REFINED，只动 tag（正文不变） | 自动 | 自动 | 确认 |
-| REFINED，改正文（新 ID + 取代链） | 自动 | 确认 | 确认 |
-| `NEW` entry | 自动 | 确认 | 确认 |
+| REFINED 仅改标签 | 自动 | 自动 | 确认 |
+| REFINED 改正文 | 自动 | 确认 | 确认 |
+| `NEW` 条目 | 自动 | 确认 | 确认 |
 | `STALE` 标记 | 自动 | 确认 | 确认 |
 | `ALERT` | 确认 | 确认 | 确认 |
 
-默认 `medium` 是平衡选择：低风险变更静默应用，真正的添加或冲突仍要你点头。完全信任 agent 切 `high`；想 review 每次变更切 `low`。
+`medium` 自动处理低风险变更，新增或矛盾需确认。
+
+</details>
 
 ## 平台 Mirror
 
-lore 的事实源是 `.lore/*`，但它会投影到 agent 已经读取的配置文件。targets 通过扫描 repo 根目录的现有平台文件自动检测（auto-detect）；都没找到时 `lore init` 用 multi-select 问用户想给哪些 agent 写。在 `.lore/.config.json` 显式写 `mirror_targets` 会覆盖这个行为（Replace 语义）。
+事实源是 `.lore/*`，mirrors 是投影到智能体已读取的文件。targets 自动检测（扫描仓库根）；未检测到时 `lore init` 多选询问，或在 `.lore/.config.json` 中显式配置 `mirror_targets`。
 
-| 平台 | 文件 | 自动检测？ |
-|---|---|---|
-| Claude Code | `CLAUDE.md` | ✅ |
-| Cursor | `.cursorrules` (或 `.cursor/rules/*.mdc`) | ✅ |
-| Cline | `.clinerules` | ✅ |
-| Aider / Codex / OpenCode | `AGENTS.md` (或 `CONVENTIONS.md`) | ✅ |
-| Windsurf | `.windsurfrules` | ✅ |
-| GitHub Copilot | `.github/copilot-instructions.md` | ✅ |
-| Continue.dev | `.continue/rules/lore.md` | ✅ |
-| LangGraph / DeepAgents |（无文件 — 直接读 `.lore/*.md`）| n/a |
+| 平台 | 文件 |
+|---|---|
+| Claude Code | `CLAUDE.md` |
+| Cursor | `.cursorrules` / `.cursor/rules/*.mdc` |
+| Cline | `.clinerules` |
+| Aider / Codex / OpenCode | `AGENTS.md` |
+| Windsurf | `.windsurfrules` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Continue.dev | `.continue/rules/lore.md` |
+| LangGraph / DeepAgents | 无文件 — 直接读 `.lore/*.md` |
 
-每个 mirror 文件用 `---` 分隔成两段：`## Lore (auto-managed)`（由 `<!-- LORE:START -->` / `<!-- LORE:END -->` 框定）和 `## My notes (free edit)`。lore 只写 Lore 段；My notes 原样保留。（完整示例见上文「实际长什么样」。）
+每个 mirror 以 `---` 分隔为 `## Lore (auto-managed)`（`<!-- LORE:START -->` / `<!-- LORE:END -->` 包裹）与 `## My notes (free edit)`（原样保留）。
 
-## Token 成本
+<details>
+<summary>Token 成本</summary>
 
-lore 的 token 模型有 6 个组件；只有 mirror 文件是 per-session，其余都是 on-demand 或 per-invocation。
-
-| 组件 | 何时加载 | 典型大小 | per-session？ |
+| 组件 | 何时加载 | 典型大小 | 每次会话 |
 |---|---|---|---|
-| **Mirror 文件**（CLAUDE.md / AGENTS.md 等） | 每次会话启动 | ~600 字节（index mode，worst case） | 是 |
-| **skill/SKILL.md**（lore 自身规范） | 每次用户说 `lore <cmd>` | ~19 KB | 否，per-invocation |
-| **`skill/references/workflows.md`**（七个工作流的步骤） | 每次用户说 `lore <cmd>`（只读被路由的那一节） | ~17 KB | 否，per-invocation |
-| **`.lore/SUMMARY.md`** | agent 按需读，作为目录 | 1–30 KB | 否，on demand |
-| **`scopes/<scope>/{ARCH,DEC,CONV}.md`** | agent 只读相关 scope | 1–5 KB each | 否，on demand |
-| **`lore query <term>`** 结果 | agent 跑 query 时 | 按命中条数 bound | 否，per query |
+| Mirror 文件 | 每次会话 | 约 600 字节（index 模式） | 是 |
+| `skill/SKILL.md` | 每次 `lore <cmd>` | 约 19 KB | 按调用 |
+| `skill/references/workflows.md` | 每次 `lore <cmd>`（仅路由段） | 约 17 KB | 按调用 |
+| `.lore/SUMMARY.md` | 按需 | 1–30 KB | 按需 |
+| `scopes/<scope>/*.md` | 按需 | 1–5 KB 各 | 按需 |
+| `lore query` 结果 | 按查询 | 按命中条数 | 按查询 |
 
-mirror 是唯一的 ambient 部分 —— agent 每次会话自动看到 —— 且保持 ~600 字节，因为它是索引不是记忆。mirror 大小由 **scope 数量与 description** 决定，跟 entry 数量无关：同样 scope 形态的 30-entry 和 250-entry 项目，mirror 完全相同。`.lore/` 下所有内容都是 on-demand：agent 把 `SUMMARY.md` 当目录，只打开需要的 entry。`skill/SKILL.md` 和被路由的 `workflows.md` 节只在你说 lore 命令时加载；`lore query` 只返回命中行。把整个 `SUMMARY.md` 倒进 `CLAUDE.md` 可行但**不推荐** —— 用「会话启动开销」换「零 fetch」。
+Mirror 大小随 scope 数量变化，与条目数无关。不建议将 `SUMMARY.md` 完整塞入 mirror。
 
-## 脚本
+</details>
 
-`skill/scripts/` 里的辅助脚本减少重复的机械工作：
+<details>
+<summary>脚本与测试</summary>
 
 ```bash
-python skill/scripts/id_hash.py "Use Next.js App Router"        # → 409a（4 字符 ID hash）
-python skill/scripts/list_entries.py                            # 列出所有 entry（文本）
-python skill/scripts/list_entries.py --scope=frontend --json    # 过滤的 JSON
-python skill/scripts/find_duplicates.py                          # 找可能的重复
-python skill/scripts/find_stale.py --days=90                    # 找过期的 entry
-python skill/scripts/history.py DEC-2026-02-03-7c19             # 展示某 entry 的 git 历史
-python skill/scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # 沿替换链追溯
+python skill/scripts/id_hash.py "Use Next.js App Router"      # 4 字符 ID hash
+python skill/scripts/list_entries.py --json
+python skill/scripts/find_duplicates.py --json
+python skill/scripts/find_stale.py --days=90 --json
+python skill/scripts/history.py DEC-2026-02-03-7c19
 ```
 
-所有脚本都是跨平台 Python 3.6+，无第三方依赖。回归测试在 `tests/`，在仓库根目录用 `python -m unittest discover -s tests -v` 运行。详见 [`skill/scripts/README.md`](skill/scripts/README.md)（英文）或 [`skill/scripts/README.zh-CN.md`](skill/scripts/README.zh-CN.md)（中文）。
+Python 3.6+，仅标准库。测试：`python -m unittest discover -s tests -v`。详见 [`skill/scripts/README.md`](skill/scripts/README.md)。
 
-## 配置
+</details>
 
-`.lore/.config.json` 是可选的。默认值适合大多数项目。
+<details>
+<summary>配置</summary>
+
+`.lore/.config.json` 可选：
 
 ```json
 {
@@ -276,70 +233,121 @@ python skill/scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # 沿�
   "auto_mirror": false,
   "sync_updates_mirror": false,
   "sync_trust": "medium",
-  "mirror_targets": ["CLAUDE.md"], // optional — auto-detected if absent
+  "mirror_targets": ["CLAUDE.md"],
   "mirror_mode": "index",
   "compress_thresholds": { "max_entries": 500, "max_days_since_compress": 30 },
   "sync_thresholds": { "min_lines_changed": 50, "min_directories_changed": 2 }
 }
 ```
 
-字段含义：见 [`skill/references/config.md`](skill/references/config.md)。新 config 会包含 `schema_version: 1`；旧 config 没有这个字段也能用，但会触发 warning。兼容策略见 [`skill/references/compatibility.md`](skill/references/compatibility.md)。
+见 [`skill/references/config.md`](skill/references/config.md) 与 [`skill/references/compatibility.md`](skill/references/compatibility.md)。
+
+</details>
 
 ## 升级
 
-`git pull`（或重新 clone）是常规升级路径；你的 `.lore/` 在升级中保持原样。如果某个 commit 包含破坏性变更，commit message 会以 `BREAKING:` 为前缀，并说明需要手动改什么。pull 之后跑 `git log --grep=^BREAKING` 查看自上次同步以来的所有破坏性变更。当前 schema 是 `schema_version: 1`；还没有任何迁移工具发布，所以今天 pull 之后你不需要跑任何东西。完整版本策略见 [`skill/references/compatibility.md`](skill/references/compatibility.md)。
+`git pull` 保留 `.lore/` 原样。破坏性变更以 `BREAKING:` 前缀标注 — pull 后执行 `git log --grep=^BREAKING` 查看。当前 `schema_version: 1`。
 
-## 不适用场景
+<details>
+<summary>不适用场景</summary>
 
-lore 为长期项目设计。下列场景过度：
+- 短命脚本或一次性 demo
+- 决策每周变化的快速原型
+- 微型单文件项目
+- 希望智能体只读的项目
+- 50+ packages 的超大 monorepo（建议按集群拆分）
 
-- **短命脚本 / 一次性 demo。** 维护成本大于价值。
-- **快速原型**，决策每周都变。决策追踪机制反而碍事。
-- **微型单文件项目。** 用 `README.md` 就够了。
-- **不希望 AI 做决策的项目。** 如果你想要纯只读 agent，lore 没有价值。
-- **超大型 monorepo（50+ packages）**。Scope 树会变得难用，考虑按 package 拆分或每个 cluster 一个 sub-skill。
+</details>
 
 ## FAQ
 
-**Q: 不在 git 仓库里能用 lore 吗？**
-A: 部分能。lore **大部分是 agent 工作流**（写在 [`skill/references/workflows.md`](skill/references/workflows.md) 里，由 `skill/SKILL.md` 路由）—— agent 读你的文件、起草 entry、编辑 `.lore/*.md`，按需重生成 mirror。没有 git，agent 仍能跑 `init` / `query` / `audit` / `compress` / `mirror`（直接读文件）。失去的：`sync` 用 `git diff` 检变化（没 diff → agent 得问你改了什么）；`lore history` 需要 git 仓库（内部跑 `git log`）。helper scripts（`list_entries.py`、`find_stale.py` 等）两种情况都能跑。
+<details>
+<summary>不在 git 仓库能用吗？</summary>
 
-**Q: 我能直接手动编辑 `.lore/*.md` 吗？**
-A: 可以。文件就是纯 Markdown。加新 entry 时用 `id_hash.py` 算 ID（保持确定性）。手动编辑后跑 `lore mirror` 同步 agent 端。
+大部分能。`init` / `query` / `audit` / `compress` / `mirror` 直接读文件即可。`sync` 失去 `git diff`（智能体会询问改了什么），`history` 需要 git 仓库。辅助脚本两种情况都能用。
 
-**Q: 如果我完全不想要 mirror 文件（只要 `.lore/`）呢？**
-A: 在 `.config.json` 里设 `mirror_targets: []`。`compress` 和 `mirror` 在文件系统上就是空操作；只有 `SUMMARY.md` 和 entry 文件生效。
+</details>
 
-**Q: 这跟 Cursor 的 `.cursorrules` 或 Aider 的 `AGENTS.md` 有什么不同？**
-A: 那些是扁平的规则列表。lore 是结构化的（架构 / 决策 / 约定）、原子的（一条事实一个 entry）、有历史的（每条 entry 有 `#added` 和 `#verified` tag）。而且 lore 会替你生成这些文件。
+<details>
+<summary>能直接手改 <code>.lore/*.md</code> 吗？</summary>
 
-**Q: lore 会调用 agent 的 API 吗？**
-A: 不会。lore 是纯文件 I/O。调用 lore 的 agent 做语义工作（扫描代码、决定提取什么、分类变更）；lore 提供文件布局、ID 方案、标记规则和验证脚本。
+可以 — 纯 Markdown。新增条目用 `id_hash.py` 算 ID。改完跑 `lore mirror` 刷新 mirrors。
 
-**Q: agent 原生的 `/init` 或 `/compact` 呢？**
-A: 用途不同 —— `/init` 是一次性项目扫描，`/compact` 压缩对话上下文，lore 管长期项目知识。三者可以共存。
+</details>
 
-**Q: 我已经用 `/init` 或 bootstrap 工具生成了根 `AGENTS.md`，还能用 lore 吗？**
-A: 可以 —— 这正是设计的流程。跑 `lore init`，检测到已有 `AGENTS.md` 时选 **take over（接管）**：文件会变成两段 mirror，你原来的内容原样保留为 `## My notes (free edit)`，lore 的 `## Lore (auto-managed)` 段加在上面。lore 只重写自己的段，bootstrap 生成的命令和约定不受影响。`CLAUDE.md`、`.cursorrules` 等同理。反过来如果 lore 先创建了文件，跑 bootstrap 工具时选 **skip（跳过）**，把生成的模板内容粘贴进 `## My notes` 段。
+<details>
+<summary>完全不想要 mirror 文件呢？</summary>
 
-**Q: 我在 `lore init` 之后新增了 scope（比如新 package），要重跑 init 吗？**
-A: 不用 —— 跑 `lore sync`。它会从变更文件路径里检测到新 scope，自动创建 `scopes/<name>/`，并把条目路由进去。然后跑 `lore mirror` 让新 scope 出现在 agent 端文件里。`init` 只用于首次设置或显式重来。
+在 `.config.json` 设 `mirror_targets: []`。只有 `SUMMARY.md` 与条目文件生效。
 
-**Q: `sync` 和 `mirror` 有什么区别？**
-A: `sync` 根据代码改动更新 `.lore/`（feature / refactor 后）；`mirror` 把当前 `.lore/` 重新生成到 agent 端文件（`CLAUDE.md`、`.cursorrules` 等）。`sync` **故意不**更新 mirror —— mirror 文件该是人工合并的，不该每次 commit 都重生成，否则 `git log` 会变难读。需要 agent 视图跟上时，显式跑 `mirror`（或 `compress`）。
+</details>
 
-**Q: 跟 ADR（Architecture Decision Records）有什么区别？**
-A: ADR 是文档（每个决策一个 markdown 文件）。lore 是结构化项目记忆 —— 一条事实一个 entry，带稳定 ID 和 `#added` / `#verified` / `#stale` 标记。lore 的 `DEC` 层能替代 `docs/adr/`（一条 DEC entry 对应一个决策），但 lore 还覆盖 `ARCH`（架构）和 `CONV`（约定）同仓库存储，并能用 `compress` / `mirror` 生成 agent 视图。可以**替代** ADR，也可以**共存**（一条 DEC entry 指向已有 ADR 文档）。
+<details>
+<summary>与 <code>.cursorrules</code> / <code>AGENTS.md</code> 有什么不同？</summary>
 
-**Q: agent 写的 entry 我不同意怎么办？**
-A: 直接编辑 `.lore/*.md` —— 就是纯 Markdown。下次 `mirror` / `compress` 会反映你的改动；helper scripts 对稳定 ID 跳过重算（只要文本没变，ID 就不变）。想回到 agent 改之前的状态，`git checkout .lore/` 即可。
+它们是扁平规则列表。lore 是结构化（ARCH/DEC/CONV）、原子化（一条事实一条 entry）、带历史（`#added` / `#verified` / `#stale`）的记忆库，并替你生成这些文件。
 
-**Q: 能不能不用 git 多机同步 `.lore/`？**
-A: 推荐 git（`.lore/` 就是仓库里的纯文本；`git push` / `git pull` 自带传输）。其它传输（Dropbox、OneDrive、Syncthing）能用，前提是你信它们的文本冲突解决 —— 它们不懂 lore 的 ID 方案和 `#added` 标记。**不要同时在两个 agent 上跑同一个 `.lore/`**，会 last-writer-wins，且 ID 没远程锁保护。
+</details>
+
+<details>
+<summary>会调用智能体 API 吗？</summary>
+
+不会 — 纯文件 I/O。智能体做语义工作；lore 提供布局、ID 方案、标记与校验脚本。
+
+</details>
+
+<details>
+<summary>与智能体原生的 <code>/init</code> / <code>/compact</code> 冲突吗？</summary>
+
+用途不同 — `/init` 搭架子，`/compact` 压上下文，lore 管长期知识，三者共存。
+
+</details>
+
+<details>
+<summary>已有根 <code>AGENTS.md</code> 还能用 lore 吗？</summary>
+
+跑 `lore init` 选接管 — 原文件变为两段 mirror，原内容原样保留为 `My notes`。`CLAUDE.md` / `.cursorrules` 同理。
+
+</details>
+
+<details>
+<summary><code>init</code> 后新增 scope 要重跑吗？</summary>
+
+不用 — `lore sync` 会从变更路径检测新 scope 并自动创建 `scopes/<name>/`，再 `lore mirror` 即可。
+
+</details>
+
+<details>
+<summary><code>sync</code> 与 <code>mirror</code> 区别？</summary>
+
+`sync` 根据代码更新 `.lore/`；`mirror` 根据 `.lore/` 更新智能体侧文件。`sync` 故意不碰 mirrors，`git log` 更清晰。
+
+</details>
+
+<details>
+<summary>与 ADR 有什么区别？</summary>
+
+ADR 是一决策一文件。lore 是一事实一条 entry，带稳定 ID 与生命周期标签，并通过 `compress` / `mirror` 生成摘要。可替代或共存（一条 DEC 指向 ADR）。
+
+</details>
+
+<details>
+<summary>不同意某条 entry 怎么办？</summary>
+
+直接编辑 `.lore/*.md`。下次 `mirror` / `compress` 生效。`git checkout .lore/` 可回退。
+
+</details>
+
+<details>
+<summary>不用 git 多机同步 <code>.lore/</code> 可以吗？</summary>
+
+推荐 git。其他同步工具对纯文本可行，但不懂 ID 与标签。不要两个智能体同时写同一 `.lore/`。
+
+</details>
 
 ## 许可
 
-[MIT](./LICENSE) —— 可自由使用、修改、再分发、再许可、商业化销售。无任何担保。
+[MIT](./LICENSE)
 
 ---
 
