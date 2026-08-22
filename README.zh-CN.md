@@ -23,6 +23,8 @@
 |---|---|---|
 | `.lore/` 内按 ARCH / DEC / CONV 分层，条目带稳定 ID 与生命周期标签 | `lore query` 以 `[file#ID]` 引用回答；`lore history` 追溯 git 提交 | 单一事实源 `.lore/` 投影到 `CLAUDE.md` / `.cursorrules` / `AGENTS.md` |
 
+> `/init` 后平台记忆文件往往懒得手动更新，过时知识污染记忆。Claude 读 `CLAUDE.md`，Codex 读 `AGENTS.md`，两者漂移。lore 用单一事实源 `.lore/` 统一投影。
+
 > 目录：[安装](#安装) · [快速上手](#快速上手) · [实际效果](#实际效果) · [工作原理](#工作原理) · [七个工作流](#七个工作流) · [平台 Mirror](#平台-mirror) · [FAQ](#faq)
 
 ## 安装

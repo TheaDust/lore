@@ -23,6 +23,8 @@
 |---|---|---|
 | Architecture / Decisions / Conventions in `.lore/` with stable IDs and lifecycle tags | `lore query` answers with `[file#ID]` citations; `lore history` traces commits | Single source `.lore/` projected to `CLAUDE.md` / `.cursorrules` / `AGENTS.md` via mirrors |
 
+> After `/init`, platform memory files are rarely updated by hand — stale knowledge pollutes memory. Claude reads `CLAUDE.md`, Codex reads `AGENTS.md`, they drift. lore keeps one source `.lore/` and projects it everywhere.
+
 > Contents: [Installation](#installation) · [Quick start](#quick-start) · [What it looks like](#what-it-looks-like) · [How it works](#how-it-works) · [Workflows](#workflows) · [Platform mirrors](#platform-mirrors) · [FAQ](#faq)
 
 ## Installation
