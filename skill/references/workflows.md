@@ -69,7 +69,7 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
    - **No replacement entry exists yet** (user is removing a fact without substituting) -> mark the old one `#stale:<today>` only; the chain can be backfilled later.
    - **Refines an existing entry** -> if the body is unchanged, update tags only (bump `#verified:<today>`) and keep the ID. If the body changes, write a new entry with a freshly hashed ID and mark the old one `#stale:<today>` + `#superseded-by:<new-id>` — the ID hashes the body, so a body rewrite always produces a new ID (see `references/entry-format.md`).
    - **Genuinely new** -> append with `#added:<today>` and a new hash ID.
-5. **De-duplicate**: before appending, run `python scripts/find_duplicates.py --json` to identify any candidate entry that overlaps with existing entries (same hash, or Jaccard >= `--threshold`). For each match, skip the new entry and bump `#verified` on the existing one. If the new entry is genuinely different in meaning (the script flags but doesn't decide), keep both.
+5. **De-duplicate**: before appending, run `python skill/scripts/find_duplicates.py --json` (when lore is installed as a skill the path is `<skill>/scripts/find_duplicates.py`) to identify any candidate entry that overlaps with existing entries (same hash, or Jaccard >= `--threshold`). For each match, skip the new entry and bump `#verified` on the existing one. If the new entry is genuinely different in meaning (the script flags but doesn't decide), keep both.
 6. **Apply trust level** (controlled by `.lore/.config.json#sync_trust`, default `"medium"`):
 
    | Change type | `high` | `medium` (default) | `low` |
@@ -117,7 +117,7 @@ Read-only.
 Read-only with respect to canonical memory. It reports drift without changing entries or `SUMMARY.md`, but it does write the dated report described below.
 
 1. For each entry in `_global/*` and `scopes/*/*`, find the code/config it claims to describe (scoped to the relevant scope's source tree) and compare against current state.
-2. Also flag: entries whose reference date — `#verified` if present, else `#added` — is older than 90 days. Run `python scripts/find_stale.py --days=90 --json` to enumerate them mechanically.
+2. Also flag: entries whose reference date — `#verified` if present, else `#added` — is older than 90 days. Run `python skill/scripts/find_stale.py --days=90 --json` (or `<skill>/scripts/find_stale.py` when installed) to enumerate them mechanically.
 3. Write the report to `.lore/audit/audit-YYYY-MM-DD.md`, organized by scope. **Do not** mark anything as stale in the main files. **Do not** emit ALERT blocks. See `references/audit-template.md` for the full report format and severity definitions.
 4. **Stop.** User reviews the report and decides what to do. To act on findings, the user runs `sync`.
 
@@ -127,8 +127,8 @@ This separation keeps `audit` honest: it observes, it does not edit. ALERT noise
 
 Long-term compression. Generates `SUMMARY.md` and, when `auto_mirror: true` (or the user accepts the per-target prompt), regenerates platform mirrors. Underlying ARCHITECTURE / DECISIONS / CONVENTIONS files are untouched.
 
-1. Run `python scripts/list_entries.py --json` to enumerate every entry. Use the JSON output as the input for the selection step.
-2. Optionally run `python scripts/find_stale.py --json` to identify entries that shouldn't anchor the summary (recently-stale or long-unverified).
+1. Run `python skill/scripts/list_entries.py --json` (or `<skill>/scripts/list_entries.py` when installed) to enumerate every entry. Use the JSON output as the input for the selection step.
+2. Optionally run `python skill/scripts/find_stale.py --json` to identify entries that shouldn't anchor the summary (recently-stale or long-unverified).
 3. For each (scope, layer) pair, pick 3-5 most important entries using the selection rule in `references/summary-template.md`.
 4. Write `SUMMARY.md` per the template in `references/summary-template.md`. (This is the only file written on the canonical `.lore/` side.)
 5. If `auto_mirror: true` in config, regenerate platform mirrors (this is one of the three mirror update triggers — see "Mirror update triggers" in `SKILL.md`). If `auto_mirror: false`, ask per target and only write the mirrors the user accepts. Content-based dedup: if the new Lore section equals the current one, skip the write. The My notes section is always preserved.

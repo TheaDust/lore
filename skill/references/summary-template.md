@@ -96,6 +96,10 @@ If a (scope, layer) is empty, omit the subsection entirely.
 - All DB queries go through repository pattern — [scopes/backend/CONVENTIONS.md#CONV-2026-03-01-b1d2]
 ```
 
+## Staleness note
+
+Between a `sync` and the next `compress`, `SUMMARY.md` may lag behind `.lore/*`. Treat entry files as source of truth; SUMMARY is a locating index only (see `references/workflows.md#query`).
+
 ## Idempotency
 
 Running `compress` twice without intervening `sync`s produces identical content (modulo the `Last compressed:` date). This is intentional — compress is a pure projection of the underlying entries.

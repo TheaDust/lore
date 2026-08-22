@@ -101,7 +101,8 @@ Detailed specifications live in `references/`. Load these on demand.
 |       |-- DECISIONS.md
 |       `-- CONVENTIONS.md
 |-- draft/            # Used only by `init`. Proposals pending user confirmation.
-`-- audit/            # Used only by `audit`. Reports; never mutates main files.
+|-- audit/            # Used only by `audit`. Reports; never mutates main files.
+`-- .archive/         # My notes backups (mirror wipe only); see references/platform-mirrors.md.
 ```
 
 **Scope detection and creation:** `init` detects scope boundaries once (see `references/monorepo-detection.md` for marker detection across pnpm / Yarn / npm / Lerna / Nx / Rush / Cargo / Go / Bazel); `sync` creates the scope directories when a change introduces a new scope (see `references/workflows.md` sync step 2). Single-package projects fall back to `_global/` only.
