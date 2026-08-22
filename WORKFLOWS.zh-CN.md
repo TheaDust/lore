@@ -1,6 +1,6 @@
 # 工作流
 
-lore 有七个工作流。本文用平实语言解释每个什么时候用。Agent 跑它们时的 operational 规范见 [`references/workflows.md`](references/workflows.md)。
+lore 有七个工作流。本文用平实语言解释每个什么时候用。Agent 跑它们时的 operational 规范见 [`skill/references/workflows.md`](skill/references/workflows.md)。
 
 > [English](./WORKFLOWS.md)
 
@@ -231,4 +231,4 @@ feat: switch chat chain to chat_fast (#74)
 | 更新 agent 端文件 | `mirror` |
 | 查「为什么有这个」 | `history` |
 
-Agent 跑命令时的 operational 规范（一步步做什么）见 [`references/workflows.md`](references/workflows.md)。各平台文件映射（哪些 agent 读哪些文件）见 [`references/platform-mirrors.md`](references/platform-mirrors.md)。
+Agent 跑命令时的 operational 规范（一步步做什么）见 [`skill/references/workflows.md`](skill/references/workflows.md)。各平台文件映射（哪些 agent 读哪些文件）见 [`skill/references/platform-mirrors.md`](skill/references/platform-mirrors.md)。

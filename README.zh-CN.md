@@ -12,21 +12,25 @@
 
 一个由 AI 智能体维护的软件项目长期知识库。它捕获那些通常只存在于原始开发者脑中的上下文——架构、决策、约定——并以纯 Markdown 文件形式持久化，任何智能体都能消费。
 
-> **lore 是一个 SKILL，不是 CLI 工具。** 它是一份 Markdown 规范（[`SKILL.md`](SKILL.md)），AI 编程 agent（Claude Code、Cursor、OpenCode、Cline、Aider、GitHub Copilot）读取后获得长期项目记忆。你不需要 `npm install` 或 `pip install` `lore`；把仓库 URL 给 agent，让它装上即可。之后 `lore init`、`lore sync` 这些**短语是你对 agent 说的话**，不是终端命令——你的 `PATH` 上没有 `lore` 这个二进制。
+> **lore 是一个 SKILL，不是 CLI 工具。** 它是一份 Markdown 规范（[`skill/SKILL.md`](skill/SKILL.md)），AI 编程 agent（Claude Code、Cursor、OpenCode、Cline、Aider、GitHub Copilot）读取后获得长期项目记忆。你不需要 `npm install` 或 `pip install` `lore`；把仓库 URL 给 agent，让它装上即可。之后 `lore init`、`lore sync` 这些**短语是你对 agent 说的话**，不是终端命令——你的 `PATH` 上没有 `lore` 这个二进制。
 
 ## 安装
 
+agent-facing skill 位于 `skill/` 目录——该目录是安装单元。
+
 ```bash
-git clone git@github.com:TheaDust/lore.git <你的-agent-skills-目录>
+git clone https://github.com/TheaDust/lore.git /tmp/lore
+cp -r /tmp/lore/skill <你的-agent-skills-目录>/lore
+# 例如 cp -r /tmp/lore/skill ~/.claude/skills/lore
 ```
 
 或者，更简单——告诉你的 agent：
 
-> 从 https://github.com/TheaDust/lore 安装 skill。
+> 从 https://github.com/TheaDust/lore 安装 skill（skill 位于 `skill/` 子目录）。
 
-每个 agent host 从自己的目录加载 skill（Claude Code 是 `~/.claude/skills/`，项目级是 `<project>/.claude/skills/`，等等）。你的 agent 知道自己的 skills 目录在哪，能把仓库克隆到正确的位置。
+每个 agent host 从自己的目录加载 skill（Claude Code 是 `~/.claude/skills/`，项目级是 `<project>/.claude/skills/`，等等）。你的 agent 知道自己的 skills 目录在哪，能把 `skill/` 文件夹复制到正确的位置。
 
-> 找特定章节？跳到：[快速上手](#快速上手) · [实际长什么样](#实际长什么样) · [`.lore/` 目录结构](#lore-目录结构) · [七个工作流](#七个工作流) · [平台 Mirror](#平台-mirror) · [配置](#配置) · [升级](#升级) · [FAQ](#faq)。完整参考文档在 [`references/`](references/)。**想看每个工作流什么时候用的平实解释？** 见 [`WORKFLOWS.md`](WORKFLOWS.md) / [English](./WORKFLOWS.md)。
+> 找特定章节？跳到：[快速上手](#快速上手) · [实际长什么样](#实际长什么样) · [`.lore/` 目录结构](#lore-目录结构) · [七个工作流](#七个工作流) · [平台 Mirror](#平台-mirror) · [配置](#配置) · [升级](#升级) · [FAQ](#faq)。完整参考文档在 [`skill/references/`](skill/references/)。**想看每个工作流什么时候用的平实解释？** 见 [`WORKFLOWS.md`](WORKFLOWS.md) / [English](./WORKFLOWS.md)。
 
 ## 解决什么问题
 
@@ -41,7 +45,7 @@ lore 维护一个单一事实源（`.lore/`），并把它投影到你的 agent 
 
 ## 快速上手
 
-下面的命令是**你对 agent 说的短语**——没有 `lore` 这个二进制。Agent 加载本 skill 后，会按 [`SKILL.md`](SKILL.md) 与 [`references/workflows.md`](references/workflows.md) 里定义的工作流执行每个短语。原来要在终端敲的活，交给 agent 就行。
+下面的命令是**你对 agent 说的短语**——没有 `lore` 这个二进制。Agent 加载本 skill 后，会按 [`skill/SKILL.md`](skill/SKILL.md) 与 [`skill/references/workflows.md`](skill/references/workflows.md) 里定义的工作流执行每个短语。原来要在终端敲的活，交给 agent 就行。
 
 ```bash
 # 1. 初始化（每个项目运行一次）
@@ -181,19 +185,19 @@ Agent 读 commit message 然后告诉你 *为什么*——你不用手动翻 `gi
 
 条目还可以携带 `#superseded-by:LAYER-YYYY-MM-DD-xxxx`，指向取代本条目的新条目——让 `find_stale`、`history`、`compress` 能沿替换链追溯，而不是从叙述中推断。
 
-完整格式规范（ID 生成、tag、拆分规则）见 [`references/entry-format.md`](references/entry-format.md)。
+完整格式规范（ID 生成、tag、拆分规则）见 [`skill/references/entry-format.md`](skill/references/entry-format.md)。
 
 ## 七个工作流
 
 | 命令 | 作用 | 写什么 | 参考 |
 |---|---|---|---|
-| `init` | 首次扫描项目；生成 entry 草案；用户确认 | `.lore/*` + 平台 mirror | [workflows](references/workflows.md#init--initialize-the-memory-bank) |
-| `sync` | 检测代码变更；提议更新；用户裁决 | 只写 `.lore/*`（不写 mirror）| [workflows](references/workflows.md#sync--update-after-a-change) |
-| `query` | 只读；从记忆回答问题并引用 entry ID | 不写任何东西 | [workflows](references/workflows.md#query--answer-from-memory) |
-| `audit` | 只读；检查记忆与现实；写报告 | 只写 `.lore/audit/*` | [workflows](references/workflows.md#audit--check-memory-vs-reality) |
-| `compress` | 从当前 entry 生成 `SUMMARY.md` | `SUMMARY.md` + 平台 mirror | [workflows](references/workflows.md#compress--build-the-top-level-summary) |
-| `mirror` | 强制重新生成平台 mirror（带内容去重）| `CLAUDE.md`、`.cursorrules` 等 | [workflows](references/workflows.md#mirror--regenerate-platform-mirrors) |
-| `history` | 只读；列出与 entry / 文件 / scope 相关的 git commits | 不写任何东西 | [workflows](references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
+| `init` | 首次扫描项目；生成 entry 草案；用户确认 | `.lore/*` + 平台 mirror | [workflows](skill/references/workflows.md#init--initialize-the-memory-bank) |
+| `sync` | 检测代码变更；提议更新；用户裁决 | 只写 `.lore/*`（不写 mirror）| [workflows](skill/references/workflows.md#sync--update-after-a-change) |
+| `query` | 只读；从记忆回答问题并引用 entry ID | 不写任何东西 | [workflows](skill/references/workflows.md#query--answer-from-memory) |
+| `audit` | 只读；检查记忆与现实；写报告 | 只写 `.lore/audit/*` | [workflows](skill/references/workflows.md#audit--check-memory-vs-reality) |
+| `compress` | 从当前 entry 生成 `SUMMARY.md` | `SUMMARY.md` + 平台 mirror | [workflows](skill/references/workflows.md#compress--build-the-top-level-summary) |
+| `mirror` | 强制重新生成平台 mirror（带内容去重）| `CLAUDE.md`、`.cursorrules` 等 | [workflows](skill/references/workflows.md#mirror--regenerate-platform-mirrors) |
+| `history` | 只读；列出与 entry / 文件 / scope 相关的 git commits | 不写任何东西 | [workflows](skill/references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
 
 想看每个工作流什么时候用、用在哪里的平实解释，见 [`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)（English: [`WORKFLOWS.md`](WORKFLOWS.md)）。
 
@@ -238,29 +242,29 @@ lore 的 token 模型有 6 个组件；只有 mirror 文件是 per-session，其
 | 组件 | 何时加载 | 典型大小 | per-session？ |
 |---|---|---|---|
 | **Mirror 文件**（CLAUDE.md / AGENTS.md 等） | 每次会话启动 | ~600 字节（index mode，worst case） | 是 |
-| **SKILL.md**（lore 自身规范） | 每次用户说 `lore <cmd>` | ~19 KB | 否，per-invocation |
-| **`references/workflows.md`**（七个工作流的步骤） | 每次用户说 `lore <cmd>`（只读被路由的那一节） | ~17 KB | 否，per-invocation |
+| **skill/SKILL.md**（lore 自身规范） | 每次用户说 `lore <cmd>` | ~19 KB | 否，per-invocation |
+| **`skill/references/workflows.md`**（七个工作流的步骤） | 每次用户说 `lore <cmd>`（只读被路由的那一节） | ~17 KB | 否，per-invocation |
 | **`.lore/SUMMARY.md`** | agent 按需读，作为目录 | 1–30 KB | 否，on demand |
 | **`scopes/<scope>/{ARCH,DEC,CONV}.md`** | agent 只读相关 scope | 1–5 KB each | 否，on demand |
 | **`lore query <term>`** 结果 | agent 跑 query 时 | 按命中条数 bound | 否，per query |
 
-mirror 是唯一的 ambient 部分 —— agent 每次会话自动看到 —— 且保持 ~600 字节，因为它是索引不是记忆。mirror 大小由 **scope 数量与 description** 决定，跟 entry 数量无关：同样 scope 形态的 30-entry 和 250-entry 项目，mirror 完全相同。`.lore/` 下所有内容都是 on-demand：agent 把 `SUMMARY.md` 当目录，只打开需要的 entry。`SKILL.md` 和被路由的 `workflows.md` 节只在你说 lore 命令时加载；`lore query` 只返回命中行。把整个 `SUMMARY.md` 倒进 `CLAUDE.md` 可行但**不推荐** —— 用「会话启动开销」换「零 fetch」。
+mirror 是唯一的 ambient 部分 —— agent 每次会话自动看到 —— 且保持 ~600 字节，因为它是索引不是记忆。mirror 大小由 **scope 数量与 description** 决定，跟 entry 数量无关：同样 scope 形态的 30-entry 和 250-entry 项目，mirror 完全相同。`.lore/` 下所有内容都是 on-demand：agent 把 `SUMMARY.md` 当目录，只打开需要的 entry。`skill/SKILL.md` 和被路由的 `workflows.md` 节只在你说 lore 命令时加载；`lore query` 只返回命中行。把整个 `SUMMARY.md` 倒进 `CLAUDE.md` 可行但**不推荐** —— 用「会话启动开销」换「零 fetch」。
 
 ## 脚本
 
-`scripts/` 里的辅助脚本减少重复的机械工作：
+`skill/scripts/` 里的辅助脚本减少重复的机械工作：
 
 ```bash
-python scripts/id_hash.py "Use Next.js App Router"        # → 409a（4 字符 ID hash）
-python scripts/list_entries.py                            # 列出所有 entry（文本）
-python scripts/list_entries.py --scope=frontend --json    # 过滤的 JSON
-python scripts/find_duplicates.py                          # 找可能的重复
-python scripts/find_stale.py --days=90                    # 找过期的 entry
-python scripts/history.py DEC-2026-02-03-7c19             # 展示某 entry 的 git 历史
-python scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # 沿替换链追溯
+python skill/scripts/id_hash.py "Use Next.js App Router"        # → 409a（4 字符 ID hash）
+python skill/scripts/list_entries.py                            # 列出所有 entry（文本）
+python skill/scripts/list_entries.py --scope=frontend --json    # 过滤的 JSON
+python skill/scripts/find_duplicates.py                          # 找可能的重复
+python skill/scripts/find_stale.py --days=90                    # 找过期的 entry
+python skill/scripts/history.py DEC-2026-02-03-7c19             # 展示某 entry 的 git 历史
+python skill/scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # 沿替换链追溯
 ```
 
-所有脚本都是跨平台 Python 3.6+，无第三方依赖。回归测试在 `tests/`，在仓库根目录用 `python -m unittest discover -s tests -v` 运行。详见 [`scripts/README.md`](scripts/README.md)（英文）或 [`scripts/README.zh-CN.md`](scripts/README.zh-CN.md)（中文）。
+所有脚本都是跨平台 Python 3.6+，无第三方依赖。回归测试在 `tests/`，在仓库根目录用 `python -m unittest discover -s tests -v` 运行。详见 [`skill/scripts/README.md`](skill/scripts/README.md)（英文）或 [`skill/scripts/README.zh-CN.md`](skill/scripts/README.zh-CN.md)（中文）。
 
 ## 配置
 
@@ -279,11 +283,11 @@ python scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # 沿替换�
 }
 ```
 
-字段含义：见 [`references/config.md`](references/config.md)。新 config 会包含 `schema_version: 1`；旧 config 没有这个字段也能用，但会触发 warning。兼容策略见 [`references/compatibility.md`](references/compatibility.md)。
+字段含义：见 [`skill/references/config.md`](skill/references/config.md)。新 config 会包含 `schema_version: 1`；旧 config 没有这个字段也能用，但会触发 warning。兼容策略见 [`skill/references/compatibility.md`](skill/references/compatibility.md)。
 
 ## 升级
 
-`git pull`（或重新 clone）是常规升级路径；你的 `.lore/` 在升级中保持原样。如果某个 commit 包含破坏性变更，commit message 会以 `BREAKING:` 为前缀，并说明需要手动改什么。pull 之后跑 `git log --grep=^BREAKING` 查看自上次同步以来的所有破坏性变更。当前 schema 是 `schema_version: 1`；还没有任何迁移工具发布，所以今天 pull 之后你不需要跑任何东西。完整版本策略见 [`references/compatibility.md`](references/compatibility.md)。
+`git pull`（或重新 clone）是常规升级路径；你的 `.lore/` 在升级中保持原样。如果某个 commit 包含破坏性变更，commit message 会以 `BREAKING:` 为前缀，并说明需要手动改什么。pull 之后跑 `git log --grep=^BREAKING` 查看自上次同步以来的所有破坏性变更。当前 schema 是 `schema_version: 1`；还没有任何迁移工具发布，所以今天 pull 之后你不需要跑任何东西。完整版本策略见 [`skill/references/compatibility.md`](skill/references/compatibility.md)。
 
 ## 不适用场景
 
@@ -298,7 +302,7 @@ lore 为长期项目设计。下列场景过度：
 ## FAQ
 
 **Q: 不在 git 仓库里能用 lore 吗？**
-A: 部分能。lore **大部分是 agent 工作流**（写在 [`references/workflows.md`](references/workflows.md) 里，由 `SKILL.md` 路由）—— agent 读你的文件、起草 entry、编辑 `.lore/*.md`，按需重生成 mirror。没有 git，agent 仍能跑 `init` / `query` / `audit` / `compress` / `mirror`（直接读文件）。失去的：`sync` 用 `git diff` 检变化（没 diff → agent 得问你改了什么）；`lore history` 需要 git 仓库（内部跑 `git log`）。helper scripts（`list_entries.py`、`find_stale.py` 等）两种情况都能跑。
+A: 部分能。lore **大部分是 agent 工作流**（写在 [`skill/references/workflows.md`](skill/references/workflows.md) 里，由 `skill/SKILL.md` 路由）—— agent 读你的文件、起草 entry、编辑 `.lore/*.md`，按需重生成 mirror。没有 git，agent 仍能跑 `init` / `query` / `audit` / `compress` / `mirror`（直接读文件）。失去的：`sync` 用 `git diff` 检变化（没 diff → agent 得问你改了什么）；`lore history` 需要 git 仓库（内部跑 `git log`）。helper scripts（`list_entries.py`、`find_stale.py` 等）两种情况都能跑。
 
 **Q: 我能直接手动编辑 `.lore/*.md` 吗？**
 A: 可以。文件就是纯 Markdown。加新 entry 时用 `id_hash.py` 算 ID（保持确定性）。手动编辑后跑 `lore mirror` 同步 agent 端。
@@ -340,16 +344,16 @@ A: 推荐 git（`.lore/` 就是仓库里的纯文本；`git push` / `git pull` �
 ---
 
 <p align="center">
-  <a href="SKILL.md">SKILL.md</a> ·
-  <a href="references/workflows.md">workflows</a> ·
-  <a href="references/entry-format.md">entry-format</a> ·
-  <a href="references/summary-template.md">summary-template</a> ·
-  <a href="references/audit-template.md">audit-template</a> ·
-  <a href="references/monorepo-detection.md">monorepo-detection</a> ·
-  <a href="references/stale-new-markers.md">stale-new-markers</a> ·
-  <a href="references/platform-mirrors.md">platform-mirrors</a> ·
-  <a href="references/config.md">config</a> ·
-  <a href="references/history-command.md">history-command</a> ·
-  <a href="references/compatibility.md">compatibility</a> ·
-  <a href="scripts/README.md">scripts</a>
+  <a href="skill/SKILL.md">skill/SKILL.md</a> ·
+  <a href="skill/references/workflows.md">workflows</a> ·
+  <a href="skill/references/entry-format.md">entry-format</a> ·
+  <a href="skill/references/summary-template.md">summary-template</a> ·
+  <a href="skill/references/audit-template.md">audit-template</a> ·
+  <a href="skill/references/monorepo-detection.md">monorepo-detection</a> ·
+  <a href="skill/references/stale-new-markers.md">stale-new-markers</a> ·
+  <a href="skill/references/platform-mirrors.md">platform-mirrors</a> ·
+  <a href="skill/references/config.md">config</a> ·
+  <a href="skill/references/history-command.md">history-command</a> ·
+  <a href="skill/references/compatibility.md">compatibility</a> ·
+  <a href="skill/scripts/README.md">scripts</a>
 </p>

@@ -38,8 +38,9 @@ dist/
 .superpowers/
 docs/superpowers/
 
-# Local agent session instructions
+# Local agent session instructions (not part of the published skill)
 AGENTS.md
+CLAUDE.md
 
 # Mock test projects (sandbox for E2E testing)
 sandbox/

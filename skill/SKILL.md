@@ -42,7 +42,7 @@ Once the skill is loaded for this session, certain commands may proactively prop
 - `sync` emits `[ALERT]` markers when an active entry conflicts with current code or with a candidate change.
 - `mirror` regenerates automatically during `compress` if `auto_mirror: true` is set in `.lore/.config.json`.
 
-Other commands (`init`, `query`, `history`) are always explicit — they need user intent. See [`WORKFLOWS.md`](WORKFLOWS.md) for a plain-language explanation of when each workflow is used.
+Other commands (`init`, `query`, `history`) are always explicit — they need user intent. See [`WORKFLOWS.md`](../WORKFLOWS.md) for a plain-language explanation of when each workflow is used.
 
 ## Which command do I need?
 
@@ -57,7 +57,7 @@ Other commands (`init`, `query`, `history`) are always explicit — they need us
 | "Why does this decision exist?" / "show the commits behind this" | `history` | Git story behind an entry | [`references/workflows.md#history`](references/workflows.md#history--show-git-commits-related-to-a-memory-entry), then `references/history-command.md` |
 | Agent-native `/init` or `/compact` | do **not** trigger lore | — | Relationship to agent native commands |
 
-The step-by-step procedures for all seven commands live in [`references/workflows.md`](references/workflows.md) — load that file before executing any command. For a plain-language explanation of when each workflow is used (frequency, examples), see [`WORKFLOWS.md`](WORKFLOWS.md).
+The step-by-step procedures for all seven commands live in [`references/workflows.md`](references/workflows.md) — load that file before executing any command. For a plain-language explanation of when each workflow is used (frequency, examples), see [`WORKFLOWS.md`](../WORKFLOWS.md).
 
 **Already have `.lore/`?** Adding a new scope is still `sync` — `init` is only for first-time setup or an explicit start-over. A change that introduces a new scope does not reinitialize the memory bank; `sync` creates the scope directories directly (see `references/workflows.md` sync step 2).
 

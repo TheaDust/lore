@@ -1,6 +1,6 @@
 # Workflows
 
-lore has seven workflows. This document explains when to use each one, in plain language. For the operational specification the agent follows when running them, see [`references/workflows.md`](references/workflows.md).
+lore has seven workflows. This document explains when to use each one, in plain language. For the operational specification the agent follows when running them, see [`skill/references/workflows.md`](skill/references/workflows.md).
 
 > [中文版](./WORKFLOWS.zh-CN.md)
 
@@ -231,4 +231,4 @@ feat: switch chat chain to chat_fast (#74)
 | Update agent-facing files | `mirror` |
 | Trace why something exists | `history` |
 
-For the operational specification (what the agent actually does step-by-step), see [`references/workflows.md`](references/workflows.md). For per-platform file mapping (which platforms read which files), see [`references/platform-mirrors.md`](references/platform-mirrors.md).
+For the operational specification (what the agent actually does step-by-step), see [`skill/references/workflows.md`](skill/references/workflows.md). For per-platform file mapping (which platforms read which files), see [`skill/references/platform-mirrors.md`](skill/references/platform-mirrors.md).

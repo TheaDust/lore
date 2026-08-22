@@ -12,12 +12,16 @@
 
 A long-term knowledge base for software projects, maintained by AI agents. Captures the kind of context that normally lives only in the original developer's head — architecture, decisions, conventions — and persists it as plain Markdown files that any agent can consume.
 
-> **lore is a SKILL, not a CLI tool.** It is a Markdown spec ([`SKILL.md`](SKILL.md)) that AI coding agents — Claude Code, Cursor, OpenCode, Cline, Aider, GitHub Copilot — read to gain long-term project memory. You do not `npm install` or `pip install` lore; you give your agent the URL and ask it to install the skill. From then on, phrases like `lore init` and `lore sync` are commands you say to your agent, **not** commands you type in a terminal. There is no `lore` binary on your `PATH`.
+> **lore is a SKILL, not a CLI tool.** It is a Markdown spec ([`skill/SKILL.md`](skill/SKILL.md)) that AI coding agents — Claude Code, Cursor, OpenCode, Cline, Aider, GitHub Copilot — read to gain long-term project memory. You do not `npm install` or `pip install` lore; you give your agent the URL and ask it to install the skill. From then on, phrases like `lore init` and `lore sync` are commands you say to your agent, **not** commands you type in a terminal. There is no `lore` binary on your `PATH`.
 
 ## Installation
 
+The agent-facing skill lives in `skill/` — that directory is the install unit.
+
 ```bash
-git clone https://github.com/TheaDust/lore.git <your-agent-skills-dir>
+git clone https://github.com/TheaDust/lore.git /tmp/lore
+cp -r /tmp/lore/skill <your-agent-skills-dir>/lore
+# e.g. cp -r /tmp/lore/skill ~/.claude/skills/lore
 ```
 
 Or, simpler — tell your agent:
@@ -26,7 +30,7 @@ Or, simpler — tell your agent:
 
 Each agent host loads skills from its own directory (`~/.claude/skills/` for Claude Code, `<project>/.claude/skills/` for project-scoped, etc.). Your agent knows its own skills directory and can clone the repo into the right place.
 
-> Looking for a specific doc? Jump to: [Quick start](#quick-start) · [What it looks like](#what-this-looks-like) · [What lives in `.lore/`](#what-lives-in-lore) · [Seven workflows](#seven-workflows) · [Platform mirrors](#platform-mirrors) · [Configuration](#configuration) · [Upgrading](#upgrading) · [FAQ](#faq). Full reference docs live in [`references/`](references/). **Want plain-language "when to use each workflow"?** See [`WORKFLOWS.md`](WORKFLOWS.md) (also in [中文](WORKFLOWS.zh-CN.md)).
+> Looking for a specific doc? Jump to: [Quick start](#quick-start) · [What it looks like](#what-this-looks-like) · [What lives in `.lore/`](#what-lives-in-lore) · [Seven workflows](#seven-workflows) · [Platform mirrors](#platform-mirrors) · [Configuration](#configuration) · [Upgrading](#upgrading) · [FAQ](#faq). Full reference docs live in [`skill/references/`](skill/references/). **Want plain-language "when to use each workflow"?** See [`WORKFLOWS.md`](WORKFLOWS.md) (also in [中文](WORKFLOWS.zh-CN.md)).
 
 ## What it solves
 
@@ -41,7 +45,7 @@ lore maintains a single source of truth (`.lore/`) and projects it into whatever
 
 ## Quick start
 
-The commands below are **phrases you say to your agent** — there is no `lore` binary. With this skill loaded, your agent runs each phrase through the workflows defined in [`SKILL.md`](SKILL.md) and [`references/workflows.md`](references/workflows.md). Anything you'd normally type into a terminal goes to the agent instead.
+The commands below are **phrases you say to your agent** — there is no `lore` binary. With this skill loaded, your agent runs each phrase through the workflows defined in [`skill/SKILL.md`](skill/SKILL.md) and [`skill/references/workflows.md`](skill/references/workflows.md). Anything you'd normally type into a terminal goes to the agent instead.
 
 ```bash
 # 1. Initialize (run once per project)
@@ -181,19 +185,19 @@ Each entry is a single Markdown bullet (≤ 2 lines) with a deterministic ID and
 
 Entries can also carry `#superseded-by:LAYER-YYYY-MM-DD-xxxx`, which points to the entry that replaced this one — letting `find_stale`, `history`, and `compress` walk the replacement chain instead of inferring it from prose.
 
-For the full format spec (ID generation, tags, splitting rules), see [`references/entry-format.md`](references/entry-format.md).
+For the full format spec (ID generation, tags, splitting rules), see [`skill/references/entry-format.md`](skill/references/entry-format.md).
 
 ## Seven workflows
 
 | Command | What it does | Writes | Reference |
 |---|---|---|---|
-| `init` | First-time project scan; drafts entries; user confirms | `.lore/*` + platform mirrors | [workflows](references/workflows.md#init--initialize-the-memory-bank) |
-| `sync` | Detects code changes; proposes updates; user approves | `.lore/*` only (not mirrors) | [workflows](references/workflows.md#sync--update-after-a-change) |
-| `query` | Read-only; answers from memory with entry IDs | nothing | [workflows](references/workflows.md#query--answer-from-memory) |
-| `audit` | Read-only; checks memory vs. current code; writes report | `.lore/audit/*` only | [workflows](references/workflows.md#audit--check-memory-vs-reality) |
-| `compress` | Generates `SUMMARY.md` from current entries | `SUMMARY.md` + platform mirrors | [workflows](references/workflows.md#compress--build-the-top-level-summary) |
-| `mirror` | Force-regenerate platform mirrors (with content dedup) | `CLAUDE.md`, `.cursorrules`, etc. | [workflows](references/workflows.md#mirror--regenerate-platform-mirrors) |
-| `history` | Read-only; lists git commits related to an entry / file / scope | nothing | [workflows](references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
+| `init` | First-time project scan; drafts entries; user confirms | `.lore/*` + platform mirrors | [workflows](skill/references/workflows.md#init--initialize-the-memory-bank) |
+| `sync` | Detects code changes; proposes updates; user approves | `.lore/*` only (not mirrors) | [workflows](skill/references/workflows.md#sync--update-after-a-change) |
+| `query` | Read-only; answers from memory with entry IDs | nothing | [workflows](skill/references/workflows.md#query--answer-from-memory) |
+| `audit` | Read-only; checks memory vs. current code; writes report | `.lore/audit/*` only | [workflows](skill/references/workflows.md#audit--check-memory-vs-reality) |
+| `compress` | Generates `SUMMARY.md` from current entries | `SUMMARY.md` + platform mirrors | [workflows](skill/references/workflows.md#compress--build-the-top-level-summary) |
+| `mirror` | Force-regenerate platform mirrors (with content dedup) | `CLAUDE.md`, `.cursorrules`, etc. | [workflows](skill/references/workflows.md#mirror--regenerate-platform-mirrors) |
+| `history` | Read-only; lists git commits related to an entry / file / scope | nothing | [workflows](skill/references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
 
 For a plain-language explanation of each workflow (when you'd actually use each one, with real scenarios), see [`WORKFLOWS.md`](WORKFLOWS.md) (中文版: [`WORKFLOWS.zh-CN.md`](WORKFLOWS.zh-CN.md)).
 
@@ -238,29 +242,29 @@ lore's token model has six components. Only the mirror file is per-session; ever
 | Component | Loaded when | Typical size | Per-session? |
 |---|---|---|---|
 | **Mirror file** (CLAUDE.md, AGENTS.md, etc.) | Every session start | ~600 bytes (index mode, worst case) | yes |
-| **SKILL.md** (the lore spec itself) | Every `lore <cmd>` invocation | ~19 KB | no, per-invocation |
-| **`references/workflows.md`** (the seven procedures) | Every `lore <cmd>` invocation (only the routed section) | ~17 KB | no, per-invocation |
+| **skill/SKILL.md** (the lore spec itself) | Every `lore <cmd>` invocation | ~19 KB | no, per-invocation |
+| **`skill/references/workflows.md`** (the seven procedures) | Every `lore <cmd>` invocation (only the routed section) | ~17 KB | no, per-invocation |
 | **`.lore/SUMMARY.md`** | Agent reads on demand as the table of contents | 1–30 KB | no, on demand |
 | **`scopes/<scope>/{ARCH,DEC,CONV}.md`** | Agent reads only the relevant scope | 1–5 KB each | no, on demand |
 | **`lore query <term>`** result | Agent runs a query | bounded by matches | no, per query |
 
-The mirror is the only ambient piece — the agent sees it every session — and it stays ~600 bytes because it's an index, not the memory. Mirror size scales with scope count and descriptions, not entry count: a 30-entry and a 250-entry project with the same scope shape have identical mirrors. Everything under `.lore/` is on-demand: the agent reads `SUMMARY.md` as a table of contents, then opens only the entries it needs. `SKILL.md` and the routed `workflows.md` section load only when you invoke a lore command, and `lore query` returns only matched lines. Dumping the full `SUMMARY.md` into `CLAUDE.md` works but trades session-start cost for zero fetch — not recommended.
+The mirror is the only ambient piece — the agent sees it every session — and it stays ~600 bytes because it's an index, not the memory. Mirror size scales with scope count and descriptions, not entry count: a 30-entry and a 250-entry project with the same scope shape have identical mirrors. Everything under `.lore/` is on-demand: the agent reads `SUMMARY.md` as a table of contents, then opens only the entries it needs. `skill/SKILL.md` and the routed `workflows.md` section load only when you invoke a lore command, and `lore query` returns only matched lines. Dumping the full `SUMMARY.md` into `CLAUDE.md` works but trades session-start cost for zero fetch — not recommended.
 
 ## Scripts
 
-Helper scripts in `scripts/` reduce repetitive mechanical work:
+Helper scripts in `skill/scripts/` reduce repetitive mechanical work:
 
 ```bash
-python scripts/id_hash.py "Use Next.js App Router"        # → 409a (4-char ID hash)
-python scripts/list_entries.py                            # List all entries (text)
-python scripts/list_entries.py --scope=frontend --json    # Filtered JSON
-python scripts/find_duplicates.py                          # Find potential duplicates
-python scripts/find_stale.py --days=90                    # Find stale entries
-python scripts/history.py DEC-2026-02-03-7c19             # Show git history for an entry
-python scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # Walk the replacement chain
+python skill/scripts/id_hash.py "Use Next.js App Router"        # → 409a (4-char ID hash)
+python skill/scripts/list_entries.py                            # List all entries (text)
+python skill/scripts/list_entries.py --scope=frontend --json    # Filtered JSON
+python skill/scripts/find_duplicates.py                          # Find potential duplicates
+python skill/scripts/find_stale.py --days=90                    # Find stale entries
+python skill/scripts/history.py DEC-2026-02-03-7c19             # Show git history for an entry
+python skill/scripts/history.py --follow-superseded DEC-2026-02-03-7c19   # Walk the replacement chain
 ```
 
-All scripts are cross-platform Python 3.6+ with no third-party dependencies. Regression tests live in `tests/` and run with `python -m unittest discover -s tests -v` from the repo root. See [`scripts/README.md`](scripts/README.md) (English) or [`scripts/README.zh-CN.md`](scripts/README.zh-CN.md) (Chinese) for details.
+All scripts are cross-platform Python 3.6+ with no third-party dependencies. Regression tests live in `tests/` and run with `python -m unittest discover -s tests -v` from the repo root. See [`skill/scripts/README.md`](skill/scripts/README.md) (English) or [`skill/scripts/README.zh-CN.md`](skill/scripts/README.zh-CN.md) (Chinese) for details.
 
 ## Configuration
 
@@ -279,11 +283,11 @@ All scripts are cross-platform Python 3.6+ with no third-party dependencies. Reg
 }
 ```
 
-Field semantics: see [`references/config.md`](references/config.md). New configs include `schema_version: 1`; old configs without it still work but trigger a warning. See [`references/compatibility.md`](references/compatibility.md) for the compatibility policy.
+Field semantics: see [`skill/references/config.md`](skill/references/config.md). New configs include `schema_version: 1`; old configs without it still work but trigger a warning. See [`skill/references/compatibility.md`](skill/references/compatibility.md) for the compatibility policy.
 
 ## Upgrading
 
-`git pull` (or re-clone) is the normal upgrade path; your `.lore/` is preserved verbatim across upgrades. If a commit ships a breaking change, the commit message is prefixed `BREAKING:` and names what you need to edit by hand. Run `git log --grep=^BREAKING` after pulling to see any since your last sync. The current schema is `schema_version: 1`; no migration tool has shipped, so today there is nothing to run after pulling. See [`references/compatibility.md`](references/compatibility.md) for the versioning policy.
+`git pull` (or re-clone) is the normal upgrade path; your `.lore/` is preserved verbatim across upgrades. If a commit ships a breaking change, the commit message is prefixed `BREAKING:` and names what you need to edit by hand. Run `git log --grep=^BREAKING` after pulling to see any since your last sync. The current schema is `schema_version: 1`; no migration tool has shipped, so today there is nothing to run after pulling. See [`skill/references/compatibility.md`](skill/references/compatibility.md) for the versioning policy.
 
 ## When NOT to use lore
 
@@ -298,7 +302,7 @@ lore is built for long-term projects. It's overkill for:
 ## FAQ
 
 **Q: Does lore work without git?**
-A: Partially. Most of lore is **agent workflow** described in [`references/workflows.md`](references/workflows.md) (routed from `SKILL.md`) — the agent reads your files, drafts entries, edits `.lore/*.md`, and (when asked) regenerates mirrors. Without git, the agent can still do `init` / `query` / `audit` / `compress` / `mirror` by reading files directly. What you lose: `sync` uses `git diff` to detect changes (no diff → the agent asks you what changed), and `lore history` requires a git repo (it runs `git log`). The helper scripts (`list_entries.py`, `find_stale.py`, etc.) work either way.
+A: Partially. Most of lore is **agent workflow** described in [`skill/references/workflows.md`](skill/references/workflows.md) (routed from `skill/SKILL.md`) — the agent reads your files, drafts entries, edits `.lore/*.md`, and (when asked) regenerates mirrors. Without git, the agent can still do `init` / `query` / `audit` / `compress` / `mirror` by reading files directly. What you lose: `sync` uses `git diff` to detect changes (no diff → the agent asks you what changed), and `lore history` requires a git repo (it runs `git log`). The helper scripts (`list_entries.py`, `find_stale.py`, etc.) work either way.
 
 **Q: Can I hand-edit `.lore/*.md` directly?**
 A: Yes. The files are plain Markdown. Use `id_hash.py` if you're adding new entries (to keep IDs deterministic). After hand-editing, run `lore mirror` to update agent-facing files.
@@ -340,16 +344,16 @@ A: Git is the recommended transport (`.lore/` is plain text in your repo; `git p
 ---
 
 <p align="center">
-  <a href="SKILL.md">SKILL.md</a> ·
-  <a href="references/workflows.md">workflows</a> ·
-  <a href="references/entry-format.md">entry-format</a> ·
-  <a href="references/summary-template.md">summary-template</a> ·
-  <a href="references/audit-template.md">audit-template</a> ·
-  <a href="references/monorepo-detection.md">monorepo-detection</a> ·
-  <a href="references/stale-new-markers.md">stale-new-markers</a> ·
-  <a href="references/platform-mirrors.md">platform-mirrors</a> ·
-  <a href="references/config.md">config</a> ·
-  <a href="references/history-command.md">history-command</a> ·
-  <a href="references/compatibility.md">compatibility</a> ·
-  <a href="scripts/README.md">scripts</a>
+  <a href="skill/SKILL.md">skill/SKILL.md</a> ·
+  <a href="skill/references/workflows.md">workflows</a> ·
+  <a href="skill/references/entry-format.md">entry-format</a> ·
+  <a href="skill/references/summary-template.md">summary-template</a> ·
+  <a href="skill/references/audit-template.md">audit-template</a> ·
+  <a href="skill/references/monorepo-detection.md">monorepo-detection</a> ·
+  <a href="skill/references/stale-new-markers.md">stale-new-markers</a> ·
+  <a href="skill/references/platform-mirrors.md">platform-mirrors</a> ·
+  <a href="skill/references/config.md">config</a> ·
+  <a href="skill/references/history-command.md">history-command</a> ·
+  <a href="skill/references/compatibility.md">compatibility</a> ·
+  <a href="skill/scripts/README.md">scripts</a>
 </p>
