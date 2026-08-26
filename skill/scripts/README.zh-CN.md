@@ -26,6 +26,14 @@
 | `find_duplicates.py` | sync 步骤 5（去重）| 写之前找出可能的重复 entry |
 | `find_stale.py` | audit 步骤 2；compress 步骤 2 | 找出参考日期（有 `#verified` 用 `#verified`，否则用 `#added`）过期的 entry，或已被取代的 entry（带 `#stale` 或 `#superseded-by`，后者隐式表示过时）；按 `#superseded-by` 目标对 pending-review 分组，并报告 `BROKEN_CHAIN` 孤儿 |
 
+## 工作流集成
+
+Agent 会路由明确针对项目记忆的自然语言请求和显式 lore 命令；这些脚本不决定 skill 何时加载，也不负责条目分层。分类遵循 `SKILL.md`：ARCH 可附简短理由，方案比较、权衡及需要独立展开的详细理由归入 DEC。
+
+追加候选前，运行 `python <skill>/scripts/find_duplicates.py --json --candidate "<entry body>"`，把不含 ID 和标签的正文作为一个安全引用的参数传入。正文不便转义时使用 `--candidate-file <utf8-text-file>`，它明确按 UTF-8 读取，而现有的 `--candidate-stdin` 选项依赖宿主的标准输入编码。不传候选时，只比较已保存条目。检查包含 `CANDIDATE-unsaved` 的结果对，并确认语义和 scope 后再决定是否跳过候选；尚未写入的候选之间也要互相比较。
+
+`list_entries.py --json` 保持枚举有效与失效的全部条目。查询当前状态和 compress 的调用方必须排除 `tags` 中包含 `"stale"` 或 `replaced_by` 非空的条目；sync 为重复条目更新 `#verified` 前也使用同一过滤条件。没有后继的 stale 条目仍然失效。无标签条目仍可使用，单纯的日期久远警告不会使条目被排除。`find_stale.py` 把明确失效的条目放在 `pending_review`，其 `stale` 列表则单独列出因日期久远而需复查的条目。历史查询和 audit 仍可读取全部条目。
+
 ## 输出通道
 
 **stdout 是数据通道；stderr 是警告通道。** 所有脚本遵循这个分离，这样 `--json` 消费者就不必从解析结果里过滤噪音。只有 `list_entries.py` 会发警告，全部走 stderr：

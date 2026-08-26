@@ -59,6 +59,8 @@ Full reference docs: [`skill/references/`](skill/references/) · Plain-language 
 
 Phrases you say to your agent (no binary):
 
+Explicit `lore <command>` and natural-language requests clearly about project memory (such as "remember this project decision") both work. Native `/init` / `/compact` and unrelated generic tasks do not trigger lore.
+
 ```bash
 lore init      # One-time: scan project, draft entries, confirm, create .lore/
 lore sync      # After a feature/refactor: detect changes, propose [NEW]/[STALE]/[REFINED]/[ALERT]
@@ -105,12 +107,16 @@ Each entry is one bullet, at most two lines, with a deterministic ID `LAYER-YYYY
 
 Changing an entry's text changes its ID — old IDs survive only in git history. Lifecycle tags (`#added` / `#verified` / `#stale`) track entry state; `#superseded-by:<id>` links replacements so `compress` / `history` can walk the chain. Spec: [`skill/references/entry-format.md`](skill/references/entry-format.md).
 
+Current-state queries and summaries exclude entries carrying `#stale` or `#superseded-by`, even when there is no successor. Untagged entries remain eligible; age alone is a review signal. Historical questions can still retrieve inactive entries with their status identified.
+
+ARCH records the architectural fact and may include a brief reason within the two-line limit. Comparisons, tradeoffs, or detailed rationale needing a separate entry go in DEC; `reason:` alone does not force a split.
+
 ### Writing workflows — `init`, `sync`, `compress`, `mirror`
 
 Four of the seven workflows write to `.lore/` or platform memory files:
 
 - **`init`** — one-time setup. Scans the project, drafts candidate entries into `.lore/draft/`, asks which agents' mirrors to cover, then on confirmation creates `.lore/` (running an initial `compress` for `SUMMARY.md`) and the mirror files.
-- **`sync`** — run after each feature, refactor, or bug fix. Detects what changed (git diff + re-scan), classifies facts into ARCH / DEC / CONV, and proposes `[NEW]` / `[STALE]` / `[REFINED]` / `[ALERT]` updates. Low-risk changes apply automatically per the sync trust level; real additions or contradictions wait for your confirmation. Writes `.lore/*` only — mirrors untouched by default.
+- **`sync`** — run after each feature, refactor, or bug fix. Combines commits since the last sync with `git diff HEAD` for staged and unstaged changes, and scans untracked files separately (empty repos use a file scan). Checks each candidate body for duplicates before writing, classifies facts into ARCH / DEC / CONV, and proposes `[NEW]` / `[STALE]` / `[REFINED]` / `[ALERT]` updates. Low-risk changes apply automatically per the sync trust level; real additions or contradictions wait for your confirmation. Writes `.lore/*` only — mirrors untouched by default.
 - **`compress`** — refreshes `SUMMARY.md` when it goes stale (3–5 entries per scope and layer, idempotent), regenerating mirrors when `auto_mirror` is on.
 - **`mirror`** — force-regenerates `CLAUDE.md` and other mirror files from the current `.lore/`, skipping targets whose Lore section is unchanged and preserving `My notes` verbatim.
 
@@ -214,6 +220,7 @@ Mirror size scales with scope count, not entry count. Dumping `SUMMARY.md` into 
 python skill/scripts/id_hash.py "Use Next.js App Router"      # 4-char ID hash
 python skill/scripts/list_entries.py --json
 python skill/scripts/find_duplicates.py --json
+python skill/scripts/find_duplicates.py --json --candidate "Use Next.js App Router"
 python skill/scripts/find_stale.py --days=90 --json
 python skill/scripts/history.py DEC-2026-02-03-7c19
 ```

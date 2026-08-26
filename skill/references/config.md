@@ -104,10 +104,12 @@ Default: absent (treated as `null`).
 
 The git commit SHA from which the next `sync` will compute its delta. Written automatically by `sync` after every successful `.lore/*` update. Optional and additive — old configs without it keep working.
 
-- **Absent or `null`** — `sync` falls back to working-tree diff alone (`git diff`, working tree vs. `HEAD`). Already-committed changes between two syncs are invisible.
-- **Set to a reachable SHA** — `sync` uses `git diff <last_sync_sha>..HEAD` for committed changes plus working-tree diff for uncommitted changes. This is the recommended state and lets batched commits be captured by a single later sync.
+- **Absent or `null`** — when HEAD exists, `sync` falls back to `git diff HEAD` (net staged and unstaged changes). Already-committed changes between two syncs are invisible.
+- **Set to a reachable SHA** — `sync` uses `git diff <last_sync_sha>..HEAD` for committed changes plus `git diff HEAD` for net staged and unstaged changes. This is the recommended state and lets batched commits be captured by a single later sync.
 - **Set to an unreachable SHA** (e.g., after `git rebase` or a force-push that orphaned the SHA) — `sync` prints a `[WARN]` to stderr and falls back to the working-tree diff alone. The next successful sync resets the baseline.
-- **Empty repo** (no commits yet) — the field is `null`; only the working-tree diff applies.
+- **Empty repo** (no commits yet) — the field is `null`; skip HEAD-based diffs. Enumerate indexed and untracked paths with `git ls-files --cached --others --exclude-standard` and scan their current working-tree contents, as described in `references/workflows.md` sync step 1.
+
+With an existing HEAD, also enumerate untracked files via `git ls-files --others --exclude-standard` and scan them separately; diffs do not include these files.
 
 ## Editing the config
 

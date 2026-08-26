@@ -42,14 +42,14 @@
 
 For each (scope, layer) tuple, pick entries by this priority:
 
-0. **Skip entries with `#superseded-by:<id>`.** These are historical entries replaced by a newer one; the SUMMARY should reflect current state, not chain history.
+0. **Keep only active entries** per `references/entry-format.md`: exclude any entry with `#stale:<date>` or `#superseded-by:<id>`, including stale entries with no successor. Entries with no tags remain eligible; age alone does not exclude an entry.
 1. Most recent `#verified` date wins
 2. Tiebreaker: most recent `#added` date
 3. Tiebreaker: entries that contain "primary" / "main" / "core" / "use <X>" — these are typically the anchor facts
 
-If a (scope, layer) has fewer than 3 entries, include all of them.
+If a (scope, layer) has fewer than 3 active entries, include all of those active entries.
 
-If a (scope, layer) is empty, omit the subsection entirely.
+If a (scope, layer) has no active entries, omit the subsection entirely.
 
 ## Worked example
 

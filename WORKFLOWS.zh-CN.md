@@ -50,11 +50,12 @@ lore 有七个工作流。本文用平实语言解释每个什么时候用。Age
 **agent 做什么**：
 1. 从两个来源检测 delta，合并去重：
    - **上次 sync 以来的 commits** —— `git diff <last_sync_sha>..HEAD`（前提是 config 里有可达的 `last_sync_sha`；缺失或不可达则降级为 working-tree diff 单独跑，stderr 打 `[WARN]`）
-   - **未提交改动** —— `git diff`（working tree vs. `HEAD`），始终包含
-   - **新文件** —— 重扫任何之前没见过的文件
+   - **未提交改动** —— HEAD 存在时使用 `git diff HEAD`，包含已暂存与未暂存的净变化
+   - **新文件** —— 检查 diff 中新增的路径，并扫描 `git ls-files --others --exclude-standard` 列出的未跟踪文件
+   - **空仓库** —— 用 `git ls-files --cached --others --exclude-standard` 枚举路径并扫描当前工作区文件，不运行依赖 HEAD 的 diff
 2. 变更显著时（≥50 行 / 跨 ≥2 目录，或新 module/dir/dep，或对话里讨论了新约定），agent 主动提议
 3. 每个候选 entry 分类成 `[NEW]` / `[STALE]` / `[REFINED]` **并且**与同 scope/layer 的已有 entry 做矛盾检查 —— 矛盾打 `[ALERT]`。这是 sync 自带的矛盾检测；完整的 `lore audit` 是独立命令，遍历**所有** entry 对比代码
-4. 跑 `find_duplicates.py` 跳过与已有 entry 重叠的候选
+4. 写入前为每条候选运行 `find_duplicates.py --json --candidate "<entry body>"`（也可通过 `--candidate-file` 传入 UTF-8 正文文件）。只有适用 scope 中语义相同且仍有效的条目才能使候选被跳过；尚未写入的候选之间也要互相比较
 5. 输出 `[NEW]/[STALE]/[REFINED]/[ALERT]` marker 提案。默认 trust level `medium`：dedup 命中与只动 tag 的 REFINED 静默自动 apply；改正文的 REFINED（新 ID + 取代链）、NEW、STALE、ALERT 需要确认
 6. 你按 marker 接受 / 拒绝；接受的 marker 落到 `.lore/*.md`。然后 `last_sync_sha` 推进到当前 `HEAD`，下次 sync 覆盖正确的 commit 区间
 
@@ -77,7 +78,7 @@ lore 有七个工作流。本文用平实语言解释每个什么时候用。Age
 
 **agent 做什么**：
 1. 读 `.lore/SUMMARY.md`（目录）
-2. 对 entry 文本做模糊匹配
+2. 对有效 entry（既无 `#stale` 也无 `#superseded-by`）做模糊匹配；历史问题可读取失效条目，但会明确说明其状态
 3. 返回命中 entry，带稳定 `[file#ID]` 引用
 4. 可选地深入具体 scope 文件拿更完整上下文
 
@@ -144,7 +145,7 @@ lore 有七个工作流。本文用平实语言解释每个什么时候用。Age
 
 **agent 做什么**：
 1. 跑 `list_entries.py` 枚举所有 entry
-2. 跳过 recently-stale 的 entry
+2. 排除带 `#stale` 或 `#superseded-by` 的 entry，即使没有后继条目；无标签条目仍可使用，不会仅因日期久远而被排除
 3. 每个 `(scope, layer)` 对，按规则挑 3–5 条最重要的
 4. 按模板写 `SUMMARY.md`
 5. 如果 config 里 `auto_mirror: true`，重生成平台 mirror；否则每个 mirror 目标单独问，只写你确认的（这是第二个 mirror 触发点——`sync` 故意不更新 mirror）

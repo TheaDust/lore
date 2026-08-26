@@ -50,11 +50,12 @@ lore has seven workflows. This document explains when to use each one, in plain 
 **What happens**:
 1. Agent detects the delta from two sources, combined and de-duplicated:
    - **Commits since last sync** — `git diff <last_sync_sha>..HEAD` (when the config has a reachable `last_sync_sha`; falls back to working-tree diff alone if it's absent or unreachable, with a `[WARN]` to stderr).
-   - **Uncommitted changes** — `git diff` (working tree vs. `HEAD`), always included.
-   - **New files** — re-scan any files not seen before.
+   - **Uncommitted changes** — `git diff HEAD` when HEAD exists, including net staged and unstaged changes.
+   - **New files** — inspect added paths and scan untracked files listed by `git ls-files --others --exclude-standard`.
+   - **Empty repo** — enumerate paths with `git ls-files --cached --others --exclude-standard` and scan current working-tree files; do not run HEAD-based diffs.
 2. If the change is significant (≥50 lines / ≥2 dirs, or new module/dir/dep, or a new convention was discussed), the agent proactively proposes.
 3. For each candidate entry, the agent classifies it as `[NEW]` / `[STALE]` / `[REFINED]` **and** checks for contradictions against existing entries in the same scope/layer — contradictions are flagged as `[ALERT]`. This is sync's own contradiction-detection step; a full `lore audit` is a separate command that walks every entry.
-4. Runs `find_duplicates.py` to skip candidates that overlap with existing entries.
+4. Runs `find_duplicates.py --json --candidate "<entry body>"` for each candidate before writing (or supplies the body via `--candidate-file` with a UTF-8 file). Only a semantically equivalent active entry in the applicable scope can suppress a candidate; also compare unsaved candidates with each other.
 5. Emits a proposal with `[NEW]/[STALE]/[REFINED]/[ALERT]` markers. Default trust level is `medium`; de-duplicate hits and tags-only REFINEDs auto-apply silently. Body-changing REFINEDs (new ID + supersede link), NEW, STALE, and ALERT require confirmation.
 6. You accept or reject per marker; accepted markers get applied to `.lore/*.md`. Then `last_sync_sha` advances to the current `HEAD` so the next sync spans the right commit range.
 
@@ -77,7 +78,7 @@ lore has seven workflows. This document explains when to use each one, in plain 
 
 **What happens**:
 1. Agent reads `.lore/SUMMARY.md` (the table of contents)
-2. Fuzzy matches your query against entries
+2. Fuzzy matches your query against active entries (neither `#stale` nor `#superseded-by`); for historical questions, identifies the status of inactive entries
 3. Returns matched entries with stable `[file#ID]` references
 4. Optionally drills into specific scope files for more detail
 
@@ -144,7 +145,7 @@ The `[file#ID]` reference lets the agent `cat` the file for full text.
 
 **What happens**:
 1. Enumerates all entries via `list_entries.py`
-2. Skips recently-stale entries
+2. Excludes entries with `#stale` or `#superseded-by`, even without a successor; untagged entries remain eligible, and age alone does not exclude an entry
 3. For each `(scope, layer)` pair, picks 3–5 most important entries
 4. Writes `SUMMARY.md` per template
 5. If `auto_mirror: true` in config, regenerates platform mirrors; otherwise asks per target and only writes the ones you accept. (This is the second mirror update trigger — `sync` deliberately does not regenerate mirrors.)

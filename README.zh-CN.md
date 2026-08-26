@@ -59,6 +59,8 @@ cp -r /tmp/lore/skill <你的-agent-skills-目录>/lore
 
 对智能体说的话（无二进制）：
 
+显式 `lore <command>` 和明确针对项目记忆的自然语言请求（例如“记住这个项目决策”）都可以触发。原生 `/init` / `/compact` 和无关的通用任务不会触发 lore。
+
 ```bash
 lore init      # 一次性：扫描项目、起草条目、确认后创建 .lore/
 lore sync      # 功能或重构后：检测变更、提议 [NEW]/[STALE]/[REFINED]/[ALERT]
@@ -105,12 +107,16 @@ lore history <entry-id|路径|--scope> [--json]  # 展示相关 git 提交
 
 修改条目文本会改变 ID — 旧 ID 只存在于 git 历史中。生命周期标签（`#added` / `#verified` / `#stale`）记录条目状态；`#superseded-by:<id>` 串联替换链，供 `compress` / `history` 追溯。规范见 [`skill/references/entry-format.md`](skill/references/entry-format.md)。
 
+查询当前状态和生成摘要时，会排除带 `#stale` 或 `#superseded-by` 的条目，即使它没有后继条目。无标签条目仍可使用；日期久远只是复查信号。历史问题仍可读取失效条目，但会明确说明其状态。
+
+ARCH 记录架构事实，可以在两行限制内附带简短理由。方案比较、权衡或需要独立条目展开的详细理由归入 DEC；仅出现 `reason:` 不会强制拆分。
+
 ### 写工作流 — `init`、`sync`、`compress`、`mirror`
 
 七个工作流中有四个会写入 `.lore/`或平台记忆文件：
 
 - **`init`** — 一次性初始化。扫描项目，把候选条目起草到 `.lore/draft/`，询问要覆盖哪些智能体的 mirror 文件；确认后创建 `.lore/`（先跑一次 `compress` 生成 `SUMMARY.md`）及 mirror 文件。
-- **`sync`** — 每个功能、重构或 bug 修复后运行。通过 git diff 与重新扫描检测变更，把事实归类为 ARCH / DEC / CONV，提议 `[NEW]` / `[STALE]` / `[REFINED]` / `[ALERT]` 更新。低风险变更按 sync 信任级别自动应用，新增或矛盾之处等你确认。只写 `.lore/*` ，默认不改写 mirrors。
+- **`sync`** — 每个功能、重构或 bug 修复后运行。合并上次 sync 以来的提交与 `git diff HEAD` 中已暂存、未暂存的改动，另行扫描未跟踪文件（空仓库采用文件扫描）。写入前传入每条候选正文检查重复，把事实归类为 ARCH / DEC / CONV，提议 `[NEW]` / `[STALE]` / `[REFINED]` / `[ALERT]` 更新。低风险变更按 sync 信任级别自动应用，新增或矛盾之处等你确认。只写 `.lore/*` ，默认不改写 mirrors。
 - **`compress`** — 当 `SUMMARY.md` 过期时重建摘要（每个 scope 每层 3–5 条，幂等），`auto_mirror` 开启时一并重生成 mirrors。
 - **`mirror`** — 用当前 `.lore/` 强制重写 `CLAUDE.md` 等 mirror 文件，Lore 段未变化的 target 跳过，`My notes` 原样保留。
 
@@ -214,6 +220,7 @@ Mirror 大小随 scope 数量变化，与条目数无关。不建议将 `SUMMARY
 python skill/scripts/id_hash.py "Use Next.js App Router"      # 4 字符 ID hash
 python skill/scripts/list_entries.py --json
 python skill/scripts/find_duplicates.py --json
+python skill/scripts/find_duplicates.py --json --candidate "Use Next.js App Router"
 python skill/scripts/find_stale.py --days=90 --json
 python skill/scripts/history.py DEC-2026-02-03-7c19
 ```

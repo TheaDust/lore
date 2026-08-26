@@ -429,10 +429,26 @@ class TestFindDuplicates(unittest.TestCase):
             self.lore / "scopes" / "frontend" / "CONVENTIONS.md",
             "- [CONV-2026-07-09-ab12] Use Zustand for state management. #added:2026-07-09\n",
         )
+        self.assertEqual(self._run(), [])  # No candidate means saved entries only.
         out = self._run(["--candidate=Use Zustand for state management"])
         self.assertEqual(len(out), 1)
         self.assertIn("candidate similar", out[0]["reason"])
         self.assertEqual(out[0]["a"]["id"], "CANDIDATE-unsaved")
+
+    def test_candidate_file_with_unicode_and_quotes(self):
+        text = 'Use `settings["name"]` for the display name; 名称 stays Unicode.'
+        entry_file = self.lore / "_global" / "CONVENTIONS.md"
+        write(entry_file,
+              "- [CONV-2026-08-27-%s] %s #added:2026-08-27\n"
+              % (hash_of(text), text))
+        original = entry_file.read_bytes()
+        candidate_file = self.root / "candidate body.txt"
+        write(candidate_file, text + "\n")
+        out = self._run(["--candidate-file", str(candidate_file)])
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out[0]["a"]["text"], text)
+        self.assertEqual(out[0]["b"]["text"], text)
+        self.assertEqual(entry_file.read_bytes(), original)
 
     def test_no_duplicates(self):
         write(

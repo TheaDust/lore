@@ -26,6 +26,14 @@ The script list and quick-reference command examples live in the project root `R
 | `find_duplicates.py` | sync step 5 (de-duplication) | Identify candidate duplicate entries before writing |
 | `find_stale.py` | audit step 2; compress step 2 | Identify entries past the reference-date threshold (`#verified` if present, else `#added`) or superseded (carrying `#stale` or `#superseded-by`, which implies staleness); groups pending-review entries by their `#superseded-by` target and reports `BROKEN_CHAIN` orphans |
 
+## Workflow integration
+
+The agent routes memory-specific natural-language requests as well as explicit lore commands; these helpers do not decide when the skill loads or which layer a fact belongs to. For classification, follow `SKILL.md`: ARCH may include a brief reason, while comparisons, tradeoffs, and detailed standalone rationale belong in DEC.
+
+Before appending a candidate, run `python <skill>/scripts/find_duplicates.py --json --candidate "<entry body>"`, passing the body without its ID or tags as one safely quoted argument. Use `--candidate-file <utf8-text-file>` when quoting is awkward; it explicitly reads UTF-8, while the existing `--candidate-stdin` option depends on the host's stdin encoding. With no candidate input, only saved entries are compared. For this check, inspect pairs containing `CANDIDATE-unsaved` and confirm semantic equivalence and scope before skipping a candidate; also compare unsaved candidates with each other.
+
+`list_entries.py --json` intentionally returns active and inactive entries. Current-state query and compress consumers must exclude entries with `"stale"` in `tags` or a non-empty `replaced_by`; the same filter applies before sync bumps `#verified` on a duplicate. A stale entry without a successor is still inactive. Untagged entries remain eligible, and date-based age warnings alone do not exclude entries. `find_stale.py` reports explicitly inactive entries under `pending_review`; its `stale` list is the separate age-based review list. Historical queries and audits retain access to all entries.
+
 ## Output channels
 
 **stdout is the data channel; stderr is the warning channel.** All scripts follow this split so `--json` consumers never have to filter noise out of their parsers. `list_entries.py` is the only script that emits warnings, all on stderr:

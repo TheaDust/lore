@@ -42,6 +42,8 @@ Because the ID hashes the body, **any body change produces a new ID**. `sync`'s 
 
 Multiple tags can co-exist on one entry (e.g. `#added:2026-01-15 #verified:2026-06-01`).
 
+**Active-entry rule:** an entry is active when it has neither `#stale:<date>` nor `#superseded-by:<id>`. In `list_entries.py --json`, check that `"stale"` is absent from `tags` and `replaced_by` is unset. Apply this rule to current-state `query` answers, `compress` selection, and sync's verification-only duplicate handling. It excludes stale entries even without a successor. Entries with no tags remain eligible; age alone is a review signal, not proof of invalidity. Historical queries and audits may still read inactive entries and must identify their status. This is a consumer rule; `list_entries.py` continues to enumerate all entries.
+
 ## Cross-file references
 
 When `SUMMARY.md` or another file references an entry, qualify it with the file path to avoid ID collisions across scopes:
@@ -81,7 +83,7 @@ Consumers:
 
 - `find_stale.py --json` — groups stale entries by their `replaced_by` target; flags chains where the target ID does not exist (broken chain).
 - `history.py --follow-superseded <id>` — prints the entry plus every successor along the chain (newest first).
-- `compress` — skips entries with `replaced_by` set when selecting the 3–5 entries per (scope, layer).
+- `compress` — applies the active-entry rule above when selecting the 3–5 entries per (scope, layer).
 - `audit` — when reporting CONFLICT between two entries, surfaces the chain if both belong to one.
 
 Constraints:
@@ -92,9 +94,9 @@ Constraints:
 
 ## What counts as "atomic"
 
-A fact is atomic if it answers exactly one question:
+A fact is atomic if it answers one primary question. A brief inline reason may qualify the same ARCH fact within the two-line limit; it does not by itself require a separate DEC entry. Follow the Layer semantics in `SKILL.md`:
 
 - "What is the frontend framework?" → `ARCH` entry about Next.js
 - "Why Next.js not Remix?" → `DEC` entry referencing the `ARCH` entry
 
-If your entry answers two questions, split it.
+Split independent facts, alternatives, or tradeoffs into separate entries; detailed rationale that needs its own entry belongs in DEC. The presence of `reason:` or `because` alone does not require a split.
