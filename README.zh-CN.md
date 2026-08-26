@@ -251,10 +251,6 @@ Python 3.6+，仅标准库。测试：`python -m unittest discover -s tests -v`�
 
 </details>
 
-## 升级
-
-`git pull` 保留 `.lore/` 原样。破坏性变更以 `BREAKING:` 前缀标注 — pull 后执行 `git log --grep=^BREAKING` 查看。当前 `schema_version: 1`。
-
 <details>
 <summary>不适用场景</summary>
 

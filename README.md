@@ -251,10 +251,6 @@ See [`skill/references/config.md`](skill/references/config.md) and [`skill/refer
 
 </details>
 
-## Upgrading
-
-`git pull` preserves `.lore/` verbatim. Breaking changes are prefixed `BREAKING:` — run `git log --grep=^BREAKING` after pulling. Current `schema_version: 1`.
-
 <details>
 <summary>When not to use lore</summary>
 
