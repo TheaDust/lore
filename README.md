@@ -29,7 +29,17 @@
 
 ## Installation
 
-The install unit is `skill/`:
+**Via `skills` CLI (recommended):**
+
+```bash
+npx skills add https://github.com/TheaDust/lore --skill lore -y          # project: ./.agents/skills/lore
+npx skills add https://github.com/TheaDust/lore --skill lore -g -y       # global: ~/.agents/skills/lore
+# limit to specific agent(s):
+npx skills add https://github.com/TheaDust/lore --skill lore -g -y --agent claude-code
+npx skills add https://github.com/TheaDust/lore --skill lore -g -y --agent opencode
+```
+
+**Manual:** the install unit is `skill/`:
 
 ```bash
 git clone https://github.com/TheaDust/lore.git /tmp/lore

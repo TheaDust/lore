@@ -29,7 +29,17 @@
 
 ## 安装
 
-安装单元是 `skill/`：
+**通过 `skills` CLI（推荐）：**
+
+```bash
+npx skills add https://github.com/TheaDust/lore --skill lore -y          # 项目级：./.agents/skills/lore
+npx skills add https://github.com/TheaDust/lore --skill lore -g -y       # 全局：~/.agents/skills/lore
+# 只装给指定 agent：
+npx skills add https://github.com/TheaDust/lore --skill lore -g -y --agent claude-code
+npx skills add https://github.com/TheaDust/lore --skill lore -g -y --agent opencode
+```
+
+**手动安装：**安装单元是 `skill/`：
 
 ```bash
 git clone https://github.com/TheaDust/lore.git /tmp/lore
