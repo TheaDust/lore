@@ -276,23 +276,9 @@ Yes — plain Markdown. Use `id_hash.py` for new IDs. Run `lore mirror` after to
 </details>
 
 <details>
-<summary>What if I don't want a mirror file?</summary>
-
-Set `mirror_targets: []` in `.config.json`. Only `SUMMARY.md` and entry files matter.
-
-</details>
-
-<details>
 <summary>How is this different from <code>.cursorrules</code> / <code>AGENTS.md</code>?</summary>
 
 Those are flat rule lists. lore is structured (ARCH/DEC/CONV), atomic (one fact per entry), and historical (`#added` / `#verified` / `#stale`), and it generates those files for you.
-
-</details>
-
-<details>
-<summary>Does lore call the agent API?</summary>
-
-No — pure file I/O. The agent does the semantic work; lore provides layout, ID scheme, markers, and verification scripts.
 
 </details>
 
@@ -321,13 +307,6 @@ No — `lore sync` detects the new scope from changed paths and creates `scopes/
 <summary>What is the difference between <code>sync</code> and <code>mirror</code>?</summary>
 
 `sync` updates `.lore/` from code; `mirror` updates agent-facing files from `.lore/`. `sync` deliberately does not touch mirrors so `git log` stays readable.
-
-</details>
-
-<details>
-<summary>How is lore different from ADRs?</summary>
-
-ADRs are one file per decision. lore is one fact per entry with stable IDs and lifecycle tags, plus `compress` / `mirror` summaries. Use lore instead of or alongside ADRs (one DEC entry can point to an ADR).
 
 </details>
 
