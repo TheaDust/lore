@@ -17,15 +17,17 @@
 
 > 框架无关的 AI 编程智能体项目记忆。长期保存架构、决策与约定为纯 Markdown，任何智能体都能读取。
 
-> **lore 是 SKILL，不是 CLI。** 它是一份 Markdown 规范（[`skill/SKILL.md`](skill/SKILL.md)），供 Claude Code、Cursor、OpenCode、Cline、Aider、Copilot 等读取。没有 `lore` 二进制文件——`lore init` / `lore sync` 是对智能体说的话。
+> 当下痛点：`/init` 后，平台记忆文件往往懒得手动更新，过时知识污染记忆。Claude 读 `CLAUDE.md`，Codex 读 `AGENTS.md`，两者逐渐漂移 ... ... 
+>
+> 于是 `lore` 应运而生。
 
 | 结构化 | 可检索 | 可移植 |
 |---|---|---|
 | `.lore/` 内按 ARCH / DEC / CONV 分层，条目带稳定 ID 与生命周期标签 | `lore query` 以 `[file#ID]` 引用回答；`lore history` 追溯 git 提交 | 单一事实源 `.lore/` 投影到 `CLAUDE.md` / `.cursorrules` / `AGENTS.md` |
 
-> `/init` 后平台记忆文件往往懒得手动更新，过时知识污染记忆。Claude 读 `CLAUDE.md`，Codex 读 `AGENTS.md`，两者漂移。lore 用单一事实源 `.lore/` 统一投影。
+> **lore 是 SKILL，不是 CLI。** 它是一份 Markdown 规范（[`skill/SKILL.md`](skill/SKILL.md)），供 Claude Code、Cursor、OpenCode、Cline、Aider、Copilot 等读取。没有 `lore` 二进制文件——`lore init` / `lore sync` 是对智能体说的话。
 
-> 目录：[安装](#安装) · [快速上手](#快速上手) · [实际效果](#实际效果) · [工作原理](#工作原理) · [七个工作流](#七个工作流) · [平台 Mirror](#平台-mirror) · [FAQ](#faq)
+> 目录：[安装](#安装) · [快速上手](#快速上手) · [工作原理](#工作原理) · [七个工作流](#七个工作流) · [平台 Mirror](#平台-mirror) · [FAQ](#faq)
 
 ## 安装
 
@@ -70,24 +72,51 @@ lore audit                             # 检查记忆与现实偏差，报告写
 lore history <entry-id|路径|--scope> [--json]  # 展示相关 git 提交
 ```
 
-## 实际效果
+## 工作原理
 
-### 查询
-
-> 你："这个项目怎么认证 API 请求？" — 智能体执行 `lore query auth`：
+### 布局 — `.lore/` 里有什么
 
 ```
-[_global/DECISIONS.md#DEC-2026-07-10-6d9c] 用 base64 不透明 token 而非 JWT；撤销更简单。
-[scopes/backend/ARCHITECTURE.md#ARCH-2026-07-10-59ac] 认证工具在 backend/app/auth.py
-[scopes/backend/CONVENTIONS.md#CONV-2026-07-10-84e3] 无效 token 返回 401；资源不存在返回 404。
-[scopes/frontend/ARCHITECTURE.md#ARCH-2026-07-10-6de2] Token 存于 localStorage todo.auth.token
+.lore/
+├── SUMMARY.md              # 摘要，新智能体先读它
+├── .config.json            # 可选配置
+├── _global/                # 全局记忆
+│   ├── ARCHITECTURE.md
+│   ├── DECISIONS.md
+│   └── CONVENTIONS.md
+├── scopes/<scope>/         # 每个作用域的记忆，如frontend，backend等
+│   ├── ARCHITECTURE.md
+│   ├── DECISIONS.md
+│   └── CONVENTIONS.md
+├── draft/                  # init 草案
+├── audit/                  # audit 报告
+└── .archive/               # mirror 清空时的 My notes 备份
 ```
 
-每条回答带 `[file#ID]`，可 `cat` 原文或 `lore history <ID>` 追溯原因。
+### 条目格式 — 一条事实一个 bullet
 
-### Mirror
+每条 entry 为一条 bullet，最多两行，带确定性 ID `LAYER-YYYY-MM-DD-xxxx` — `xxxx` 是条目文本的 4 位十六进制 hash，重写同一事实会得到同一 ID：
 
-每次会话成本保持在约 600 字节的索引：
+```markdown
+- [ARCH-2026-07-09-a3f2] Use Next.js App Router; reason: streaming + RSC. #added:2026-07-09
+- [DEC-2026-02-03-7c19] Chose Zustand over Redux; reason: 60% less boilerplate. #added:2026-02-03 #verified:2026-06-15
+- [CONV-2026-01-20-b1e8] Never commit secrets; use dotenv + .env.local. #added:2026-01-20
+```
+
+修改条目文本会改变 ID — 旧 ID 只存在于 git 历史中。生命周期标签（`#added` / `#verified` / `#stale`）记录条目状态；`#superseded-by:<id>` 串联替换链，供 `compress` / `history` 追溯。规范见 [`skill/references/entry-format.md`](skill/references/entry-format.md)。
+
+### 写工作流 — `init`、`sync`、`compress`、`mirror`
+
+七个工作流中有四个会写入 `.lore/`或平台记忆文件：
+
+- **`init`** — 一次性初始化。扫描项目，把候选条目起草到 `.lore/draft/`，询问要覆盖哪些智能体的 mirror 文件；确认后创建 `.lore/`（先跑一次 `compress` 生成 `SUMMARY.md`）及 mirror 文件。
+- **`sync`** — 每个功能、重构或 bug 修复后运行。通过 git diff 与重新扫描检测变更，把事实归类为 ARCH / DEC / CONV，提议 `[NEW]` / `[STALE]` / `[REFINED]` / `[ALERT]` 更新。低风险变更按 sync 信任级别自动应用，新增或矛盾之处等你确认。只写 `.lore/*` ，默认不改写 mirrors。
+- **`compress`** — 当 `SUMMARY.md` 过期时重建摘要（每个 scope 每层 3–5 条，幂等），`auto_mirror` 开启时一并重生成 mirrors。
+- **`mirror`** — 用当前 `.lore/` 强制重写 `CLAUDE.md` 等 mirror 文件，Lore 段未变化的 target 跳过，`My notes` 原样保留。
+
+**典型节奏：** `lore init` 一次 → 每个功能/重构后 `lore sync` → `SUMMARY.md` 过期时 `lore compress` → scope改变或需要发布时 `lore mirror`。
+
+mirror 把约 600 字节的索引投影到智能体本就会读取的文件中，保持每次会话成本恒定：
 
 <details>
 <summary>示例 <code>CLAUDE.md</code> Lore 段</summary>
@@ -106,7 +135,7 @@ as the digest, then open the referenced entries for the full text; cite entry ID
   - `.lore/scopes/backend/` (Flask 3 + SQLAlchemy 2 + pytest; Python 3.11+)
   - `.lore/scopes/frontend/` (React 18 + TypeScript + Vite + Zustand + Axios)
 
-**Query**: `lore query <关键词>` 或 `lore query <scope>:<关键词>`
+**Query**: `lore query <term>` or `lore query <scope>:<term>`
 <!-- LORE:END -->
 ---
 ## My notes (free edit)
@@ -115,46 +144,7 @@ as the digest, then open the referenced entries for the full text; cite entry ID
 
 </details>
 
-<details>
-<summary>示例 <code>lore history</code></summary>
-
-```
-# history: [DEC-2026-07-10-e45d]
-> Entry: scopes/backend/DECISIONS.md  Since: 2026-07-10T00:00:00  File: backend
-## 9f264f4 (2026-07-10, Lore Tester) feat(backend): switch password hashing to bcrypt
-## ed2b288 (2026-07-10, Lore Tester) feat(backend): password hashing and auth tokens
-```
-
-</details>
-
-## 工作原理
-
-```
-.lore/
-├── SUMMARY.md              # 摘要，新智能体先读它
-├── .config.json            # 可选配置
-├── _global/
-│   ├── ARCHITECTURE.md
-│   ├── DECISIONS.md
-│   └── CONVENTIONS.md
-├── scopes/<scope>/
-│   ├── ARCHITECTURE.md
-│   ├── DECISIONS.md
-│   └── CONVENTIONS.md
-├── draft/                  # init 草案
-├── audit/                  # audit 报告
-└── .archive/               # mirror 清空时的 My notes 备份
-```
-
-每条 entry 为一条 bullet，最多两行，带确定性 ID：
-
-```markdown
-- [ARCH-2026-07-09-a3f2] Use Next.js App Router; reason: streaming + RSC. #added:2026-07-09
-- [DEC-2026-02-03-7c19] Chose Zustand over Redux; reason: 60% less boilerplate. #added:2026-02-03 #verified:2026-06-15
-- [CONV-2026-01-20-b1e8] Never commit secrets; use dotenv + .env.local. #added:2026-01-20
-```
-
-`#superseded-by` 串联替换链，供 `compress` / `history` 追溯。规范见 [`skill/references/entry-format.md`](skill/references/entry-format.md)。
+其余三个 — `query`、`audit`、`history` — 只读，详见 [七个工作流](#七个工作流) 表格。
 
 ## 七个工作流
 
@@ -164,11 +154,9 @@ as the digest, then open the referenced entries for the full text; cite entry ID
 | `sync` | 检测变更、提议更新 | 仅 `.lore/*` | [workflows#sync](skill/references/workflows.md#sync--update-after-a-change) |
 | `query` | 从记忆回答并引用 ID | 无 | [workflows#query](skill/references/workflows.md#query--answer-from-memory) |
 | `audit` | 检查记忆与现实、写报告 | 仅 `.lore/audit/*` | [workflows#audit](skill/references/workflows.md#audit--check-memory-vs-reality) |
-| `compress` | 重建 `SUMMARY.md` | `SUMMARY.md` + mirrors | [workflows#compress](skill/references/workflows.md#compress--build-the-top-level-summary) |
+| `compress` | 重建 `SUMMARY.md` | `.lore/SUMMARY.md` | [workflows#compress](skill/references/workflows.md#compress--build-the-top-level-summary) |
 | `mirror` | 重生成 mirrors（去重） | `CLAUDE.md` 等 | [workflows#mirror](skill/references/workflows.md#mirror--regenerate-platform-mirrors) |
 | `history` | 展示相关 git 提交 | 无 | [workflows#history](skill/references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
-
-`sync` 不碰 mirrors — 需发布时跑 `lore mirror` 或 `compress`。设 `sync_updates_mirror: true` 可恢复每次同步都更新。
 
 <details>
 <summary>Sync 信任级别</summary>
@@ -288,23 +276,9 @@ Python 3.6+，仅标准库。测试：`python -m unittest discover -s tests -v`�
 </details>
 
 <details>
-<summary>完全不想要 mirror 文件呢？</summary>
-
-在 `.config.json` 设 `mirror_targets: []`。只有 `SUMMARY.md` 与条目文件生效。
-
-</details>
-
-<details>
 <summary>与 <code>.cursorrules</code> / <code>AGENTS.md</code> 有什么不同？</summary>
 
 它们是扁平规则列表。lore 是结构化（ARCH/DEC/CONV）、原子化（一条事实一条 entry）、带历史（`#added` / `#verified` / `#stale`）的记忆库，并替你生成这些文件。
-
-</details>
-
-<details>
-<summary>会调用智能体 API 吗？</summary>
-
-不会 — 纯文件 I/O。智能体做语义工作；lore 提供布局、ID 方案、标记与校验脚本。
 
 </details>
 
@@ -333,13 +307,6 @@ Python 3.6+，仅标准库。测试：`python -m unittest discover -s tests -v`�
 <summary><code>sync</code> 与 <code>mirror</code> 区别？</summary>
 
 `sync` 根据代码更新 `.lore/`；`mirror` 根据 `.lore/` 更新智能体侧文件。`sync` 故意不碰 mirrors，`git log` 更清晰。
-
-</details>
-
-<details>
-<summary>与 ADR 有什么区别？</summary>
-
-ADR 是一决策一文件。lore 是一事实一条 entry，带稳定 ID 与生命周期标签，并通过 `compress` / `mirror` 生成摘要。可替代或共存（一条 DEC 指向 ADR）。
 
 </details>
 

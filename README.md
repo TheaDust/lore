@@ -17,15 +17,17 @@
 
 > Framework-agnostic project memory for AI coding agents. A long-term knowledge base that persists architecture, decisions, and conventions as plain Markdown any agent can read.
 
-> **lore is a SKILL, not a CLI.** It is a Markdown spec ([`skill/SKILL.md`](skill/SKILL.md)) for Claude Code, Cursor, OpenCode, Cline, Aider, Copilot and others. There is no `lore` binary — phrases like `lore init` and `lore sync` are spoken to your agent.
+> The pain point: after `/init`, platform memory files are rarely updated by hand — stale knowledge pollutes memory. Claude reads `CLAUDE.md`, Codex reads `AGENTS.md`, the two drift apart ... ...
+>
+> So `lore` was born.
 
 | Structured | Searchable | Portable |
 |---|---|---|
 | Architecture / Decisions / Conventions in `.lore/` with stable IDs and lifecycle tags | `lore query` answers with `[file#ID]` citations; `lore history` traces commits | Single source `.lore/` projected to `CLAUDE.md` / `.cursorrules` / `AGENTS.md` via mirrors |
 
-> After `/init`, platform memory files are rarely updated by hand — stale knowledge pollutes memory. Claude reads `CLAUDE.md`, Codex reads `AGENTS.md`, they drift. lore keeps one source `.lore/` and projects it everywhere.
+> **lore is a SKILL, not a CLI.** It is a Markdown spec ([`skill/SKILL.md`](skill/SKILL.md)) for Claude Code, Cursor, OpenCode, Cline, Aider, Copilot and others. There is no `lore` binary — phrases like `lore init` and `lore sync` are spoken to your agent.
 
-> Contents: [Installation](#installation) · [Quick start](#quick-start) · [What it looks like](#what-it-looks-like) · [How it works](#how-it-works) · [Workflows](#workflows) · [Platform mirrors](#platform-mirrors) · [FAQ](#faq)
+> Contents: [Installation](#installation) · [Quick start](#quick-start) · [How it works](#how-it-works) · [Workflows](#workflows) · [Platform mirrors](#platform-mirrors) · [FAQ](#faq)
 
 ## Installation
 
@@ -70,24 +72,51 @@ lore audit                         # Check memory vs. code, report to .lore/audi
 lore history <entry-id|path|--scope> [--json]  # Git commits behind an entry
 ```
 
-## What it looks like
+## How it works
 
-### Query
-
-> You: "How does this project authenticate API requests?" — Agent runs `lore query auth`:
+### Layout — what lives in `.lore/`
 
 ```
-[_global/DECISIONS.md#DEC-2026-07-10-6d9c] Opaque base64 tokens over JWT; simpler revocation.
-[scopes/backend/ARCHITECTURE.md#ARCH-2026-07-10-59ac] Auth helpers in backend/app/auth.py
-[scopes/backend/CONVENTIONS.md#CONV-2026-07-10-84e3] Invalid token -> 401; not found -> 404.
-[scopes/frontend/ARCHITECTURE.md#ARCH-2026-07-10-6de2] Token in localStorage todo.auth.token
+.lore/
+├── SUMMARY.md              # Digest; agents read first
+├── .config.json            # Optional config
+├── _global/                # Global memory
+│   ├── ARCHITECTURE.md
+│   ├── DECISIONS.md
+│   └── CONVENTIONS.md
+├── scopes/<scope>/         # Per-scope memory, e.g. frontend, backend
+│   ├── ARCHITECTURE.md
+│   ├── DECISIONS.md
+│   └── CONVENTIONS.md
+├── draft/                  # init proposals
+├── audit/                  # audit reports
+└── .archive/               # My notes backups on wipe
 ```
 
-Every answer cites `[file#ID]` — `cat` the file or `lore history <ID>` to trace why.
+### Entry format — one fact per bullet
 
-### Mirrors
+Each entry is one bullet, at most two lines, with a deterministic ID `LAYER-YYYY-MM-DD-xxxx` — the `xxxx` is a 4-hex hash of the entry text, so rewriting the same fact yields the same ID:
 
-`lore` keeps per-session cost flat with a small index mirror (~600 bytes):
+```markdown
+- [ARCH-2026-07-09-a3f2] Use Next.js App Router; reason: streaming + RSC. #added:2026-07-09
+- [DEC-2026-02-03-7c19] Chose Zustand over Redux; reason: 60% less boilerplate. #added:2026-02-03 #verified:2026-06-15
+- [CONV-2026-01-20-b1e8] Never commit secrets; use dotenv + .env.local (gitignored). #added:2026-01-20
+```
+
+Changing an entry's text changes its ID — old IDs survive only in git history. Lifecycle tags (`#added` / `#verified` / `#stale`) track entry state; `#superseded-by:<id>` links replacements so `compress` / `history` can walk the chain. Spec: [`skill/references/entry-format.md`](skill/references/entry-format.md).
+
+### Writing workflows — `init`, `sync`, `compress`, `mirror`
+
+Four of the seven workflows write to `.lore/` or platform memory files:
+
+- **`init`** — one-time setup. Scans the project, drafts candidate entries into `.lore/draft/`, asks which agents' mirrors to cover, then on confirmation creates `.lore/` (running an initial `compress` for `SUMMARY.md`) and the mirror files.
+- **`sync`** — run after each feature, refactor, or bug fix. Detects what changed (git diff + re-scan), classifies facts into ARCH / DEC / CONV, and proposes `[NEW]` / `[STALE]` / `[REFINED]` / `[ALERT]` updates. Low-risk changes apply automatically per the sync trust level; real additions or contradictions wait for your confirmation. Writes `.lore/*` only — mirrors untouched by default.
+- **`compress`** — refreshes `SUMMARY.md` when it goes stale (3–5 entries per scope and layer, idempotent), regenerating mirrors when `auto_mirror` is on.
+- **`mirror`** — force-regenerates `CLAUDE.md` and other mirror files from the current `.lore/`, skipping targets whose Lore section is unchanged and preserving `My notes` verbatim.
+
+**Typical cadence:** `lore init` once → `lore sync` after each feature/refactor → `lore compress` when `SUMMARY.md` is stale → `lore mirror` when scopes change or you want to publish.
+
+A mirror keeps per-session cost flat by projecting a ~600-byte index into files your agent already reads:
 
 <details>
 <summary>Example <code>CLAUDE.md</code> Lore section</summary>
@@ -115,46 +144,7 @@ as the digest, then open the referenced entries for the full text; cite entry ID
 
 </details>
 
-<details>
-<summary>Example <code>lore history</code></summary>
-
-```
-# history: [DEC-2026-07-10-e45d]
-> Entry: scopes/backend/DECISIONS.md  Since: 2026-07-10T00:00:00  File: backend
-## 9f264f4 (2026-07-10, Lore Tester) feat(backend): switch password hashing to bcrypt
-## ed2b288 (2026-07-10, Lore Tester) feat(backend): password hashing and auth tokens
-```
-
-</details>
-
-## How it works
-
-```
-.lore/
-├── SUMMARY.md              # Digest; agents read first
-├── .config.json            # Optional config
-├── _global/                # Cross-scope facts
-│   ├── ARCHITECTURE.md
-│   ├── DECISIONS.md
-│   └── CONVENTIONS.md
-├── scopes/<scope>/
-│   ├── ARCHITECTURE.md
-│   ├── DECISIONS.md
-│   └── CONVENTIONS.md
-├── draft/                  # init proposals
-├── audit/                  # audit reports
-└── .archive/               # My notes backups on wipe
-```
-
-Each entry is one bullet, at most two lines, with a deterministic ID:
-
-```markdown
-- [ARCH-2026-07-09-a3f2] Use Next.js App Router; reason: streaming + RSC. #added:2026-07-09
-- [DEC-2026-02-03-7c19] Chose Zustand over Redux; reason: 60% less boilerplate. #added:2026-02-03 #verified:2026-06-15
-- [CONV-2026-01-20-b1e8] Never commit secrets; use dotenv + .env.local (gitignored). #added:2026-01-20
-```
-
-`#superseded-by` links replacements so `compress` / `history` can walk the chain. Spec: [`skill/references/entry-format.md`](skill/references/entry-format.md).
+The other three — `query`, `audit`, `history` — are read-only; see the [Workflows](#workflows) table for details.
 
 ## Workflows
 
@@ -164,11 +154,9 @@ Each entry is one bullet, at most two lines, with a deterministic ID:
 | `sync` | Detect changes, propose updates | `.lore/*` only | [workflows#sync](skill/references/workflows.md#sync--update-after-a-change) |
 | `query` | Answer from memory with IDs | nothing | [workflows#query](skill/references/workflows.md#query--answer-from-memory) |
 | `audit` | Check memory vs. code, write report | `.lore/audit/*` | [workflows#audit](skill/references/workflows.md#audit--check-memory-vs-reality) |
-| `compress` | Rebuild `SUMMARY.md` | `SUMMARY.md` + mirrors | [workflows#compress](skill/references/workflows.md#compress--build-the-top-level-summary) |
+| `compress` | Rebuild `SUMMARY.md` | `.lore/SUMMARY.md` | [workflows#compress](skill/references/workflows.md#compress--build-the-top-level-summary) |
 | `mirror` | Regenerate mirrors (deduped) | `CLAUDE.md` etc. | [workflows#mirror](skill/references/workflows.md#mirror--regenerate-platform-mirrors) |
 | `history` | Git commits for an entry / file / scope | nothing | [workflows#history](skill/references/workflows.md#history--show-git-commits-related-to-a-memory-entry) |
-
-`sync` never touches mirrors — run `lore mirror` or `compress` to publish. Set `sync_updates_mirror: true` to restore per-sync mirrors.
 
 <details>
 <summary>Sync trust levels</summary>
