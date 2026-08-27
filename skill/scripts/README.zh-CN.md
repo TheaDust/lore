@@ -8,7 +8,7 @@
 
 **优先跨平台。** 仅使用 Python 标准库，不依赖 `bash`、`jq` 或任何平台特定工具。Windows / Linux / macOS 行为完全一致。
 
-**JSON 友好输出。** 每个脚本都支持 `--json` 便于机器消费。Agent 调用方解析输出；人类可以直接 `less` 或 `jq`（如果装了）。
+**JSON 友好输出。** 条目检查脚本（`list_entries.py`、`find_duplicates.py`、`find_stale.py` 和 `history.py`）都支持 `--json`，便于机器消费。`id_hash.py` 只输出四字符 hash。Agent 调用方解析输出；人类可以把 JSON 结果交给 `less` 或 `jq`（如果装了）。
 
 **组合而非重复。** `find_duplicates.py`、`find_stale.py` 和 `history.py` 通过 `list_entries.py --json` 复用解析器，不重复实现 entry 格式解析。Entry 格式只在一处定义——将来格式变更只需改 `list_entries.py`。
 
@@ -36,7 +36,7 @@ Agent 会路由明确针对项目记忆的自然语言请求和显式 lore 命�
 
 ## 输出通道
 
-**stdout 是数据通道；stderr 是警告通道。** 所有脚本遵循这个分离，这样 `--json` 消费者就不必从解析结果里过滤噪音。只有 `list_entries.py` 会发警告，全部走 stderr：
+**stdout 是数据通道；stderr 是警告通道。** 所有脚本遵循这个分离，这样 `--json` 消费者就不必从解析结果里过滤噪音。`list_entries.py` 的配置与条目解析警告全部走 stderr：
 
 - `[WARN] .lore/.config.json has no schema_version field.` —— 配置文件存在但缺 `schema_version` 字段时，每个调用触发一次。加 `"schema_version": 1` 即可消除。
 - `[WARN] .lore/.config.json#schema_version=N is newer than this lore skill expects (max: 1).` —— 配置版本超过本 skill 能理解的范围时触发。从上游 pull 最新 lore。
@@ -44,6 +44,8 @@ Agent 会路由明确针对项目记忆的自然语言请求和显式 lore 命�
 - `[WARN] entry <id> has a malformed #superseded-by value '<value>' (expected LAYER-YYYY-MM-DD-xxxx); chain not resolved.` —— `#superseded-by` 的值不是合法 entry ID 时触发；标签保留在文本里，`replaced_by` 保持 `None`。
 
 所有警告都是告知性质；`list_entries.py` 不管配置状态如何，stdout 输出始终一致。完整 schema 版本策略见 `references/compatibility.md`。
+
+当条目缺少 `#added` 标签，或对非 entry 查询使用 `--follow-superseded` 时，`history.py` 也可能向 stderr 输出警告；stdout 仍保持为合法 Markdown 或 JSON。
 
 ## 测试
 

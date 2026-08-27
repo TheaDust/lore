@@ -165,8 +165,9 @@ def run_git_log(project_root, since, code_file, n=None):
     try:
         proc = subprocess.run(
             cmd,
-            capture_output=True,
-            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
             encoding="utf-8",
             errors="replace",
             check=False,
@@ -265,7 +266,8 @@ def fetch_commit_body(project_root, commit_hash):
     ]
     try:
         proc = subprocess.run(
-            cmd, capture_output=True, text=True,
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            universal_newlines=True,
             encoding="utf-8", errors="replace", check=False,
         )
     except FileNotFoundError:
@@ -375,8 +377,11 @@ def _load_entries_via_subprocess():
     here = Path(__file__).resolve().parent
     cmd = [sys.executable, str(here / "list_entries.py"), "--json"]
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True,
-                              encoding="utf-8", errors="replace", check=False)
+        proc = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            universal_newlines=True,
+            encoding="utf-8", errors="replace", check=False,
+        )
     except FileNotFoundError as exc:
         die(ERR_NO_GIT, f"python executable not found: {exc}")
     if proc.returncode != 0:
@@ -427,7 +432,9 @@ def _is_git_repo(project_root):
     try:
         proc = subprocess.run(
             ["git", "-C", str(project_root), "rev-parse", "--git-dir"],
-            capture_output=True, text=True, check=False,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            universal_newlines=True, encoding="utf-8", errors="replace",
+            check=False,
         )
     except FileNotFoundError:
         die(ERR_NO_GIT, "git executable not found on PATH.")

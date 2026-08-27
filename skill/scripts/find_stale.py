@@ -35,8 +35,9 @@ def get_entries():
     script = Path(__file__).parent / "list_entries.py"
     r = subprocess.run(
         [sys.executable, str(script), "--json"],
-        capture_output=True,
-        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
         encoding="utf-8",
         errors="replace",
     )

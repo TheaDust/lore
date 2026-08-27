@@ -9,6 +9,7 @@ Every test builds an isolated `.lore/` fixture in a temporary directory
 and runs the real script via subprocess, exactly as the lore workflows
 do. Stdlib only (unittest), Python 3.6+, cross-platform.
 """
+import ast
 import json
 import shutil
 import subprocess
@@ -28,8 +29,9 @@ def run_script(name, args, cwd):
     return subprocess.run(
         [sys.executable, str(SCRIPTS / name), *args],
         cwd=str(cwd),
-        capture_output=True,
-        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
         encoding="utf-8",
         errors="replace",
     )
@@ -62,6 +64,22 @@ def make_project(tmp, scopes=("frontend",)):
     for scope in scopes:
         (lore / "scopes" / scope).mkdir(parents=True)
     return root, lore
+
+
+class TestPython36Compatibility(unittest.TestCase):
+    def test_subprocess_run_avoids_python37_only_keywords(self):
+        paths = list(SCRIPTS.glob("*.py")) + [Path(__file__)]
+        for path in paths:
+            tree = ast.parse(path.read_text(encoding="utf-8-sig"))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                func = node.func
+                if not isinstance(func, ast.Attribute) or func.attr != "run":
+                    continue
+                keywords = {kw.arg for kw in node.keywords}
+                self.assertNotIn("capture_output", keywords, str(path))
+                self.assertNotIn("text", keywords, str(path))
 
 
 class TestIdHash(unittest.TestCase):
@@ -486,15 +504,15 @@ class TestHistory(unittest.TestCase):
         (self.lore / "scopes" / "frontend").mkdir(parents=True)
         subprocess.run(
             ["git", "init", "-q", str(self.root)],
-            check=True, capture_output=True,
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
         subprocess.run(
             ["git", "-C", str(self.root), "config", "user.email", "test@example.com"],
-            check=True, capture_output=True,
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
         subprocess.run(
             ["git", "-C", str(self.root), "config", "user.name", "Tester"],
-            check=True, capture_output=True,
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
 
     def tearDown(self):
@@ -503,11 +521,11 @@ class TestHistory(unittest.TestCase):
     def _commit_all(self, message):
         subprocess.run(
             ["git", "-C", str(self.root), "add", "-A"],
-            check=True, capture_output=True,
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
         subprocess.run(
             ["git", "-C", str(self.root), "commit", "-q", "-m", message],
-            check=True, capture_output=True,
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
 
     def _run(self, args, cwd=None):

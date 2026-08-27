@@ -141,18 +141,18 @@ Removing support for a config value such as `mirror_mode: "full"`:
 
 ## Decision checklist
 
-Before merging any change to lore, answer these questions:
+Before merging any change to lore, answer these questions about its public compatibility surface:
 
-1. Does this change add, modify, or remove anything in `.lore/`?
-2. Does this change add, modify, or remove any script in `scripts/`?
-3. Does this change add, modify, or remove any contract string (`## Lore (auto-managed)`, `## My notes (free edit)`, `<!-- LORE:START -->`, `<!-- LORE:END -->`, etc.)?
-4. Does this change add, modify, or remove any reference doc filename?
-5. Does this change add, modify, or remove any entry tag?
+1. Does this change remove or alter an existing `.lore/` field, file format, or directory meaning?
+2. Does this change remove or alter a script name, argument, exit code, stdout/JSON shape, or documented behavior that callers may depend on? Internal bug fixes that preserve these contracts are not breaking.
+3. Does this change remove or alter any contract string (`## Lore (auto-managed)`, `## My notes (free edit)`, `<!-- LORE:START -->`, `<!-- LORE:END -->`, etc.)?
+4. Does this change remove or rename any reference doc filename?
+5. Does this change remove or alter the meaning or syntax of an existing entry tag?
 
-If any answer is "add" and the change is non-breaking (new optional field, new optional tag, new doc, new script), ship as-is with a regular commit prefix (`feat:`, `docs:`, `refactor:`).
+Additive changes that leave existing contracts intact (new optional field, optional tag, doc, script, or flag) are non-breaking and ship with a regular commit prefix (`feat:`, `docs:`, `refactor:`).
 
-If any answer is "modify" or "remove", the change is breaking and the commit must:
+If any answer above is "yes", the change is breaking and the commit must:
 - Be prefixed `BREAKING:` instead of `feat:` / `refactor:`.
 - Name what changed and what the user must do in the commit body.
 
-If all answers are "add" or "no", the change is non-breaking and ships as a regular commit.
+If all answers are "no", the change is non-breaking and ships as a regular commit. This includes implementation-only fixes, corrections to documentation text, and additive optional behavior that follows the layer-specific rules above.

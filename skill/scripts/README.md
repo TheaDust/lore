@@ -8,7 +8,7 @@ The script list and quick-reference command examples live in the project root `R
 
 **Cross-platform first.** Python standard library only. No `bash`, no `jq`, no platform-specific tools. The same invocation works on Windows, Linux, macOS.
 
-**JSON-friendly output.** Every script supports `--json` for machine consumption. Agent callers parse the output; humans pipe to `less` or `jq` (if available).
+**JSON-friendly output.** The entry-inspection scripts (`list_entries.py`, `find_duplicates.py`, `find_stale.py`, and `history.py`) support `--json` for machine consumption. `id_hash.py` emits only the four-character hash. Agent callers parse the output; humans pipe JSON results to `less` or `jq` (if available).
 
 **Composition.** `find_duplicates.py`, `find_stale.py`, and `history.py` shell out to `list_entries.py --json` rather than re-implementing the parser. One source of truth for entry format — if the format ever changes, only `list_entries.py` needs updating.
 
@@ -36,7 +36,7 @@ Before appending a candidate, run `python <skill>/scripts/find_duplicates.py --j
 
 ## Output channels
 
-**stdout is the data channel; stderr is the warning channel.** All scripts follow this split so `--json` consumers never have to filter noise out of their parsers. `list_entries.py` is the only script that emits warnings, all on stderr:
+**stdout is the data channel; stderr is the warning channel.** All scripts follow this split so `--json` consumers never have to filter noise out of their parsers. `list_entries.py` emits config and entry-parse warnings on stderr:
 
 - `[WARN] .lore/.config.json has no schema_version field.` — fires once per invocation when the config file exists but lacks the version field. Add `"schema_version": 1` to silence it.
 - `[WARN] .lore/.config.json#schema_version=N is newer than this lore skill expects (max: 1).` — fires when the config version exceeds what this skill understands. Pull the latest lore from upstream.
@@ -44,6 +44,8 @@ Before appending a candidate, run `python <skill>/scripts/find_duplicates.py --j
 - `[WARN] entry <id> has a malformed #superseded-by value '<value>' (expected LAYER-YYYY-MM-DD-xxxx); chain not resolved.` — fires when a `#superseded-by` value is not a valid entry ID. The tag stays in the entry text and `replaced_by` stays `None`.
 
 All warnings are informational; `list_entries.py` always produces the same stdout regardless of config state. See `references/compatibility.md` for the full schema versioning policy.
+
+`history.py` can also warn on stderr when an entry has no `#added` tag or when `--follow-superseded` is supplied to a non-entry query. Its stdout remains valid Markdown or JSON.
 
 ## Testing
 
