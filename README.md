@@ -97,7 +97,7 @@ lore history <entry-id|path|--scope> [--json]  # Git commits behind an entry
 
 ### Entry format — one fact per bullet
 
-Each entry is one bullet, at most two lines, with a deterministic ID `LAYER-YYYY-MM-DD-xxxx` — the `xxxx` is a 4-hex hash of the entry text, so rewriting the same fact yields the same ID:
+Each entry is one bullet, at most two lines, with a deterministic ID `LAYER-YYYY-MM-DD-xxxx` — the `xxxx` is a 4-hex hash of the entry text, so the exact same text yields the same hash:
 
 ```markdown
 - [ARCH-2026-07-09-a3f2] Use Next.js App Router; reason: streaming + RSC. #added:2026-07-09
@@ -113,7 +113,7 @@ ARCH records the architectural fact and may include a brief reason within the tw
 
 ### Writing workflows — `init`, `sync`, `compress`, `mirror`
 
-Four of the seven workflows write to `.lore/` or platform memory files:
+Four workflows update canonical memory or platform mirrors; `audit` writes a separate report without editing canonical entries:
 
 - **`init`** — one-time setup. Scans the project, drafts candidate entries into `.lore/draft/`, asks which agents' mirrors to cover, then on confirmation creates `.lore/` (running an initial `compress` for `SUMMARY.md`) and the mirror files.
 - **`sync`** — run after each feature, refactor, or bug fix. Combines commits since the last sync with `git diff HEAD` for staged and unstaged changes, and scans untracked files separately (empty repos use a file scan). Checks each candidate body for duplicates before writing, classifies facts into ARCH / DEC / CONV, and proposes `[NEW]` / `[STALE]` / `[REFINED]` / `[ALERT]` updates. Low-risk changes apply automatically per the sync trust level; real additions or contradictions wait for your confirmation. Writes `.lore/*` only — mirrors untouched by default.
@@ -150,7 +150,7 @@ as the digest, then open the referenced entries for the full text; cite entry ID
 
 </details>
 
-The other three — `query`, `audit`, `history` — are read-only; see the [Workflows](#workflows) table for details.
+`query` and `history` are pure reads. `audit` never edits canonical entries but writes a report under `.lore/audit/`; see the [Workflows](#workflows) table for details.
 
 ## Workflows
 

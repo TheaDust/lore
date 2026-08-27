@@ -21,11 +21,11 @@ Each entry is a Markdown bullet (≤ 2 lines), containing:
 
 The 4-char `xxxx` is the first 4 hex chars of `sha256(entry text)`. This makes IDs:
 
-- **Deterministic**: rewriting the same fact produces the same ID
-- **Conflict-free** under concurrent writes by multiple agents
-- **Reverse-lookup-able** by audit tools
+- **Deterministic**: the exact same entry text produces the same hash
+- **Coordination-light**: concurrent agents can compute IDs independently, with the collision check below as the safeguard
+- **Searchable**: tools can locate stored entries by their IDs
 
-If two entries have identical content (hash collision, statistically rare), add a distinguishing word to one and recompute.
+Identical text producing the same hash is a duplicate, not a collision. A collision is when two different entry bodies produce the same 4-character hash. If that would create the same full ID, keep the existing entry unchanged, add a meaningful qualifier (such as scope, object, or applicability) to the new body, and recompute its hash. Do not resolve collisions with invisible whitespace.
 
 ### Updating an entry (REFINED)
 
@@ -82,7 +82,7 @@ Worked example — bcrypt replaces SHA-256 in `scopes/backend/DECISIONS.md`:
 Consumers:
 
 - `find_stale.py --json` — groups stale entries by their `replaced_by` target; flags chains where the target ID does not exist (broken chain).
-- `history.py --follow-superseded <id>` — prints the entry plus every successor along the chain (newest first).
+- `history.py --follow-superseded <id>` — prints the requested entry first, followed by each successor in chain order.
 - `compress` — applies the active-entry rule above when selecting the 3–5 entries per (scope, layer).
 - `audit` — when reporting CONFLICT between two entries, surfaces the chain if both belong to one.
 
@@ -90,7 +90,7 @@ Constraints:
 
 - The tag is **optional**. Old entries without it continue to work; old skills ignore it.
 - **At most one `#superseded-by` tag per entry.** Successive replacements form a chain (A → B → C), never a fork: an entry is replaced by one successor at a time. If an entry carries more than one tag, `list_entries.py` warns and keeps the first.
-- Cross-file references: the ID is sufficient because the LAYER prefix plus hash makes collisions across files vanishingly rare. If two files contain the same ID, prefer the one in the same scope as the entry being read.
+- Cross-file references: qualify the ID with its `.lore/`-relative file path whenever the target file is known. If a legacy bare-ID reference matches more than one file, prefer the entry in the same scope and report the ambiguity rather than guessing silently.
 
 ## What counts as "atomic"
 

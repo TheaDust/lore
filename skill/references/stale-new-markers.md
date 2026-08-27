@@ -1,6 +1,6 @@
 # Stale / New marking convention
 
-When `sync` proposes a change, it never silently mutates files. Instead it emits one or more of these markers. The user reads the proposal and accepts/rejects per marker type.
+For changes that require confirmation under `sync_trust`, `sync` emits one or more of these markers and waits for the user to accept or reject them. Changes permitted for automatic application are written without per-item confirmation and reported in the sync result.
 
 ## Marker types
 
@@ -61,4 +61,4 @@ Note: `[STALE]` does not delete or move anything. The entry remains in its file 
 
 ## When audit uses these markers
 
-`audit` does **not** use these markers. It writes its own severity tags (`[CONFLICT]`, `[STALE]`, `[UNVERIFIED]`) into the audit report file under `.lore/audit/`. The naming overlap (`[STALE]` in sync vs `[STALE]` severity in audit) is intentional — both refer to the same concept (entry no longer accurate) but operate in different files with different downstream actions.
+`audit` does **not** use these markers. It writes its own severity tags (`[CONFLICT]`, `[STALE]`, `[UNVERIFIED]`, `[BROKEN_CHAIN]`) into the audit report file under `.lore/audit/`. The naming overlap (`[STALE]` in sync vs `[STALE]` severity in audit) is intentional — both refer to the same concept (entry no longer accurate) but operate in different files with different downstream actions.

@@ -56,7 +56,7 @@ lore 有七个工作流。本文用平实语言解释每个什么时候用。Age
 2. 变更显著时（≥50 行 / 跨 ≥2 目录，或新 module/dir/dep，或对话里讨论了新约定），agent 主动提议
 3. 每个候选 entry 分类成 `[NEW]` / `[STALE]` / `[REFINED]` **并且**与同 scope/layer 的已有 entry 做矛盾检查 —— 矛盾打 `[ALERT]`。这是 sync 自带的矛盾检测；完整的 `lore audit` 是独立命令，遍历**所有** entry 对比代码
 4. 写入前为每条候选运行 `find_duplicates.py --json --candidate "<entry body>"`（也可通过 `--candidate-file` 传入 UTF-8 正文文件）。只有适用 scope 中语义相同且仍有效的条目才能使候选被跳过；尚未写入的候选之间也要互相比较
-5. 输出 `[NEW]/[STALE]/[REFINED]/[ALERT]` marker 提案。默认 trust level `medium`：dedup 命中与只动 tag 的 REFINED 静默自动 apply；改正文的 REFINED（新 ID + 取代链）、NEW、STALE、ALERT 需要确认
+5. 输出 `[NEW]/[STALE]/[REFINED]/[ALERT]` marker 提案。默认 trust level `medium`：dedup 命中与只动 tag 的 REFINED 无需逐项确认即可自动 apply，并在完成后报告；改正文的 REFINED（新 ID + 取代链）、NEW、STALE、ALERT 需要确认
 6. 你按 marker 接受 / 拒绝；接受的 marker 落到 `.lore/*.md`。然后 `last_sync_sha` 推进到当前 `HEAD`，下次 sync 覆盖正确的 commit 区间
 
 **真实场景**：
@@ -120,7 +120,7 @@ lore 有七个工作流。本文用平实语言解释每个什么时候用。Age
 # Memory Audit Report
 
 > Date: 2026-07-09
-> Findings: 2 CONFLICT, 1 STALE, 5 UNVERIFIED
+> Findings: 2 CONFLICT, 1 STALE, 5 UNVERIFIED, 0 BROKEN_CHAIN
 
 ## Scope: backend
 

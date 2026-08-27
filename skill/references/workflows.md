@@ -83,7 +83,7 @@ If any of these are true, the skill appends a `[COMPRESS NOTICE]` to the sync pr
    | `STALE` mark | auto-apply | confirm | confirm |
    | `ALERT` | confirm | confirm | confirm |
 
-   Auto-applied changes are written silently and reported at the end. Confirmation-required changes are bundled into a single diff proposal and shown together.
+   Auto-applied changes are written without per-change confirmation and reported at the end. Confirmation-required changes are bundled into a single diff proposal and shown together.
 7. **Generate the proposed diff** (for any confirmation-required changes) using the `[NEW]/[STALE]/[REFINED]/[ALERT]/[COMPRESS NOTICE]` markers. See `references/stale-new-markers.md` for the full convention and user reply semantics.
 8. **Stop and wait for user confirmation** for any pending changes. Auto-applied changes need no confirmation.
 9. After the user accepts, write to `.lore/*` only. **Do not** regenerate platform mirrors from `sync` (unless `sync_updates_mirror: true` is set in `.lore/.config.json`) — this is intentional. See "Mirror update triggers" in `SKILL.md` and the dedicated `lore mirror` command.
@@ -189,6 +189,6 @@ Supported flags: `--since=<YYYY-MM-DD>`, `--follow-superseded`, `--json`. Full d
 | `.lore/draft/` | `init` (proposals; moved into `.lore/` on confirm, removed on reject) |
 | `<project-root>/<platform files>` | `init`, `mirror`, `compress` (if `auto_mirror: true`), `sync` (if `sync_updates_mirror: true`) |
 
-**What never happens silently:** file mutation (sync proposes; user accepts/rejects); platform mirror rewrite on every sync (separate command); `compress` deleting entries (only writes SUMMARY.md); entry marked as `[STALE]` without proposal; `init` overwriting user-written platform files without explicit takeover.
+**What remains protected:** changes outside the configured `sync_trust` allowance wait for confirmation; auto-applied sync changes are reported; platform mirrors are not rewritten on every sync by default; `compress` never deletes entries; `init` never overwrites user-written platform files without explicit takeover.
 
 **Typical sequence:** `init` -> `[sync <-> query <-> audit]` (interchangeable, agent picks by context) -> `compress` (when SUMMARY.md grows stale) -> `mirror` (or auto via `compress` if `auto_mirror: true`).

@@ -97,7 +97,7 @@ lore history <entry-id|路径|--scope> [--json]  # 展示相关 git 提交
 
 ### 条目格式 — 一条事实一个 bullet
 
-每条 entry 为一条 bullet，最多两行，带确定性 ID `LAYER-YYYY-MM-DD-xxxx` — `xxxx` 是条目文本的 4 位十六进制 hash，重写同一事实会得到同一 ID：
+每条 entry 为一条 bullet，最多两行，带确定性 ID `LAYER-YYYY-MM-DD-xxxx` — `xxxx` 是条目文本的 4 位十六进制 hash，完全相同的文本会得到相同 hash：
 
 ```markdown
 - [ARCH-2026-07-09-a3f2] Use Next.js App Router; reason: streaming + RSC. #added:2026-07-09
@@ -113,7 +113,7 @@ ARCH 记录架构事实，可以在两行限制内附带简短理由。方案比
 
 ### 写工作流 — `init`、`sync`、`compress`、`mirror`
 
-七个工作流中有四个会写入 `.lore/`或平台记忆文件：
+四个工作流会更新 canonical memory 或平台 mirrors；`audit` 另写报告，但不修改 canonical entries：
 
 - **`init`** — 一次性初始化。扫描项目，把候选条目起草到 `.lore/draft/`，询问要覆盖哪些智能体的 mirror 文件；确认后创建 `.lore/`（先跑一次 `compress` 生成 `SUMMARY.md`）及 mirror 文件。
 - **`sync`** — 每个功能、重构或 bug 修复后运行。合并上次 sync 以来的提交与 `git diff HEAD` 中已暂存、未暂存的改动，另行扫描未跟踪文件（空仓库采用文件扫描）。写入前传入每条候选正文检查重复，把事实归类为 ARCH / DEC / CONV，提议 `[NEW]` / `[STALE]` / `[REFINED]` / `[ALERT]` 更新。低风险变更按 sync 信任级别自动应用，新增或矛盾之处等你确认。只写 `.lore/*` ，默认不改写 mirrors。
@@ -150,7 +150,7 @@ as the digest, then open the referenced entries for the full text; cite entry ID
 
 </details>
 
-其余三个 — `query`、`audit`、`history` — 只读，详见 [七个工作流](#七个工作流) 表格。
+`query` 和 `history` 完全只读；`audit` 不修改 canonical entries，但会把报告写到 `.lore/audit/`。详见 [七个工作流](#七个工作流) 表格。
 
 ## 七个工作流
 

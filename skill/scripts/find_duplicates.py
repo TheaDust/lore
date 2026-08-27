@@ -10,9 +10,9 @@ Usage:
     echo '<text>' | python find_duplicates.py --candidate-stdin
 
 Detection strategies:
-    1. Identical hash suffix (4 chars after the date) — these are exact
-       text matches and indicate either a real duplicate or a hash
-       collision. Always reported.
+    1. Identical hash suffix (4 chars after the date) — this may indicate
+       an exact-text duplicate or a collision between different bodies.
+       Always reported for agent review.
     2. Token-based Jaccard similarity above `--threshold` on the entry
        text. Catches rewrites that mean the same thing but produce a
        different hash (e.g. "use Zustand" vs "we chose Zustand").
@@ -162,9 +162,9 @@ def main():
     # existing-vs-existing pairs (unchanged behavior)
     for i, a in enumerate(entries):
         for b in entries[i + 1:]:
-            # Exact-hash matches are reported across layers (same text is
-            # a duplicate no matter which layer it landed in); fuzzy
-            # Jaccard comparisons stay within the same layer.
+            # Matching hash suffixes are reported across layers. They may
+            # be exact-text duplicates or collisions; fuzzy Jaccard
+            # comparisons stay within the same layer.
             if hash_suffix(a["id"]) == hash_suffix(b["id"]):
                 pairs.append((a, b, 1.0, "identical hash"))
                 continue

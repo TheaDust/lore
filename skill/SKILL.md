@@ -35,7 +35,7 @@ Load this skill when the user explicitly invokes `lore`, names a subcommand, ref
 
 ### Tier 2 — Internal proposals (after the skill is loaded)
 
-Once the skill is loaded for this session, certain commands may proactively propose themselves based on internal thresholds. These proposals still require user acceptance — the skill never mutates files silently.
+Once the skill is loaded for this session, certain commands may proactively propose themselves based on internal thresholds. Writes follow the configured trust controls: confirmation-required changes wait for the user, while permitted auto-applied changes are reported after writing.
 
 - `sync` proposes when 50+ changed lines span 2+ directories, OR a new top-level module/directory/dependency was added or removed, OR a new convention was explicitly discussed in chat.
 - `compress` appends a `[COMPRESS NOTICE]` to sync proposals when entries > 500, `SUMMARY.md` is missing, or last compression > 30 days ago.
@@ -228,7 +228,7 @@ The user then either: (a) confirms memory is wrong and runs `sync` to update it,
 lore init      # First-time setup: takeover check -> scan -> draft -> user confirms -> move into .lore/.
 lore sync      # Update .lore/* after a change. Never touches mirrors (unless sync_updates_mirror: true). Trust level gates auto-apply.
 lore query     # Read-only. Answer from memory, cite entry IDs with file paths.
-lore audit     # Read-only. Write .lore/audit/audit-<date>.md. Never edits entries.
+lore audit     # Canonical-read-only. Write .lore/audit/audit-<date>.md; never edit entries.
 lore compress  # Rebuild SUMMARY.md; platform mirrors follow auto_mirror.
 lore mirror    # Regenerate platform mirrors; content-based dedup skips unchanged targets.
 lore history   # Read-only. Git commits behind an entry / file / scope.

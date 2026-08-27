@@ -9,7 +9,7 @@
 
 > Date: 2026-07-09
 > Total entries audited: <N>
-> Findings: <X> CONFLICT, <Y> STALE, <Z> UNVERIFIED
+> Findings: <X> CONFLICT, <Y> STALE, <Z> UNVERIFIED, <W> BROKEN_CHAIN
 
 ## Global (`_global/`)
 

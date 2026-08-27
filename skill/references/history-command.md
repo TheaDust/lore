@@ -25,7 +25,7 @@ lore history --json
 
 ### `--follow-superseded`
 
-When set on the entry form, prints not just the requested entry's git history, but the history of every entry in its `#superseded-by` chain (newest successor first). Stops when an entry has no `#superseded-by` tag or the chain reaches a non-existent ID. Output prepends a `## Chain` section listing each entry's ID and file path before the per-entry `git log` blocks.
+When set on the entry form, prints the requested entry's git history followed by every successor in `#superseded-by` chain order. Stops when an entry has no `#superseded-by` tag or the chain reaches a non-existent ID. Output prepends a `## Chain` section listing each entry's ID and file path before the per-entry `git log` blocks.
 
 Example:
 

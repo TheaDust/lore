@@ -56,7 +56,7 @@ lore has seven workflows. This document explains when to use each one, in plain 
 2. If the change is significant (≥50 lines / ≥2 dirs, or new module/dir/dep, or a new convention was discussed), the agent proactively proposes.
 3. For each candidate entry, the agent classifies it as `[NEW]` / `[STALE]` / `[REFINED]` **and** checks for contradictions against existing entries in the same scope/layer — contradictions are flagged as `[ALERT]`. This is sync's own contradiction-detection step; a full `lore audit` is a separate command that walks every entry.
 4. Runs `find_duplicates.py --json --candidate "<entry body>"` for each candidate before writing (or supplies the body via `--candidate-file` with a UTF-8 file). Only a semantically equivalent active entry in the applicable scope can suppress a candidate; also compare unsaved candidates with each other.
-5. Emits a proposal with `[NEW]/[STALE]/[REFINED]/[ALERT]` markers. Default trust level is `medium`; de-duplicate hits and tags-only REFINEDs auto-apply silently. Body-changing REFINEDs (new ID + supersede link), NEW, STALE, and ALERT require confirmation.
+5. Emits a proposal with `[NEW]/[STALE]/[REFINED]/[ALERT]` markers. Default trust level is `medium`; de-duplicate hits and tags-only REFINEDs auto-apply without per-item confirmation and are reported afterward. Body-changing REFINEDs (new ID + supersede link), NEW, STALE, and ALERT require confirmation.
 6. You accept or reject per marker; accepted markers get applied to `.lore/*.md`. Then `last_sync_sha` advances to the current `HEAD` so the next sync spans the right commit range.
 
 **Real scenarios**:
@@ -120,7 +120,7 @@ The `[file#ID]` reference lets the agent `cat` the file for full text.
 # Memory Audit Report
 
 > Date: 2026-07-09
-> Findings: 2 CONFLICT, 1 STALE, 5 UNVERIFIED
+> Findings: 2 CONFLICT, 1 STALE, 5 UNVERIFIED, 0 BROKEN_CHAIN
 
 ## Scope: backend
 

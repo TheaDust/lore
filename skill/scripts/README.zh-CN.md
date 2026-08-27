@@ -62,4 +62,4 @@ python -m unittest discover -s tests -v
 - **去重只到词袋重叠程度。** Jaccard 相似度能抓到词汇相似的改写，但抓不到语义等价（如 "use TypeScript" vs "TypeScript-only codebase"）。更深的检查仍需 LLM 介入。
 - **日期计算比较朴素。** `find_stale.py` 直接用 `#verified` / `#added` 标签的日期。如果系统时钟不对，结果会偏差。
 - **不自动 archive。** 脚本会报告已被取代的 entry（带 `#stale`，或带 `#superseded-by`）和坏链，但不会移动或删除任何东西。过期的 entry 留在原 scope 文件、保留原 tag；git 历史保留全部。
-- **理论上可能有 hash 冲突**（4 个十六进制字符 = 16 位 = 1/65536 概率）。实际项目基本不会遇到。如果遇到了，对 entry 文本做微调以改变 hash。
+- **不同文本可能得到相同 hash。** 4 个十六进制字符提供 16 位空间，任意一对不同正文共享后缀的概率为 1/65536。如果它们会形成相同完整 ID，保留已有 entry，为新正文补充有意义的 scope、对象或适用条件后重新计算；相同正文属于重复，不是碰撞。
