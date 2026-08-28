@@ -17,7 +17,12 @@
 
 > Framework-agnostic project memory for AI coding agents. A long-term knowledge base that persists architecture, decisions, and conventions as plain Markdown any agent can read.
 
-> The pain point: after `/init`, platform memory files are rarely updated by hand — stale knowledge pollutes memory. Claude reads `CLAUDE.md`, Codex reads `AGENTS.md`, the two drift apart ... ...
+> The pain point:
+>
+> - Projects lack a memory file; in a new session the agent re-reads the code repeatedly.
+> - After `/init`, platform memory files (e.g. `AGENTS.md`) are rarely updated by hand — stale knowledge pollutes memory.
+> - Claude reads `CLAUDE.md`, Codex reads `AGENTS.md`, the two drift apart
+> - ... ...
 >
 > So `lore` was born.
 

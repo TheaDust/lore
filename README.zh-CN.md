@@ -17,7 +17,12 @@
 
 > 框架无关的 AI 编程智能体项目记忆。长期保存架构、决策与约定为纯 Markdown，任何智能体都能读取。
 
-> 当下痛点：`/init` 后，平台记忆文件往往懒得手动更新，过时知识污染记忆。Claude 读 `CLAUDE.md`，Codex 读 `AGENTS.md`，两者逐渐漂移 ... ... 
+> 当下痛点：
+>
+> - 项目缺乏记忆文件，新session中Agent反复读代码。
+> - `/init` 后，平台记忆文件（如AGENTS.md）往往懒得手动更新，过时知识污染记忆。
+> - Claude 读 `CLAUDE.md`，Codex 读 `AGENTS.md`，两者逐渐漂移
+> -  ... ... 
 >
 > 于是 `lore` 应运而生。
 
