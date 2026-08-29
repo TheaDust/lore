@@ -46,7 +46,7 @@ npx skills add https://github.com/TheaDust/lore --skill lore -g -y --agent claud
 npx skills add https://github.com/TheaDust/lore --skill lore -g -y --agent opencode
 ```
 
-**手动安装：**安装单元是 `skill/`：
+**手动安装：** 安装单元是 `skill/`：
 
 ```bash
 git clone https://github.com/TheaDust/lore.git /tmp/lore
@@ -230,7 +230,7 @@ python skill/scripts/find_stale.py --days=90 --json
 python skill/scripts/history.py DEC-2026-02-03-7c19
 ```
 
-Python 3.6+，仅标准库。测试：`python -m unittest discover -s tests -v`。详见 [`skill/scripts/README.md`](skill/scripts/README.md)。
+Python 3.6+，仅标准库。测试：`python -m unittest discover -s tests -v`。详见 [`skill/scripts/README.zh-CN.md`](skill/scripts/README.zh-CN.md)。
 
 </details>
 
@@ -350,5 +350,5 @@ Python 3.6+，仅标准库。测试：`python -m unittest discover -s tests -v`�
   <a href="skill/references/config.md">config</a> ·
   <a href="skill/references/history-command.md">history-command</a> ·
   <a href="skill/references/compatibility.md">compatibility</a> ·
-  <a href="skill/scripts/README.md">scripts</a>
+  <a href="skill/scripts/README.zh-CN.md">scripts</a>
 </p>
